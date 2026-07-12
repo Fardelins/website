@@ -1,0 +1,36 @@
+.store-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.store-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: var(--color-neutral-black);
+  color: var(--color-neutral-white);
+  border: 1px solid var(--color-4);
+  border-radius: var(--radius-md);
+  padding: 8px 16px;
+  text-decoration: none;
+}
+
+.store-badge__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+}
+
+.store-badge__eyebrow {
+  font-family: var(--font-body);
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.store-badge__title {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+}

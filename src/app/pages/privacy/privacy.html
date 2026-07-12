@@ -1,0 +1,45 @@
+<article id="privacy-top" class="terms privacy-page">
+  <header class="terms__header">
+    <h1>Privacy Policy</h1>
+    <p class="terms__updated"><strong>Last Updated:</strong> June 2026</p>
+    <div class="terms__intro">
+      <p>Fardelins ("we", "our", or "us") values your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and share information when you use our website, mobile applications, and related services.</p>
+      <p>By using Fardelins, you agree to the collection and use of information in accordance with this Privacy Policy.</p>
+    </div>
+  </header>
+
+  <div class="terms__layout">
+    <aside class="terms__aside">
+      <nav class="terms__index" aria-label="Privacy policy sections" [style.--progress]="readingProgress()">
+        <span class="terms__track" aria-hidden="true"><span class="terms__progress"></span><span class="terms__progress-head"></span></span>
+        @for (section of sections; track section.id; let index = $index) {
+          <a [href]="'/privacy#' + section.id" [class.is-active]="activeSection() === index" [attr.aria-current]="activeSection() === index ? 'location' : null" (click)="selectSection($event, section.id, index)"><span>{{ index + 1 }}.</span> {{ section.label }}</a>
+        }
+      </nav>
+    </aside>
+
+    <div class="terms__content">
+      <section #privacySection id="information-we-collect"><h2>1. Information We Collect</h2><p>We may collect information that you provide directly to us, information collected automatically through your use of the platform, and information from third-party services.</p></section>
+      <section #privacySection id="personal-information"><h2>2. Personal Information</h2><p>This may include:</p><ul><li>Full name</li><li>Email address</li><li>Phone number</li><li>Profile photo</li><li>Business information</li><li>Delivery recipient details</li><li>Billing information</li></ul></section>
+      <section #privacySection id="delivery-information"><h2>3. Delivery Information</h2><p>To provide delivery-related services, we may collect:</p><ul><li>Pickup locations</li><li>Delivery locations</li><li>Delivery notes</li><li>Package details</li><li>Tracking information</li><li>Delivery status updates</li></ul></section>
+      <section #privacySection id="device-information"><h2>4. Device Information</h2><p>When you use Fardelins, we may automatically collect:</p><ul><li>Device type</li><li>Operating system</li><li>Browser information</li><li>IP address</li><li>App version</li><li>Device identifiers</li></ul></section>
+      <section #privacySection id="location-information"><h2>5. Location Information</h2><p>Fardelins may request access to location services to support features such as:</p><ul><li>Live delivery tracking</li><li>Route visibility</li><li>Delivery status updates</li><li>Courier and dispatcher operations</li><li>Improved delivery accuracy</li></ul><p>You may manage location permissions through your device settings.</p><p>Disabling location access may limit certain platform features.</p></section>
+      <section #privacySection id="how-we-use-information"><h2>6. How We Use Your Information</h2><p>We use information to:</p><ul><li>Provide and operate our services</li><li>Process deliveries and delivery requests</li><li>Verify user accounts</li><li>Improve delivery visibility and tracking</li><li>Communicate important service updates</li><li>Respond to support requests</li><li>Prevent fraud and abuse</li><li>Improve platform performance and user experience</li></ul></section>
+      <section #privacySection id="notifications"><h2>7. Notifications and Communications</h2><p>We may send notifications related to:</p><ul><li>Delivery updates</li><li>Account activity</li><li>Service announcements</li><li>Security alerts</li><li>Product improvements</li></ul><p>You may manage notification preferences through your account settings.</p></section>
+      <section #privacySection id="sharing-information"><h2>8. Sharing Information</h2><p>We do not sell personal information.</p><p>We may share information with:</p></section>
+      <section #privacySection id="delivery-partners"><h2>9. Delivery Partners</h2><p>To facilitate delivery services, relevant delivery information may be shared with dispatchers, couriers, and delivery partners involved in fulfilling an order.</p></section>
+      <section #privacySection id="service-providers"><h2>10. Service Providers</h2><p>We may work with trusted third-party providers that assist with:</p><ul><li>Hosting</li><li>Analytics</li><li>Customer support</li><li>Payment processing</li><li>Communication services</li></ul></section>
+      <section #privacySection id="legal-requirements"><h2>11. Legal Requirements</h2><p>Information may be disclosed where required by law or to protect the rights, safety, and security of users, partners, or Fardelins.</p></section>
+      <section #privacySection id="data-retention"><h2>12. Data Retention</h2><p>We retain information only as long as necessary to:</p><ul><li>Provide services</li><li>Meet legal obligations</li><li>Resolve disputes</li><li>Enforce agreements</li></ul><p>Retention periods may vary depending on the type of information involved.</p></section>
+      <section #privacySection id="data-security"><h2>13. Data Security</h2><p>We implement reasonable administrative, technical, and organizational safeguards designed to protect personal information from unauthorized access, loss, misuse, or disclosure.</p><p>While we work to protect information, no system can guarantee complete security.</p></section>
+      <section #privacySection id="privacy-rights"><h2>14. Your Privacy Rights</h2><p>Depending on your location and applicable laws, you may have the right to:</p><ul><li>Access your personal information</li><li>Correct inaccurate information</li><li>Request deletion of information</li><li>Withdraw consent where applicable</li><li>Object to certain processing activities</li></ul><p>Requests may be submitted using the contact information below.</p></section>
+      <section #privacySection id="cookies"><h2>15. Cookies and Similar Technologies</h2><p>Our website may use cookies and similar technologies to:</p><ul><li>Improve website functionality</li><li>Remember user preferences</li><li>Analyze website usage</li><li>Enhance user experience</li></ul><p>You may control cookie settings through your browser preferences.</p></section>
+      <section #privacySection id="third-party-services"><h2>16. Third-Party Services</h2><p>Fardelins may contain links to third-party websites or services.</p><p>We are not responsible for the privacy practices of third-party platforms. Users should review the privacy policies of those services independently.</p></section>
+      <section #privacySection id="childrens-privacy"><h2>17. Children's Privacy</h2><p>Fardelins is not intended for children under the age of 13 or the minimum age required by applicable law.</p><p>We do not knowingly collect personal information from children.</p></section>
+      <section #privacySection id="international-transfers"><h2>18. International Data Transfers</h2><p>Your information may be processed and stored in locations outside your country of residence where permitted by law and necessary for providing our services.</p><p>Appropriate safeguards will be implemented where required.</p></section>
+      <section #privacySection id="policy-changes"><h2>19. Changes to This Privacy Policy</h2><p>We may update this Privacy Policy from time to time. When significant changes are made, we will notify users through appropriate channels.</p><p>Continued use of Fardelins after changes become effective constitutes acceptance of the updated policy.</p></section>
+      <section #privacySection id="contact-us"><h2>20. Contact Us</h2><p>If you have questions about this Privacy Policy or how your information is handled, please contact us:</p><address>Email: <a href="mailto:contact@fardelins.com">contact@fardelins.com</a><br />Website: <a href="https://fardelins.com">https://fardelins.com</a><br />Contact Page: <a href="https://fardelins.com/contact">https://fardelins.com/contact</a></address></section>
+      <p class="terms__acknowledgement">By using Fardelins, you acknowledge that you have read and understood this Privacy Policy.</p>
+    </div>
+  </div>
+</article>

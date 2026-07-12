@@ -1,0 +1,95 @@
+/* You can add global styles to this file, and also import other style files */
+
+:root {
+  /* Colors */
+  --color-neutral-white: #ffffff;
+  --color-primary-50: #ede8f4;
+  --color-primary-100: #dcd1ea;
+  --color-primary-200: #b9a4d6;
+  --color-primary-300: #9776c1;
+  --color-primary-500: #521c99;
+  --color-primary-600: #41167a;
+  --color-primary-700: #31105b;
+  --color-primary-800: #200b3d;
+  --color-styles-body: #333333;
+  --color-styles-title: #151515;
+  --color-styles-label: #797979;
+  --color-styles-off-white: #f9f9f9;
+  --color-styles-stroke: #eaeaea;
+  --color-accent-green: #29cc6a;
+  --color-accent-charcoal: #222222;
+  --color-accent-blue: #0099ff;
+  --color-neutral-black: #000000;
+  --color-2: #d9d9d9;
+  --color-3: #c4c4c4;
+  --color-4: #a6a6a6;
+  --color-5: rgba(0, 0, 0, 0.4);
+  --color-6: rgba(211, 214, 216, 0.17);
+  --color-7: #e8e8e8;
+  --color-8: #adadad;
+  --color-1: #8a38f5;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 15.73px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-40: 40px;
+  --spacing-60: 60px;
+  --spacing-80: 80px;
+  --spacing-184: 184px;
+
+  /* Radius */
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-40: 40px;
+  --radius-48: 48px;
+  --radius-100: 100px;
+  --radius-5: 5px;
+
+  /* Shadows */
+  --shadow-elevation-1: 0px 40px 39px 0px rgba(26, 6, 51, 0.29);
+  --shadow-elevation-2: 0px 21.9px 20.16px 0px rgba(26, 6, 51, 0.29);
+  --shadow-elevation-3: inset 0px -0.15px 0px 0px rgba(0, 0, 0, 0.12),
+    inset 0px 0.15px 0px 0px rgba(255, 255, 255, 0.25);
+
+  /* Layout */
+  --content-max-width: 1600px;
+
+  /* Typography */
+  --font-heading: 'Parkinsans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  color: var(--color-styles-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-family: var(--font-heading);
+}
+
+p {
+  margin: 0;
+  font-family: var(--font-body);
+}

@@ -1,0 +1,16 @@
+<section class="marquee">
+  <div class="marquee__viewport">
+    <ul class="marquee__track">
+      @for (logo of logos; track $index) {
+        <li class="marquee__item">
+          <img src="/home/default-logo.png" alt="Fardelins" />
+        </li>
+      }
+      @for (logo of logos; track $index) {
+        <li class="marquee__item" aria-hidden="true">
+          <img src="/home/default-logo.png" alt="" />
+        </li>
+      }
+    </ul>
+  </div>
+</section>

@@ -1,0 +1,14 @@
+<a class="blog-card" href="#" [attr.data-slug]="article().slug">
+  <div class="blog-card__media">
+    <img class="blog-card__image" [src]="article().image" alt="" loading="lazy" />
+  </div>
+  <div class="blog-card__body">
+    <p class="blog-card__meta">{{ article().readTime }} • {{ article().category }}</p>
+    <h3 class="blog-card__title">{{ article().title }}</h3>
+    <p class="blog-card__excerpt">{{ article().excerpt }}</p>
+  </div>
+  <span class="blog-card__link">
+    Read Article
+    <img src="/blogs/blog-arrow.svg" alt="" width="20" height="20" />
+  </span>
+</a>

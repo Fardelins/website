@@ -1,0 +1,26 @@
+<section class="features">
+  <div class="features__intro">
+    <h2 class="features__title">
+      Everything needed to<br />
+      <span class="features__title-accent">move a delivery</span> forward
+    </h2>
+    <p class="features__subtitle">
+      From pickup requests to live tracking and delivery coordination, Fardelins keeps every step
+      connected.
+    </p>
+  </div>
+
+  <div class="features__grid">
+    @for (item of items; track item.title) {
+      <div class="feature-card">
+        <div class="feature-card__icon">
+          <img [src]="item.icon" alt="" />
+        </div>
+        <div class="feature-card__text">
+          <h3 class="feature-card__title">{{ item.title }}</h3>
+          <p class="feature-card__description">{{ item.description }}</p>
+        </div>
+      </div>
+    }
+  </div>
+</section>

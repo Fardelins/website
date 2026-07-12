@@ -1,0 +1,69 @@
+<section class="hero">
+  <div class="hero__inner">
+    <div class="hero__intro">
+      <h1 class="hero__title">Deliveries, without the chaos.</h1>
+      <p class="hero__subtitle">
+        Fardelins helps customers, stores, and delivery teams manage pickups, tracking, and
+        fulfillment in one smooth flow.
+      </p>
+
+      <app-store-badges />
+    </div>
+
+    <div class="hero__visual">
+      <app-hero-liquid-background class="hero__visual-bg" />
+      <div class="hero__visual-scrim"></div>
+
+      <img class="hero__phone" [appTilt]="16" src="/home/phone-image.png" alt="Fardelins app screen" />
+
+      <div class="hero__float hero__float--details tracking-card hero__float--details-coded">
+        <div class="tracking-card__header">
+          <div>
+            <p class="tracking-card__name">To: Aisha Badmus</p>
+            <p class="tracking-card__sender">Sent by Bami Bam</p>
+          </div>
+          <span class="tracking-card__chip">
+            <svg viewBox="0 0 16 16" width="12" height="12" fill="none">
+              <path
+                d="M8 0 9.8 1 12 .7l.9 2 1.9 1.1-.4 2.2L15.5 8l-1.1 1.9.4 2.2-1.9 1.1-.9 2-2.2-.3L8 16l-1.8-1-2.2.3-.9-2-1.9-1.1.4-2.2L.5 8l1.1-1.9-.4-2.2L3.1 2.7l.9-2L6.2 1 8 0Z"
+                fill="#29CC6A"
+              />
+              <path
+                d="M5.2 8.1 7.2 10l3.6-3.8"
+                stroke="#fff"
+                stroke-width="1.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Delivered
+          </span>
+        </div>
+
+        <hr class="tracking-card__divider" />
+
+        <div class="tracking-card__body">
+          <div class="tracking-card__row">
+            <p class="tracking-card__label">From (Pick-Up)</p>
+            <p class="tracking-card__value">No 2, Wuse II, Ademola Adetokunbo, Abuja</p>
+          </div>
+          <div class="tracking-card__row">
+            <p class="tracking-card__label">To (Drop-Off)</p>
+            <p class="tracking-card__value">No 34b, Prince Bode str, Lekki phase 1, Lagos</p>
+          </div>
+        </div>
+      </div>
+
+      <img
+        class="hero__float hero__float--details hero__float--details-img"
+        src="/home/details.png"
+        alt="Delivery tracking card"
+      />
+
+      <img class="hero__float hero__float--storefront" src="/home/storefront.png" alt="Set up storefront" />
+      <img class="hero__float hero__float--courier" src="/home/courier.png" alt="Delivery partner rating" />
+      <img class="hero__float hero__float--headphones hero__float--floaty" src="/home/left-image.png" alt="Package in transit" />
+      <img class="hero__float hero__float--airpods hero__float--floaty" src="/home/right-image.png" alt="Delivered package" />
+    </div>
+  </div>
+</section>

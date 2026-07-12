@@ -1,0 +1,126 @@
+.features {
+  padding: var(--spacing-80) var(--spacing-80);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-80);
+  background: var(--color-neutral-white);
+}
+
+.features__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  max-width: 722px;
+  text-align: center;
+}
+
+.features__title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 56px;
+  line-height: 72px;
+  letter-spacing: -0.5px;
+  color: var(--color-styles-title);
+}
+
+.features__title-accent {
+  color: var(--color-1);
+}
+
+.features__subtitle {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 22px;
+  line-height: 34px;
+  letter-spacing: 0.15px;
+  color: var(--color-styles-body);
+}
+
+.features__grid {
+  width: 100%;
+  max-width: 1280px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-40);
+}
+
+.feature-card {
+  background: var(--color-primary-50);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: 90px;
+}
+
+.feature-card__icon {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.feature-card__icon img {
+  width: 40px;
+  height: 40px;
+}
+
+.feature-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.feature-card__title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 34px;
+  color: var(--color-styles-title);
+}
+
+.feature-card__description {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--color-styles-body);
+}
+
+@media (max-width: 1100px) {
+  .features__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .features {
+    padding: var(--spacing-40) var(--spacing-xl);
+    gap: var(--spacing-40);
+  }
+
+  .features__title {
+    font-size: 32px;
+    line-height: 40px;
+  }
+
+  .features__subtitle {
+    font-size: 18px;
+    line-height: 26px;
+  }
+
+  .feature-card {
+    gap: 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  .features__grid {
+    grid-template-columns: 1fr;
+  }
+}

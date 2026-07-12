@@ -1,0 +1,39 @@
+<section class="about">
+  <app-shader-background class="about__trail" [preset]="trailPreset" />
+
+  <div class="about__intro">
+    <p class="about__eyebrow">ABOUT US</p>
+    <p class="about__text" #textEl>
+      @for (word of words; track $index) {
+        <span class="about__word" [style.opacity]="wordOpacity($index)">{{ word }} </span>
+      }
+    </p>
+  </div>
+
+  <div class="about__images">
+    <div
+      class="about__image"
+      role="img"
+      aria-label="Fardelins packaging"
+      #leftImageEl
+      [style.transform]="imageTransform('left')"
+      (pointerenter)="setImageHover('left', true)"
+      (pointermove)="onImagePointerMove($event, leftImageEl, 'left')"
+      (pointerleave)="onImageLeave('left')"
+    >
+      <app-shader-background #leftShader [preset]="leftImagePreset" />
+    </div>
+    <div
+      class="about__image"
+      role="img"
+      aria-label="Fardelins team collaborating"
+      #rightImageEl
+      [style.transform]="imageTransform('right')"
+      (pointerenter)="setImageHover('right', true)"
+      (pointermove)="onImagePointerMove($event, rightImageEl, 'right')"
+      (pointerleave)="onImageLeave('right')"
+    >
+      <app-shader-background #rightShader [preset]="rightImagePreset" />
+    </div>
+  </div>
+</section>

@@ -1,0 +1,5 @@
+:host { display: block; }
+.blog-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 96px 24px; text-align: center; }
+.blog-empty__icon { color: var(--color-styles-label); opacity: .6; }
+.blog-empty__title { color: var(--color-styles-title); font-size: 18px; font-weight: 600; }
+.blog-empty__text { max-width: 360px; color: var(--color-styles-label); font-size: 14px; line-height: 1.5; }

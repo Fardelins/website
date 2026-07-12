@@ -1,0 +1,41 @@
+<section class="journey">
+  <div class="journey__intro">
+    <h2 class="journey__title">
+      <span class="journey__title-accent">One platform</span> for every delivery journey
+    </h2>
+    <p class="journey__subtitle">
+      From customers sending packages to businesses managing orders and dispatchers coordinating
+      routes, Fardelins keeps every delivery moving clearly from pickup to drop-off.
+    </p>
+  </div>
+
+  <div class="journey__panels">
+    @for (panel of panels; track panel.title) {
+      <div
+        class="panel"
+        [class]="
+          'panel--' + panel.theme + ' panel--text-' + panel.textTone +
+          (panel.phoneSide === 'left' ? ' panel--phone-left' : '')
+        "
+      >
+        <div class="panel__content">
+          <div class="panel__text">
+            <span class="panel__chip">{{ panel.chip }}</span>
+            <h3 class="panel__title">{{ panel.title }}</h3>
+            <p class="panel__description">{{ panel.description }}</p>
+          </div>
+
+          @if (panel.cta === 'badges') {
+            <app-store-badges />
+          } @else {
+            <button class="panel__cta-btn" type="button">{{ panel.ctaLabel }}</button>
+          }
+        </div>
+
+        <div class="panel__phone-frame">
+          <img class="panel__phone" [appTilt]="6" [src]="panel.phone" alt="" />
+        </div>
+      </div>
+    }
+  </div>
+</section>

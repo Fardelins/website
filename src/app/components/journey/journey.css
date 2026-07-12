@@ -1,0 +1,243 @@
+.journey {
+  padding: var(--spacing-80) var(--spacing-80);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-40);
+  background: var(--color-neutral-white);
+}
+
+.journey__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  max-width: 779px;
+  text-align: center;
+}
+
+.journey__title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 56px;
+  line-height: 72px;
+  letter-spacing: -0.5px;
+  color: var(--color-styles-title);
+}
+
+.journey__title-accent {
+  color: var(--color-1);
+}
+
+.journey__subtitle {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 22px;
+  line-height: 34px;
+  letter-spacing: 0.15px;
+  color: var(--color-styles-body);
+}
+
+.journey__panels {
+  width: 100%;
+  max-width: 1280px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+.panel {
+  position: relative;
+  height: 600px;
+  border-radius: var(--radius-48);
+  overflow: hidden;
+  padding: 64px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: var(--spacing-2xl);
+}
+
+.panel--phone-left {
+  flex-direction: row-reverse;
+}
+
+.panel--purple {
+  background: var(--color-primary-700);
+}
+
+.panel--dark {
+  background: var(--color-accent-charcoal);
+}
+
+.panel--blue {
+  background: var(--color-accent-blue);
+}
+
+.panel__content {
+  flex: 1 1 480px;
+  align-self: stretch;
+  max-width: 627px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+.panel__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+}
+
+.panel__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 20px;
+  border-radius: var(--radius-40);
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 14px;
+  letter-spacing: 0.154px;
+}
+
+.panel--text-light .panel__chip {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--color-neutral-white);
+}
+
+.panel--text-dark .panel__chip {
+  background: rgba(0, 0, 0, 0.12);
+  color: var(--color-styles-title);
+}
+
+.panel__title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: -0.5px;
+  margin-top: var(--spacing-sm);
+}
+
+.panel--text-light .panel__title {
+  color: var(--color-neutral-white);
+}
+
+.panel--text-dark .panel__title {
+  color: var(--color-styles-title);
+}
+
+.panel__description {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 22px;
+  line-height: 34px;
+  letter-spacing: 0.15px;
+}
+
+.panel--text-light .panel__description {
+  color: var(--color-styles-off-white);
+}
+
+.panel--text-dark .panel__description {
+  color: var(--color-styles-body);
+}
+
+.panel__cta-btn {
+  background: var(--color-neutral-black);
+  color: var(--color-neutral-white);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: 16px 32px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* The phone image renders at its full, natural size — the panel itself
+   (fixed height + overflow:hidden) is what crops it, not this frame. */
+.panel__phone-frame {
+  flex: 0 0 444px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  width: 444px;
+}
+
+.panel__phone {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: -16px;
+}
+
+@media (max-width: 1100px) {
+  .panel {
+    /* fixed (not auto) so overflow:hidden on the panel has something to
+       crop — the phone image itself stays full-size/uncropped */
+    height: 800px;
+    flex-direction: column;
+    border-radius: var(--radius-2xl);
+    gap: var(--spacing-lg);
+    padding: var(--spacing-40);
+  }
+
+  .panel--phone-left {
+    flex-direction: column;
+  }
+
+  /* no more stretch-to-fill on tablet/mobile — back to normal, content-hugging flow */
+  .panel__content {
+    max-width: 100%;
+    justify-content: flex-start;
+    gap: var(--spacing-xl);
+  }
+
+  .panel__phone-frame {
+    align-self: center;
+    width: 100%;
+    max-width: 320px;
+    flex: none;
+  }
+
+  .panel__phone {
+    margin-top: var(--spacing-40);
+  }
+}
+
+@media (max-width: 900px) {
+  .journey {
+    padding: var(--spacing-40) var(--spacing-xl);
+    gap: var(--spacing-xl);
+  }
+
+  .journey__title {
+    font-size: 32px;
+    line-height: 40px;
+  }
+
+  .journey__subtitle {
+    font-size: 18px;
+    line-height: 26px;
+  }
+
+  .panel__title {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .panel__description {
+    font-size: 18px;
+    line-height: 26px;
+  }
+}
+
+@media (max-width: 640px) {
+  .panel {
+    padding: var(--spacing-40) var(--spacing-lg);
+  }
+}

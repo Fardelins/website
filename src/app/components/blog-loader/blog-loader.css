@@ -1,0 +1,13 @@
+:host { display: block; }
+.blog-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--spacing-lg); padding: 96px 24px; }
+.blog-loader__mark { width: min(280px, 60vw); aspect-ratio: 3 / 1; animation: blog-loader-zoom 1.4s ease-in-out infinite; }
+.blog-loader__label { color: var(--color-styles-label); font: 500 14px/1 var(--font-body); letter-spacing: .02em; }
+
+@keyframes blog-loader-zoom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-loader__mark { animation: none; }
+}

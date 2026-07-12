@@ -1,0 +1,27 @@
+@import '../terms/terms.css';
+
+.privacy-page .terms__layout {
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: clamp(32px, 4vw, 52px);
+}
+
+.privacy-page .terms__aside {
+  top: 96px;
+  max-height: calc(100vh - 112px);
+}
+
+.privacy-page .terms__index a {
+  min-height: 32px;
+  font-size: 13px;
+  line-height: 16px;
+}
+
+.privacy-page .terms__progress-head {
+  transform: translateY(calc(var(--progress) * 596px));
+}
+
+@media (max-width: 900px) {
+  .privacy-page .terms__layout {
+    grid-template-columns: 1fr;
+  }
+}

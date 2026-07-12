@@ -1,0 +1,69 @@
+<main class="contact-page">
+  <section class="contact-hero">
+    <div class="contact-hero__inner">
+      <header class="contact-hero__intro">
+        <h1>Let's talk logistics.</h1>
+        <p>Have questions about Fardelins? Need help with deliveries, partnerships, or your account? Our team is ready to help.</p>
+      </header>
+
+      <div class="contact-grid">
+        <form class="contact-form" (submit)="submitForm($event)">
+          <div class="contact-form__intro">
+            <h2>Send us a message</h2>
+            <p>Fill out the form below and we'll get back to you as soon as possible.</p>
+          </div>
+          <div class="contact-form__row">
+            <label>First Name<input type="text" name="firstName" placeholder="Enter first name..." required /></label>
+            <label>Last Name<input type="text" name="lastName" placeholder="Enter last name..." required /></label>
+          </div>
+          <label>Email Address<input type="email" name="email" placeholder="We will reach you here... E.g; johndoe@example.com" required /></label>
+          <div class="contact-form__row">
+            <label>Company Name<input type="text" name="company" placeholder="Let's know who you represent..." /></label>
+            <label>Subject<input type="text" name="subject" placeholder="What is this about?" required /></label>
+          </div>
+          <label>Message<textarea name="message" rows="7" placeholder="Tell us how we can help you..." required></textarea></label>
+          <button type="submit">Send Message</button>
+          @if (submitted()) { <p class="contact-form__success" role="status">Thanks—your message is ready for our team.</p> }
+        </form>
+
+        <aside class="contact-direct">
+          <div>
+            <h2>Prefer a direct approach?</h2>
+            <p>Reach out for support, partnerships, account questions, or general inquiries.</p>
+            <ul>
+              <li><img class="contact-direct__icon" src="/contact/email.svg" alt="" /><a href="mailto:hello@fardelins.com">hello&#64;fardelins.com</a></li>
+              <li><img class="contact-direct__icon" src="/contact/phone.svg" alt="" /><a href="tel:+23490132038430">+234-901-3203-8430</a></li>
+              <li><img class="contact-direct__icon" src="/contact/clock.svg" alt="" /><span>Typically responds within 24 hours</span></li>
+            </ul>
+          </div>
+          <div
+            class="contact-direct__photo"
+            role="img"
+            aria-label="Courier cycling at speed"
+            (pointerenter)="setImageHover(true)"
+            (pointerleave)="setImageHover(false)"
+          >
+            <app-shader-background #imageShader [preset]="contactImagePreset" />
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq">
+    <div class="faq__inner">
+      <h2>Frequently Asked Questions</h2>
+      <div class="faq__list">
+        @for (faq of faqs; track faq.question; let index = $index) {
+          <article class="faq__item" [class.faq__item--open]="openFaq() === index">
+            <button type="button" [attr.aria-expanded]="openFaq() === index" [attr.aria-controls]="'faq-answer-' + index" (click)="toggleFaq(index)">
+              <span>{{ faq.question }}</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+            </button>
+            <div class="faq__answer" [id]="'faq-answer-' + index"><div><p>{{ faq.answer }}</p></div></div>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,13 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: radial-gradient(circle at 70% 28%, #8a38f5 0, #521c99 42%, #31105b 100%);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

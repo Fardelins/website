@@ -1,0 +1,38 @@
+<section class="audience">
+  <div class="audience__header">
+    <div class="audience__intro">
+      <h2 class="audience__title">Who Fardelins is <span class="audience__title-accent">built for</span></h2>
+      <p class="audience__subtitle">
+        From customers sending one package to businesses managing daily deliveries, Fardelins
+        connects every side of the delivery experience.
+      </p>
+    </div>
+
+    <div class="audience__nav">
+      <button
+        class="audience__nav-btn"
+        type="button"
+        aria-label="Previous"
+        (click)="scrollByAmount(-1)"
+      >
+        <img src="/home/Arrow.svg" alt="" />
+      </button>
+      <button
+        class="audience__nav-btn audience__nav-btn--next"
+        type="button"
+        aria-label="Next"
+        (click)="scrollByAmount(1)"
+      >
+        <img src="/home/Arrow.svg" alt="" />
+      </button>
+    </div>
+  </div>
+
+  <div class="audience__track" #track>
+    @for (item of items; track item.title) {
+      <div class="audience__item">
+        <app-card [image]="item.image" [title]="item.title" [description]="item.description" />
+      </div>
+    }
+  </div>
+</section>
