@@ -1,8 +1,10 @@
 import { Component, input } from '@angular/core';
-import { BlogArticle } from '../../pages/blogs/blog-articles.data';
+import { RouterLink } from '@angular/router';
+import { BlogArticle } from '../../pages/blogs/blog.model';
 
 @Component({
   selector: 'app-blog-card',
+  imports: [RouterLink],
   templateUrl: './blog-card.html',
   styleUrl: './blog-card.css',
 })

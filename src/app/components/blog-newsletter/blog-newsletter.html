@@ -1,0 +1,20 @@
+<section class="blogs-newsletter">
+  <div class="blogs-newsletter__card">
+    <div class="blogs-newsletter__content">
+      <h2>Stay ahead of delivery trends</h2>
+      <p>Get logistics insights, product updates, and industry news delivered to your inbox.</p>
+      <form class="blogs-newsletter__form" (submit)="submit($event)">
+        <input type="email" placeholder="Enter your email address" aria-label="Email address" required />
+        <button type="submit">Subscribe</button>
+      </form>
+      @if (submitted) {
+        <p class="blogs-newsletter__hint">Thanks — you're on the list.</p>
+      } @else {
+        <p class="blogs-newsletter__hint">No spam. Unsubscribe anytime.</p>
+      }
+    </div>
+    <div class="blogs-newsletter__visual" aria-hidden="true">
+      <img src="/blogs/subscribe-banner.png" alt="" />
+    </div>
+  </div>
+</section>

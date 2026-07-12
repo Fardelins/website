@@ -6,7 +6,13 @@
   <a routerLink="/" (click)="closeMenu()"><img class="navbar__logo" src="/home/default-logo.png" alt="Fardelins" /></a>
   <nav class="navbar__nav" aria-label="Primary">
     @for (link of navLinks; track link.label) {
-      <a class="navbar__nav-link" [routerLink]="link.path" [fragment]="link.fragment">{{ link.label }}</a>
+      <a
+        class="navbar__nav-link"
+        [routerLink]="link.path"
+        [fragment]="link.fragment"
+        routerLinkActive="navbar__nav-link--active"
+        [routerLinkActiveOptions]="{ exact: link.path === '/' }"
+      >{{ link.label }}</a>
     }
   </nav>
   <div class="navbar__actions">

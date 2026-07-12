@@ -1,21 +1,275 @@
-import { Injectable } from '@angular/core';
-import { BLOG_ARTICLES, BlogArticle } from './blog-articles.data';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { BlogArticle, BlogArticleDetail, BlogCategory } from './blog.model';
 
-/** Simulated network latency so loading/empty states are actually reachable during dev. */
-const SIMULATED_LATENCY_MS = 650;
+const WP_BASE = 'https://fardelins.com/wp-json/wp/v2';
+const WORDS_PER_MINUTE = 200;
+
+interface WpMediaSize {
+  source_url: string;
+}
+
+interface WpFeaturedMedia {
+  source_url?: string;
+  media_details?: { sizes?: Record<string, WpMediaSize> };
+}
+
+interface WpPost {
+  id: number;
+  slug: string;
+  link: string;
+  date: string;
+  title: { rendered: string };
+  excerpt: { rendered: string };
+  content: { rendered: string };
+  categories: number[];
+  _embedded?: { 'wp:featuredmedia'?: WpFeaturedMedia[] };
+}
+
+interface WpCategory {
+  id: number;
+  name: string;
+  count: number;
+}
+
+export interface BlogPage {
+  articles: BlogArticle[];
+  totalPages: number;
+}
 
 /**
- * Single seam between the Blogs page and its article data. Today it resolves
- * `BLOG_ARTICLES` after a simulated delay; swapping to a real backend later
- * only means replacing the body of `fetchArticles()` with an HttpClient call
- * (e.g. `firstValueFrom(this.http.get<BlogArticle[]>('/api/articles'))`) —
- * nothing in `Blogs` (the page component) needs to change.
+ * Talks to the live WordPress site (fardelins.com/wp-admin) via its public REST
+ * API — no auth needed for reading published posts, and the API reflects any
+ * origin in its CORS headers so this can call it straight from the browser.
+ * This is the seam the Blogs page depends on; it's the only file that knows
+ * about WordPress's response shape.
  */
 @Injectable({ providedIn: 'root' })
 export class BlogService {
-  fetchArticles(): Promise<BlogArticle[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(BLOG_ARTICLES), SIMULATED_LATENCY_MS);
+  private readonly http = inject(HttpClient);
+  private categoryNames = new Map<number, string>();
+
+  async fetchCategories(): Promise<BlogCategory[]> {
+    const categories = await firstValueFrom(
+      this.http.get<WpCategory[]>(`${WP_BASE}/categories`, {
+        params: { per_page: '100', hide_empty: 'true', orderby: 'count', order: 'desc', _fields: 'id,name,count' },
+      }),
+    );
+    this.categoryNames = new Map(categories.map((category) => [category.id, category.name]));
+    return categories.map((category) => ({ id: category.id, name: category.name }));
+  }
+
+  async fetchArticles(page: number, perPage: number, categoryId?: number, search?: string): Promise<BlogPage> {
+    if (this.categoryNames.size === 0) {
+      await this.fetchCategories();
+    }
+
+    const params: Record<string, string> = {
+      page: String(page),
+      per_page: String(perPage),
+      _embed: 'wp:featuredmedia',
+      _fields: 'id,slug,link,title,excerpt,content,categories,_links,_embedded',
+    };
+    if (categoryId) params['categories'] = String(categoryId);
+    if (search) params['search'] = search;
+
+    const response = await firstValueFrom(
+      this.http.get<WpPost[]>(`${WP_BASE}/posts`, { params, observe: 'response' }),
+    );
+    const totalPages = Number(response.headers.get('X-WP-TotalPages') ?? '1');
+
+    return {
+      articles: (response.body ?? []).map((post) => this.mapPost(post)),
+      totalPages,
+    };
+  }
+
+  /** Full single post for the detail page, looked up by slug. Returns null when not found. */
+  async fetchArticleBySlug(slug: string): Promise<BlogArticleDetail | null> {
+    if (this.categoryNames.size === 0) {
+      await this.fetchCategories();
+    }
+
+    const posts = await firstValueFrom(
+      this.http.get<WpPost[]>(`${WP_BASE}/posts`, {
+        params: {
+          slug,
+          _embed: 'wp:featuredmedia',
+          _fields: 'id,slug,link,date,title,excerpt,content,categories,_links,_embedded',
+        },
+      }),
+    );
+    const post = posts[0];
+    if (!post) return null;
+
+    const mapped = this.mapPost(post);
+    return {
+      ...mapped,
+      contentHtml: normalizeContent(post.content?.rendered ?? '', mapped.image),
+      date: formatDate(post.date),
+    };
+  }
+
+  /** Sibling posts in the same category, excluding the one being viewed. */
+  async fetchRelated(categoryId: number | null, excludeId: number, limit: number): Promise<BlogArticle[]> {
+    const params: Record<string, string> = {
+      per_page: String(limit),
+      exclude: String(excludeId),
+      _embed: 'wp:featuredmedia',
+      _fields: 'id,slug,link,title,excerpt,content,categories,_links,_embedded',
+    };
+    if (categoryId) params['categories'] = String(categoryId);
+
+    let posts = await firstValueFrom(this.http.get<WpPost[]>(`${WP_BASE}/posts`, { params }));
+
+    // If the category didn't yield enough, top up with the latest posts overall.
+    if (posts.length < limit) {
+      const fallback = await firstValueFrom(
+        this.http.get<WpPost[]>(`${WP_BASE}/posts`, {
+          params: { per_page: String(limit + 1), exclude: String(excludeId), _embed: 'wp:featuredmedia', _fields: params['_fields'] },
+        }),
+      );
+      const seen = new Set(posts.map((p) => p.id));
+      posts = [...posts, ...fallback.filter((p) => !seen.has(p.id))].slice(0, limit);
+    }
+
+    return posts.map((post) => this.mapPost(post));
+  }
+
+  private mapPost(post: WpPost): BlogArticle {
+    const media = post._embedded?.['wp:featuredmedia']?.[0];
+    const image =
+      media?.media_details?.sizes?.['medium_large']?.source_url ??
+      media?.media_details?.sizes?.['large']?.source_url ??
+      media?.source_url ??
+      null;
+
+    const categoryId = post.categories?.[0] ?? null;
+    const category = categoryId !== null ? (this.categoryNames.get(categoryId) ?? 'Blog') : 'Blog';
+
+    return {
+      id: post.id,
+      slug: post.slug,
+      category,
+      categoryId,
+      readTime: estimateReadTime(post.content?.rendered ?? ''),
+      title: toTitleCase(stripHtml(post.title?.rendered ?? '')),
+      excerpt: stripHtml(post.excerpt?.rendered ?? ''),
+      image,
+      link: post.link,
+    };
+  }
+}
+
+/** WordPress titles arrive in inconsistent casing (some fully uppercase) — normalize to Title Case. */
+function toTitleCase(text: string): string {
+  return text.toLowerCase().replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1));
+}
+
+function stripHtml(html: string): string {
+  const el = document.createElement('div');
+  el.innerHTML = html;
+  return (el.textContent ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function estimateReadTime(html: string): string {
+  const wordCount = stripHtml(html).split(' ').filter(Boolean).length;
+  const minutes = Math.max(1, Math.round(wordCount / WORDS_PER_MINUTE));
+  return `${minutes} min read`;
+}
+
+function formatDate(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+/** Filename stem ignoring WordPress's `-WxH` size suffix, e.g. `img-300x300.png` -> `img.png`. */
+function imageStem(url: string | null): string {
+  if (!url) return '';
+  return (url.split('/').pop() ?? '').split('?')[0].replace(/-\d+x\d+(?=\.\w+$)/, '');
+}
+
+/**
+ * WordPress's block editor emits deeply broken markup for these posts: empty
+ * nested `<ul>`/`<li>` scaffolding (the stray empty bullets), headings buried
+ * inside list items, bare unwrapped text nodes, `<!-- wp:* -->` comments, and
+ * the featured image duplicated inline. Rendering that raw looks terrible, so we
+ * normalize it into clean, semantic HTML before it reaches the template.
+ */
+function normalizeContent(html: string, featuredImage: string | null): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const body = doc.body;
+
+  // 1. Strip HTML comment nodes.
+  const walker = doc.createTreeWalker(body, NodeFilter.SHOW_COMMENT);
+  const comments: Comment[] = [];
+  while (walker.nextNode()) comments.push(walker.currentNode as Comment);
+  comments.forEach((node) => node.remove());
+
+  // 2. Drop images that just duplicate the hero's featured image.
+  const featStem = imageStem(featuredImage);
+  body.querySelectorAll('img').forEach((img) => {
+    if (featStem && imageStem(img.getAttribute('src')) === featStem) img.remove();
+  });
+
+  // 3. Collapse single-item `<ul><li><ul>…</ul></li></ul>` wrapper nesting.
+  let changed = true;
+  while (changed) {
+    changed = false;
+    body.querySelectorAll('ul, ol').forEach((list) => {
+      const items = Array.from(list.children).filter((child) => child.tagName === 'LI');
+      if (items.length !== 1) return;
+      const li = items[0];
+      const innerLists = Array.from(li.children).filter((child) => child.tagName === 'UL' || child.tagName === 'OL');
+      if (innerLists.length === 1 && !textOf(li).replace(textOf(innerLists[0]), '').trim()) {
+        list.replaceWith(innerLists[0]);
+        changed = true;
+      }
     });
   }
+
+  // 4. A list item that carries a heading is really a stacked subheading + body
+  //    (per the design), not a bullet — hoist its contents out as block elements.
+  body.querySelectorAll('li').forEach((li) => {
+    if (!li.querySelector('h1, h2, h3, h4, h5, h6')) return;
+    const list = li.closest('ul, ol');
+    if (!list?.parentNode) return;
+    const frag = doc.createDocumentFragment();
+    Array.from(li.childNodes).forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const text = child.textContent?.trim();
+        if (text) {
+          const p = doc.createElement('p');
+          p.textContent = text;
+          frag.appendChild(p);
+        }
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        frag.appendChild(child);
+      }
+    });
+    list.parentNode.insertBefore(frag, list);
+    li.remove();
+  });
+
+  // 5. Remove now-empty structural elements.
+  body.querySelectorAll('li, ul, ol, p').forEach((el) => {
+    if (!textOf(el) && !el.querySelector('img')) el.remove();
+  });
+
+  // 6. Wrap bare text nodes sitting directly under the root in paragraphs.
+  Array.from(body.childNodes).forEach((node) => {
+    if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
+      const p = doc.createElement('p');
+      p.textContent = node.textContent.trim();
+      node.replaceWith(p);
+    }
+  });
+
+  return body.innerHTML;
+}
+
+function textOf(el: Element): string {
+  return (el.textContent ?? '').replace(/\s+/g, ' ').trim();
 }

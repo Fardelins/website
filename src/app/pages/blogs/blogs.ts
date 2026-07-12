@@ -2,66 +2,54 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { BlogCard } from '../../components/blog-card/blog-card';
 import { BlogEmptyState } from '../../components/blog-empty-state/blog-empty-state';
 import { BlogLoader } from '../../components/blog-loader/blog-loader';
-import { BLOG_CATEGORIES, BlogArticle } from './blog-articles.data';
+import { BlogNewsletter } from '../../components/blog-newsletter/blog-newsletter';
+import { BlogArticle, BlogCategory } from './blog.model';
 import { BlogService } from './blog.service';
 
-const INITIAL_BATCH = 6;
-const BATCH_STEP = 6;
+const PAGE_SIZE = 6;
+const SEARCH_DEBOUNCE_MS = 350;
 
 @Component({
   selector: 'app-blogs',
-  imports: [BlogCard, BlogLoader, BlogEmptyState],
+  imports: [BlogCard, BlogLoader, BlogEmptyState, BlogNewsletter],
   templateUrl: './blogs.html',
   styleUrl: './blogs.css',
 })
 export class Blogs {
   private readonly blogService = inject(BlogService);
 
-  protected readonly categories = BLOG_CATEGORIES;
-  protected readonly activeCategory = signal<string>('All Articles');
+  protected readonly categories = signal<BlogCategory[]>([]);
+  protected readonly activeCategoryId = signal<number | null>(null);
   protected readonly searchQuery = signal('');
-  protected readonly visibleCount = signal(INITIAL_BATCH);
 
+  /** True only for the very first fetch — shows the full shader loader. */
   protected readonly loading = signal(true);
+  /** True for category/search-triggered refetches — dims the existing grid instead of replacing it. */
+  protected readonly refreshing = signal(false);
+  protected readonly loadingMore = signal(false);
   protected readonly error = signal(false);
-  private readonly articles = signal<BlogArticle[]>([]);
 
-  protected readonly filteredArticles = computed(() => {
-    const category = this.activeCategory();
-    const query = this.searchQuery().trim().toLowerCase();
-    let list = this.articles();
+  protected readonly articles = signal<BlogArticle[]>([]);
+  protected readonly hasMore = signal(false);
+  protected readonly isEmpty = computed(() => !this.loading() && !this.error() && this.articles().length === 0);
 
-    if (category !== 'All Articles') {
-      list = list.filter((article) => article.category === category);
-    }
-    if (query) {
-      list = list.filter(
-        (article) =>
-          article.title.toLowerCase().includes(query) ||
-          article.excerpt.toLowerCase().includes(query) ||
-          article.category.toLowerCase().includes(query),
-      );
-    }
-    return list;
-  });
-
-  protected readonly visibleArticles = computed(() =>
-    this.filteredArticles().slice(0, this.visibleCount()),
+  protected readonly activeCategoryName = computed(
+    () => this.categories().find((category) => category.id === this.activeCategoryId())?.name ?? 'All Articles',
   );
 
-  protected readonly hasMore = computed(() => this.visibleCount() < this.filteredArticles().length);
-  protected readonly isEmpty = computed(() => !this.loading() && !this.error() && this.filteredArticles().length === 0);
+  private page = 1;
+  private searchDebounceId: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
-    void this.load();
+    void this.init();
   }
 
-  protected async load(): Promise<void> {
+  private async init(): Promise<void> {
     this.loading.set(true);
     this.error.set(false);
     try {
-      const articles = await this.blogService.fetchArticles();
-      this.articles.set(articles);
+      this.categories.set(await this.blogService.fetchCategories());
+      await this.loadPage(1, false);
     } catch {
       this.error.set(true);
     } finally {
@@ -69,17 +57,53 @@ export class Blogs {
     }
   }
 
-  protected setCategory(category: string): void {
-    this.activeCategory.set(category);
-    this.visibleCount.set(INITIAL_BATCH);
+  private async loadPage(page: number, append: boolean): Promise<void> {
+    try {
+      const result = await this.blogService.fetchArticles(
+        page,
+        PAGE_SIZE,
+        this.activeCategoryId() ?? undefined,
+        this.searchQuery().trim() || undefined,
+      );
+      this.articles.update((current) => (append ? [...current, ...result.articles] : result.articles));
+      this.hasMore.set(page < result.totalPages);
+      this.page = page;
+      this.error.set(false);
+    } catch {
+      this.error.set(true);
+    } finally {
+      this.refreshing.set(false);
+      this.loadingMore.set(false);
+    }
+  }
+
+  protected async retry(): Promise<void> {
+    if (this.categories().length === 0) {
+      await this.init();
+      return;
+    }
+    this.refreshing.set(true);
+    await this.loadPage(1, false);
+  }
+
+  protected async setCategory(categoryId: number | null): Promise<void> {
+    if (categoryId === this.activeCategoryId()) return;
+    this.activeCategoryId.set(categoryId);
+    this.refreshing.set(true);
+    await this.loadPage(1, false);
   }
 
   protected setSearch(query: string): void {
     this.searchQuery.set(query);
-    this.visibleCount.set(INITIAL_BATCH);
+    if (this.searchDebounceId !== null) clearTimeout(this.searchDebounceId);
+    this.searchDebounceId = setTimeout(() => {
+      this.refreshing.set(true);
+      void this.loadPage(1, false);
+    }, SEARCH_DEBOUNCE_MS);
   }
 
-  protected loadMore(): void {
-    this.visibleCount.update((count) => count + BATCH_STEP);
+  protected async loadMore(): Promise<void> {
+    this.loadingMore.set(true);
+    await this.loadPage(this.page + 1, true);
   }
 }

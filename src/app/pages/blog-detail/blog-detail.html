@@ -1,0 +1,86 @@
+<main class="article-page">
+  @if (loading()) {
+    <div class="article-page__state">
+      <app-blog-loader />
+    </div>
+  } @else if (error()) {
+    <div class="article-page__state article-page__message" role="alert">
+      <h1>Couldn't load this article</h1>
+      <p>Something went wrong. Please check your connection and try again.</p>
+      <a class="article-page__back" routerLink="/blogs">Back to all articles</a>
+    </div>
+  } @else if (notFound()) {
+    <div class="article-page__state article-page__message">
+      <h1>Article not found</h1>
+      <p>The article you're looking for doesn't exist or may have been moved.</p>
+      <a class="article-page__back" routerLink="/blogs">Back to all articles</a>
+    </div>
+  } @else if (article(); as post) {
+    <header class="article-hero">
+      <div class="article-hero__inner">
+        <div class="article-hero__text">
+          <div class="article-hero__heading">
+            <h1>{{ post.title }}</h1>
+            <p class="article-hero__supporting">{{ post.excerpt }}</p>
+          </div>
+          <p class="article-hero__meta">Written on {{ post.date }}  •  {{ post.readTime }}</p>
+        </div>
+        <div class="article-hero__media">
+          @if (post.image) {
+            <img [src]="post.image" alt="" />
+          } @else {
+            <div class="article-hero__media-fallback">
+              <img src="/home/default-logo.png" alt="" width="180" height="45" />
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <article class="article-body">
+      <div class="article-body__inner">
+        <div class="article-content" [innerHTML]="post.contentHtml"></div>
+
+        <div class="article-share">
+          <hr class="article-share__divider" />
+          <div class="article-share__row">
+            <span class="article-share__label">Share this post</span>
+            <div class="article-share__icons">
+              <button type="button" class="article-share__btn" (click)="copyLink()" [attr.aria-label]="copied() ? 'Link copied' : 'Copy link'">
+                @if (copied()) {
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                } @else {
+                  <img src="/blogs/link.svg" alt="" width="32" height="32" />
+                }
+              </button>
+              <a class="article-share__btn" [href]="shareTo('twitter')" target="_blank" rel="noopener" aria-label="Share on X">
+                <img src="/blogs/twitter.svg" alt="" width="32" height="32" />
+              </a>
+              <a class="article-share__btn" [href]="shareTo('whatsapp')" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
+                <img src="/blogs/whatsapp.svg" alt="" width="32" height="32" />
+              </a>
+              <a class="article-share__btn" [href]="shareTo('linkedin')" target="_blank" rel="noopener" aria-label="Share on LinkedIn">
+                <img src="/blogs/linkedIn.svg" alt="" width="32" height="32" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    @if (related().length) {
+      <section class="article-related">
+        <div class="article-related__inner">
+          <h2>More Blogs like this</h2>
+          <div class="article-related__grid">
+            @for (item of related(); track item.id) {
+              <app-blog-card [article]="item" />
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <app-blog-newsletter />
+  }
+</main>
