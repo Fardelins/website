@@ -16,6 +16,7 @@
     "target": "https://fardelins.com",
     "secure": true,
     "changeOrigin": true,
+    "headers": { "Cookie": "hc_js_gate=1" },
     "logLevel": "warn"
   }
 }

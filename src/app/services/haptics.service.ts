@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import type { HapticInput, TriggerOptions, WebHaptics } from 'web-haptics';
+import { WebHaptics, type HapticInput, type TriggerOptions } from 'web-haptics';
 
 const PREFERENCE_KEY = 'fardelins-haptics';
 const MIN_TRIGGER_GAP_MS = 45;
@@ -14,7 +14,7 @@ const HERO_RIPPLE: HapticInput = {
 /** Restrained, mobile-only tactile feedback shared by the site's interactions. */
 @Injectable({ providedIn: 'root' })
 export class HapticsService {
-  private instancePromise: Promise<WebHaptics> | null = null;
+  private readonly haptics = new WebHaptics();
   private lastTriggeredAt = 0;
 
   trigger(input: HapticInput = 'light', options?: TriggerOptions): void {
@@ -24,7 +24,9 @@ export class HapticsService {
     if (now - this.lastTriggeredAt < MIN_TRIGGER_GAP_MS) return;
     this.lastTriggeredAt = now;
 
-    void this.getInstance().then((haptics) => haptics.trigger(input, options));
+    // Keep this in the original pointer/click task. WebKit's switch fallback
+    // only produces a tap while transient user activation is available.
+    void this.haptics.trigger(input, options);
   }
 
   heroRipple(event: PointerEvent): void {
@@ -58,10 +60,5 @@ export class HapticsService {
     if (localStorage.getItem(PREFERENCE_KEY) === 'off') return false;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
     return navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches;
-  }
-
-  private getInstance(): Promise<WebHaptics> {
-    this.instancePromise ??= import('web-haptics').then(({ WebHaptics }) => new WebHaptics());
-    return this.instancePromise;
   }
 }

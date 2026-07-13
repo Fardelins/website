@@ -1,6 +1,6 @@
 .audience {
   background: var(--color-neutral-white);
-  padding: var(--spacing-2xl) 0 var(--spacing-40);
+  padding: var(--spacing-80) 0 var(--spacing-40);
   overflow: hidden;
 }
 
@@ -85,6 +85,8 @@
   margin-inline: auto;
   padding: var(--spacing-40) var(--spacing-80) var(--spacing-sm);
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 
@@ -98,6 +100,8 @@
 }
 
 @media (max-width: 900px) {
+  .audience { padding-top: var(--spacing-60); }
+
   .audience__header {
     flex-direction: column;
     align-items: flex-start;

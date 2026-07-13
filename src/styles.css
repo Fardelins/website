@@ -83,6 +83,15 @@ html {
   scroll-behavior: smooth;
 }
 
+/* iOS zooms the viewport when a focused form control renders below 16px. */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

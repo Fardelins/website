@@ -15,6 +15,8 @@ export class StoreBadges {
 
   /** Force both badges for wide, store-comparison contexts. */
   readonly showAll = input(false);
+  /** Keep unavailable badges useful elsewhere, but avoid self-links on the download page. */
+  readonly fallbackToDownloadPage = input(true);
 
   protected get stores() {
     return this.showAll()
@@ -22,11 +24,11 @@ export class StoreBadges {
       : this.appPlatform.visibleStores;
   }
 
-  protected hrefFor(url: string): string {
-    return url || APP_DOWNLOAD_CONFIG.route;
+  protected hrefFor(url: string): string | null {
+    return url || (this.fallbackToDownloadPage() ? APP_DOWNLOAD_CONFIG.route : null);
   }
 
-  protected storeClicked(): void {
-    this.haptics.light();
+  protected storeClicked(url: string): void {
+    if (url || this.fallbackToDownloadPage()) this.haptics.light();
   }
 }

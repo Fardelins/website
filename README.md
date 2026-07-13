@@ -42,7 +42,7 @@ categories, featured images, and article bodies are fetched and normalized at ru
 - `public` — static assets: images, icons, `robots.txt`, `sitemap.xml`, `og-image.png`
 - `src/server.ts` — Express SSR entry (also reverse-proxies WordPress paths)
 - `scripts` — build helpers: `generate-sitemap.mjs`, `optimize-images.mjs`
-- `railway.json` — Railway deploy config (Nixpacks; `npm run build` → SSR server)
+- `railway.json` + `Dockerfile` — Railway deploy config (`npm run build` → SSR server)
 
 ## Getting started
 
@@ -88,7 +88,7 @@ The server listens on `$PORT` (default 4000).
 
 ## Deployment (Railway)
 
-`railway.json` is already configured (Nixpacks) to build and run the **SSR server** — deploy as
+`railway.json` is configured to build the Docker image and run the **SSR server** — deploy as
 a Node service, not a static site:
 
 - Build: `npm run build`
@@ -101,10 +101,11 @@ Set these environment variables in Railway:
 | `NG_ALLOWED_HOSTS` | `fardelins.com,www.fardelins.com` | Allow-list for the SSR host-header check (`*` for local testing only). |
 | `WORDPRESS_ORIGIN` | `https://cms.fardelins.com` | Origin of the headless WordPress backend. Defaults to `https://fardelins.com`. |
 
-**WordPress domain:** the Angular app owns `fardelins.com`, so WordPress must live at its own
-origin (e.g. `cms.fardelins.com`). The browser calls WordPress with same-origin relative paths
-and the SSR server reverse-proxies them to `WORDPRESS_ORIGIN` — so pointing that one variable at
-wherever WordPress runs is all that's needed.
+**WordPress domain:** public blog reads currently call `https://fardelins.com/wp-json` directly.
+Newsletter and contact form requests use same-origin relative paths and the SSR server
+reverse-proxies them to `WORDPRESS_ORIGIN`, avoiding browser CORS issues for POST requests. If
+WordPress later moves to a dedicated origin, update both the public origin in
+`wordpress.config.ts` and the Railway `WORDPRESS_ORIGIN` variable.
 
 ## Run tests
 

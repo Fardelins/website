@@ -18,9 +18,9 @@ export class Home {
 
   constructor() {
     const description =
-      'Fardelins is the delivery platform connecting customers, businesses, dispatchers, and couriers — with real-time tracking, smart dispatch, and reliable last-mile delivery.';
+      'Fardelins connects customers, businesses, dispatchers, and couriers with real-time tracking, smart dispatch, and reliable last-mile delivery.';
     this.seo.update({
-      title: `${SITE_NAME} — Smarter Deliveries for Everyone`,
+      title: `${SITE_NAME} | Smarter Delivery Management`,
       description,
       path: '/',
       type: 'website',

@@ -23,6 +23,7 @@ const angularApp = new AngularNodeAppEngine();
  */
 const WORDPRESS_ORIGIN = process.env['WORDPRESS_ORIGIN'] ?? 'https://fardelins.com';
 const WP_PROXY_PREFIXES = ['/wp-json', '/wp-admin', '/contact-form-config'];
+const WORDPRESS_JS_GATE_COOKIE = 'hc_js_gate=1';
 
 app.use((req, res, next) => {
   const prefix = WP_PROXY_PREFIXES.find((p) => req.path === p || req.path.startsWith(`${p}/`));
@@ -42,6 +43,17 @@ app.use((req, res, next) => {
       if (value === undefined || ['host', 'connection', 'content-length'].includes(key)) continue;
       headers.set(key, Array.isArray(value) ? value.join(', ') : value);
     }
+
+    // The WordPress host protects wp-admin with a JavaScript cookie gate. A
+    // proxied fetch cannot execute that challenge page, so identify this
+    // trusted server-to-server request up front and let admin-ajax return JSON.
+    if (prefix === '/wp-admin') {
+      const cookies = headers.get('cookie') ?? '';
+      if (!/(?:^|;\s*)hc_js_gate=/.test(cookies)) {
+        headers.set('cookie', [cookies, WORDPRESS_JS_GATE_COOKIE].filter(Boolean).join('; '));
+      }
+    }
+
     const hasBody = !['GET', 'HEAD'].includes(req.method);
     fetch(`${WORDPRESS_ORIGIN}${targetPath}`, {
       method: req.method,

@@ -41,7 +41,7 @@ export class SeoService {
     const url = this.absolute(data.path);
     const image = data.image ? this.absolute(data.image) : DEFAULT_OG_IMAGE;
     const type = data.type ?? 'website';
-    const fullTitle = data.title.includes(SITE_NAME) ? data.title : `${data.title} — ${SITE_NAME}`;
+    const fullTitle = data.title.includes(SITE_NAME) ? data.title : `${data.title} | ${SITE_NAME}`;
 
     this.title.setTitle(fullTitle);
     this.setName('description', data.description);

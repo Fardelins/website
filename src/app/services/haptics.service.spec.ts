@@ -1,8 +1,10 @@
 import { TestBed } from '@angular/core/testing';
+import { WebHaptics } from 'web-haptics';
 import { HapticsService } from './haptics.service';
 
 describe('HapticsService', () => {
   let vibrate: ReturnType<typeof vi.fn>;
+  const detectedSupport = WebHaptics.isSupported;
 
   beforeEach(() => {
     localStorage.clear();
@@ -21,18 +23,32 @@ describe('HapticsService', () => {
     vibrate = vi.fn(() => true);
     Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 1 });
     Object.defineProperty(navigator, 'vibrate', { configurable: true, value: vibrate });
+    Object.defineProperty(WebHaptics, 'isSupported', { configurable: true, value: true });
   });
 
   afterEach(() => {
+    Object.defineProperty(WebHaptics, 'isSupported', { configurable: true, value: detectedSupport });
     vi.restoreAllMocks();
+    document.querySelectorAll('label[for^="web-haptics-"]').forEach((element) => element.remove());
     localStorage.clear();
   });
 
-  it('triggers tactile feedback on touch-capable devices', async () => {
+  it('triggers tactile feedback synchronously on touch-capable devices', () => {
     const service = TestBed.inject(HapticsService);
     service.selection();
-    await new Promise((resolve) => setTimeout(resolve, 20));
     expect(vibrate).toHaveBeenCalledOnce();
+  });
+
+  it('uses the WebKit switch fallback synchronously when vibration is unavailable', () => {
+    Object.defineProperty(navigator, 'vibrate', { configurable: true, value: undefined });
+    Object.defineProperty(WebHaptics, 'isSupported', { configurable: true, value: false });
+    const switchClick = vi.spyOn(HTMLLabelElement.prototype, 'click');
+
+    const service = TestBed.inject(HapticsService);
+    service.light();
+
+    expect(switchClick).toHaveBeenCalledOnce();
+    expect(document.querySelector('input[switch]')).not.toBeNull();
   });
 
   it('suppresses haptics when reduced motion is requested', async () => {

@@ -43,7 +43,7 @@ export class Privacy implements OnDestroy {
 
   constructor() {
     this.seo.update({
-      title: `Privacy Policy — ${SITE_NAME}`,
+      title: `Privacy Policy | ${SITE_NAME}`,
       description: 'How Fardelins collects, uses, stores, and protects your personal information across our platform and services.',
       path: '/privacy',
       type: 'website',

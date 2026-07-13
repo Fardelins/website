@@ -1,4 +1,12 @@
-import { Directive, ElementRef, Input, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
+import {
+  AfterViewInit,
+  Directive,
+  ElementRef,
+  Input,
+  OnDestroy,
+  PLATFORM_ID,
+  inject,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 const TILT_EASE = 0.12;
@@ -10,16 +18,19 @@ const SETTLE_THRESHOLD = 0.001;
   selector: '[appTilt]',
   standalone: true,
 })
-export class TiltDirective implements OnDestroy {
+export class TiltDirective implements AfterViewInit, OnDestroy {
   @Input('appTilt') maxTiltDeg = 10;
+  @Input() appTiltSurface: 'self' | 'parent' = 'self';
 
   private readonly el = inject(ElementRef<HTMLElement>).nativeElement;
+  private interactionSurface: HTMLElement | null = null;
   private target = { x: 0, y: 0 };
   private current = { x: 0, y: 0 };
   private rafId: number | null = null;
 
   private readonly onPointerMove = (event: PointerEvent): void => {
-    const rect = this.el.getBoundingClientRect();
+    const rect = this.interactionSurface?.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) return;
     this.target = {
       x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
       y: ((event.clientY - rect.top) / rect.height) * 2 - 1,
@@ -39,14 +50,20 @@ export class TiltDirective implements OnDestroy {
     if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     this.enabled = true;
-    this.el.addEventListener('pointermove', this.onPointerMove);
-    this.el.addEventListener('pointerleave', this.onPointerLeave);
+  }
+
+  ngAfterViewInit(): void {
+    if (!this.enabled) return;
+    this.interactionSurface =
+      this.appTiltSurface === 'parent' ? this.el.parentElement : this.el;
+    this.interactionSurface?.addEventListener('pointermove', this.onPointerMove);
+    this.interactionSurface?.addEventListener('pointerleave', this.onPointerLeave);
   }
 
   ngOnDestroy(): void {
     if (!this.enabled) return;
-    this.el.removeEventListener('pointermove', this.onPointerMove);
-    this.el.removeEventListener('pointerleave', this.onPointerLeave);
+    this.interactionSurface?.removeEventListener('pointermove', this.onPointerMove);
+    this.interactionSurface?.removeEventListener('pointerleave', this.onPointerLeave);
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
     }

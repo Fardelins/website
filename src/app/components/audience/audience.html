@@ -4,8 +4,6 @@
   (mouseleave)="resumeAuto()"
   (focusin)="pauseAuto()"
   (focusout)="resumeAuto()"
-  (touchstart)="pauseAuto()"
-  (touchend)="resumeAuto()"
 >
   <div class="audience__header">
     <div class="audience__intro">
@@ -36,9 +34,19 @@
     </div>
   </div>
 
-  <div class="audience__track" #track>
+  <div
+    class="audience__track"
+    #track
+    (pointerdown)="beginInteraction()"
+    (pointerup)="endInteraction()"
+    (pointercancel)="endInteraction()"
+    (scroll)="onTrackScroll()"
+  >
     @for (item of loopItems; track $index) {
-      <div class="audience__item" [attr.aria-hidden]="$index >= items.length ? 'true' : null">
+      <div
+        class="audience__item"
+        [attr.aria-hidden]="$index < items.length || $index >= items.length * 2 ? 'true' : null"
+      >
         <app-card [image]="item.image" [title]="item.title" [description]="item.description" />
       </div>
     }

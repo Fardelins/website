@@ -89,7 +89,7 @@
     @if (related().length) {
       <section class="article-related">
         <div class="article-related__inner">
-          <h2>More Blogs like this</h2>
+          <h2>More blogs like this</h2>
           <div class="article-related__grid">
             @for (item of related(); track item.id) {
               <app-blog-card [article]="item" />

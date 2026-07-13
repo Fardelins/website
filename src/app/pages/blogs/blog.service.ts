@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { wordpressUrl } from '../../config/wordpress.config';
+import { wordpressPublicUrl } from '../../config/wordpress.config';
 import { BlogArticle, BlogArticleDetail, BlogCategory } from './blog.model';
 
 const WORDS_PER_MINUTE = 200;
@@ -48,13 +48,10 @@ export interface BlogPage {
 @Injectable({ providedIn: 'root' })
 export class BlogService {
   private readonly http = inject(HttpClient);
-  private readonly platformId = inject(PLATFORM_ID);
   private categoryNames = new Map<number, string>();
 
-  /** WordPress REST base — same-origin relative in the browser, absolute during SSR. */
-  private get wpBase(): string {
-    return wordpressUrl('/wp-json/wp/v2', this.platformId);
-  }
+  /** Public REST reads stay independent of the app server's reverse proxy. */
+  private readonly wpBase = wordpressPublicUrl('/wp-json/wp/v2');
 
   async fetchCategories(): Promise<BlogCategory[]> {
     const categories = await firstValueFrom(
@@ -222,10 +219,14 @@ function imageStem(url: string | null): string {
  */
 function normalizeContent(html: string, featuredImage: string | null): string {
   // No DOM during SSR/prerender — strip the block-editor comments so the server
-  // HTML is clean enough for crawlers; the browser re-runs full normalization on
-  // hydration (the .article-content subtree is marked ngSkipHydration).
+  // HTML is clean enough for crawlers and reserve H1 for the article page title;
+  // the browser re-runs full normalization on hydration.
   if (typeof DOMParser === 'undefined' || typeof document === 'undefined') {
-    return html.replace(/<!--[\s\S]*?-->/g, '').trim();
+    return html
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<h1(\s[^>]*)?>/gi, '<h2$1>')
+      .replace(/<\/h1>/gi, '</h2>')
+      .trim();
   }
 
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -236,6 +237,16 @@ function normalizeContent(html: string, featuredImage: string | null): string {
   const comments: Comment[] = [];
   while (walker.nextNode()) comments.push(walker.currentNode as Comment);
   comments.forEach((node) => node.remove());
+
+  // The article title is the page's only H1. WordPress body headings start at H2.
+  body.querySelectorAll('h1').forEach((heading) => {
+    const replacement = doc.createElement('h2');
+    Array.from(heading.attributes).forEach((attribute) =>
+      replacement.setAttribute(attribute.name, attribute.value),
+    );
+    replacement.innerHTML = heading.innerHTML;
+    heading.replaceWith(replacement);
+  });
 
   // 2. Drop images that just duplicate the hero's featured image.
   const featStem = imageStem(featuredImage);

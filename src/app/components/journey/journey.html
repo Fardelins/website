@@ -9,33 +9,77 @@
     </p>
   </div>
 
-  <div class="journey__panels">
-    @for (panel of panels; track panel.title) {
-      <div
-        class="panel"
-        [class]="
-          'panel--' + panel.theme + ' panel--text-' + panel.textTone +
-          (panel.phoneSide === 'left' ? ' panel--phone-left' : '')
-        "
+  <div class="journey__scroll-shell" #scrollShell>
+    <div class="journey__stage">
+      <article
+        class="journey-card"
+        [class]="'journey-card--' + activePanel().theme + ' journey-card--text-' + activePanel().textTone"
       >
-        <div class="panel__content">
-          <div class="panel__text">
-            <span class="panel__chip">{{ panel.chip }}</span>
-            <h3 class="panel__title">{{ panel.title }}</h3>
-            <p class="panel__description">{{ panel.description }}</p>
-          </div>
+        @for (panel of panels; track panel.title; let index = $index) {
+          @if (index === activeIndex()) {
+            <div class="journey-card__content">
+              <div class="journey-card__copy">
+                <div class="journey-card__mask journey-card__mask--chip">
+                  <span class="journey-card__chip">{{ panel.chip }}</span>
+                </div>
+                <div class="journey-card__mask journey-card__mask--heading">
+                  <h3 class="journey-card__heading">{{ panel.title }}</h3>
+                </div>
+                <div class="journey-card__mask journey-card__mask--description">
+                  <p class="journey-card__description">{{ panel.description }}</p>
+                </div>
 
-          @if (panel.cta === 'badges') {
-            <app-store-badges />
-          } @else {
-            <button class="panel__cta-btn" type="button">{{ panel.ctaLabel }}</button>
+                <div class="journey-card__mask journey-card__mask--cta">
+                  @if (panel.cta === 'badges') {
+                    <app-store-badges />
+                  } @else {
+                    <button class="journey-card__cta" type="button">{{ panel.ctaLabel }}</button>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="journey-card__visual">
+              <div
+                class="journey-card__image-wrap"
+                [class.journey-card__image-wrap--forward]="slideDirection() === 'forward'"
+                [class.journey-card__image-wrap--backward]="slideDirection() === 'backward'"
+              >
+                <img
+                  class="journey-card__phone"
+                  [src]="panel.phone"
+                  [alt]="panel.phoneAlt"
+                  width="600"
+                  height="1221"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            </div>
           }
-        </div>
+        }
 
-        <div class="panel__phone-frame">
-          <img class="panel__phone" [appTilt]="6" [src]="panel.phone" alt="" width="600" height="1221" loading="lazy" decoding="async" />
-        </div>
-      </div>
-    }
+        <nav class="journey-card__pagination" aria-label="Delivery journey audiences">
+          <span
+            class="journey-card__active-line"
+            [style.left.%]="activeIndex() * 100 / (panels.length - 1)"
+            aria-hidden="true"
+          ></span>
+          @for (panel of panels; track panel.title; let index = $index) {
+            <button
+              class="journey-card__step"
+              type="button"
+              [class.journey-card__step--active]="index === activeIndex()"
+              [style.left.%]="index * 100 / (panels.length - 1)"
+              [attr.aria-current]="index === activeIndex() ? 'step' : null"
+              [attr.aria-label]="'Show ' + panel.chip"
+              (click)="goToPanel(index)"
+            >
+              <span class="journey-card__sr-only">{{ panel.chip }}</span>
+            </button>
+          }
+        </nav>
+      </article>
+    </div>
   </div>
 </section>

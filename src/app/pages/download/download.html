@@ -1,62 +1,70 @@
-<section class="download-hero">
-  <div class="download-hero__orb download-hero__orb--one"></div>
-  <div class="download-hero__orb download-hero__orb--two"></div>
+<main class="download-page">
+  <section class="download-hero" aria-labelledby="download-title">
+    <app-hero-liquid-background
+      class="download-hero__shader download-hero__shader--desktop"
+    />
+    <div class="download-hero__inner">
+      <div class="download-hero__content">
+        <p class="download-hero__eyebrow">Fardelins mobile app</p>
+        <h1 id="download-title">Manage every delivery from your phone.</h1>
+        <p class="download-hero__lead">
+          Book deliveries, track their progress, receive status updates, and review your delivery
+          history in one place.
+        </p>
 
-  <div class="download-hero__inner">
-    <div class="download-hero__content">
-      <p class="download-hero__eyebrow"><span></span> Deliveries in your pocket</p>
-      <h1>Move anything.<br /><em>Know where it is.</em></h1>
-      <p class="download-hero__lead">
-        Book pickups, follow every delivery, and stay connected from dispatch to doorstep—all in
-        the Fardelins app.
-      </p>
-
-      <div class="download-hero__detected" aria-live="polite">
-        <span class="download-hero__pulse"></span>
-        {{ platformMessage }}
+        <app-store-badges [fallbackToDownloadPage]="false" />
+        <p class="download-hero__availability">{{ availabilityMessage }}</p>
       </div>
 
-      @if (preferredStore) {
-        <a
-          class="download-hero__primary"
-          [href]="preferredHref"
-          [attr.target]="hasLivePreferredLink ? '_blank' : null"
-          [attr.rel]="hasLivePreferredLink ? 'noopener noreferrer' : null"
-          (click)="download()"
-        >
-          <img [src]="preferredStore.icon" alt="" width="22" height="24" />
-          {{ hasLivePreferredLink ? 'Download for ' + preferredStore.shortName : preferredStore.shortName + ' app coming soon' }}
-          <span aria-hidden="true">↗</span>
-        </a>
-      } @else {
-        <app-store-badges [showAll]="true" />
-      }
+      <div class="download-hero__visual">
+        <app-hero-liquid-background
+          class="download-hero__shader download-hero__shader--mobile"
+        />
+        <picture [appTilt]="8">
+          <source
+            type="image/webp"
+            srcset="/home/phone-image-600.webp 600w"
+            sizes="(max-width: 720px) 78vw, 420px"
+          />
+          <img
+            src="/home/phone-image-600.webp"
+            alt="Fardelins app home screen showing an active delivery and recent deliveries"
+            width="600"
+            height="1224"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </picture>
+      </div>
+    </div>
+  </section>
 
-      <p class="download-hero__note">One app for bookings, live updates, delivery history, and support.</p>
+  <section class="download-features" aria-labelledby="download-features-title">
+    <div class="download-features__heading">
+      <p class="download-features__eyebrow">What you can do</p>
+      <h2 id="download-features-title">Everything you need to manage a delivery.</h2>
+      <p>
+        Fardelins keeps the important details together, from the first booking to the final status
+        update.
+      </p>
     </div>
 
-    <div class="download-hero__visual" aria-label="Preview of the Fardelins mobile app">
-      <div class="download-hero__rings" aria-hidden="true"><i></i><i></i><i></i></div>
-      <span class="download-hero__tag download-hero__tag--track">Live tracking</span>
-      <span class="download-hero__tag download-hero__tag--status">Status updates</span>
-      <picture class="download-hero__phone">
-        <source type="image/avif" srcset="/home/phone-image-360.avif 360w, /home/phone-image-600.avif 600w" sizes="(max-width: 720px) 68vw, 390px" />
-        <source type="image/webp" srcset="/home/phone-image-360.webp 360w, /home/phone-image-600.webp 600w" sizes="(max-width: 720px) 68vw, 390px" />
-        <img [appTilt]="9" src="/home/phone-image-600.webp" alt="Fardelins app showing delivery management" width="600" height="1224" fetchpriority="high" decoding="async" />
-      </picture>
+    <div class="download-features__list">
+      <article>
+        <p class="download-features__number">01</p>
+        <h3>Book a delivery</h3>
+        <p>Add pickup and drop-off details, then create your delivery from the app.</p>
+      </article>
+      <article>
+        <p class="download-features__number">02</p>
+        <h3>Track its progress</h3>
+        <p>Follow active deliveries and see important status changes as they happen.</p>
+      </article>
+      <article>
+        <p class="download-features__number">03</p>
+        <h3>Review your history</h3>
+        <p>Find completed and active deliveries without searching through messages or calls.</p>
+      </article>
     </div>
-  </div>
-</section>
-
-<section class="download-benefits" aria-labelledby="download-benefits-title">
-  <div class="download-benefits__intro">
-    <p>Everything stays connected</p>
-    <h2 id="download-benefits-title">Less calling around.<br />More knowing what’s next.</h2>
-  </div>
-  <div class="download-benefits__list">
-    <article><span>01</span><div><h3>Book in a few taps</h3><p>Enter pickup and drop-off details without lengthy back-and-forth.</p></div></article>
-    <article><span>02</span><div><h3>Track the journey</h3><p>See active delivery progress and important status changes as they happen.</p></div></article>
-    <article><span>03</span><div><h3>Keep a clear history</h3><p>Return to past deliveries and details whenever you need them.</p></div></article>
-  </div>
-</section>
-
+  </section>
+</main>

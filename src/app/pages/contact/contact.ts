@@ -42,9 +42,9 @@ export class Contact {
 
   constructor() {
     this.seo.update({
-      title: `Contact Us — ${SITE_NAME}`,
+      title: `Contact ${SITE_NAME} | Support and Partnerships`,
       description:
-        'Get in touch with the Fardelins team. Questions about deliveries, partnerships, or support — we usually respond within 24 business hours.',
+        'Contact the Fardelins team about deliveries, partnerships, or support. We usually respond within 24 business hours.',
       path: '/contact',
       type: 'website',
       jsonLd: [
@@ -78,6 +78,7 @@ export class Contact {
 
     const form = event.currentTarget as HTMLFormElement;
     if (!form.reportValidity()) return;
+    this.haptics.light();
 
     const values = new FormData(form);
     const message: ContactFormMessage = {

@@ -46,7 +46,7 @@ export class Blogs {
     const description =
       'Stories, guides, industry updates, and expert insights on delivery, logistics, and courier operations from Fardelins.';
     this.seo.update({
-      title: `Blog — ${SITE_NAME}`,
+      title: `Delivery and Logistics Blog | ${SITE_NAME}`,
       description,
       path: '/blogs',
       type: 'website',

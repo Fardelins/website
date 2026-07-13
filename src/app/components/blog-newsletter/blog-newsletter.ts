@@ -18,6 +18,7 @@ export class BlogNewsletter {
     if (!email.trim()) return;
 
     const form = event.currentTarget as HTMLFormElement;
+    this.haptics.light();
     this.state.set('submitting');
     try {
       await this.newsletter.subscribe(email);

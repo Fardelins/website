@@ -6,6 +6,7 @@ import {
   ViewChild,
   effect,
   input,
+  output,
   signal,
   PLATFORM_ID,
   inject,
@@ -25,6 +26,7 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   /** Component tree passed straight to `createShader`'s `components` array. */
   readonly preset = input.required<ComponentConfig[]>();
+  readonly readyChange = output<boolean>();
 
   @ViewChild('canvas', { static: true })
   private readonly canvasRef!: ElementRef<HTMLCanvasElement>;
@@ -86,6 +88,7 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
     this.shader?.destroy();
     this.shader = null;
     this.ready.set(false);
+    this.readyChange.emit(false);
 
     // Loaded on demand — the `shaders` package pulls in Three.js's WebGPU
     // renderer, so keeping it out of the initial bundle matters for first paint.
@@ -100,7 +103,10 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
       {
         disableTelemetry: true,
         observeElement: false,
-        onReady: () => this.ready.set(true),
+        onReady: () => {
+          this.ready.set(true);
+          this.readyChange.emit(true);
+        },
       },
     );
 

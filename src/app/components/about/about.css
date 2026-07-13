@@ -9,10 +9,52 @@
   overflow: hidden;
 }
 
+.about::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--color-neutral-black) 0%,
+    rgba(0, 0, 0, 0.92) 22%,
+    rgba(0, 0, 0, 0.54) 40%,
+    transparent 62%
+  );
+  pointer-events: none;
+}
+
 .about__trail {
   position: absolute;
   inset: 0;
   z-index: 0;
+  pointer-events: none;
+}
+
+.about__ascii {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.16;
+  mix-blend-mode: screen;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 18%,
+    rgba(0, 0, 0, 0.12) 34%,
+    rgba(0, 0, 0, 0.76) 58%,
+    #000 78%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 18%,
+    rgba(0, 0, 0, 0.12) 34%,
+    rgba(0, 0, 0, 0.76) 58%,
+    #000 78%,
+    #000 100%
+  );
   pointer-events: none;
 }
 

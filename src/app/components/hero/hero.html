@@ -17,7 +17,7 @@
       <picture class="hero__phone">
         <source type="image/avif" srcset="/home/phone-image-360.avif 360w, /home/phone-image-600.avif 600w" sizes="(max-width: 640px) 82vw, 400px" />
         <source type="image/webp" srcset="/home/phone-image-360.webp 360w, /home/phone-image-600.webp 600w" sizes="(max-width: 640px) 82vw, 400px" />
-        <img [appTilt]="16" src="/home/phone-image-600.webp" alt="Fardelins app screen" width="600" height="1224" decoding="async" fetchpriority="high" />
+        <img [appTilt]="16" appTiltSurface="parent" src="/home/phone-image-600.webp" alt="Fardelins app screen" width="600" height="1224" decoding="async" fetchpriority="high" />
       </picture>
 
       <div class="hero__float hero__float--details tracking-card hero__float--details-coded">
@@ -62,12 +62,15 @@
         class="hero__float hero__float--details hero__float--details-img"
         src="/home/details-640.webp"
         alt="Delivery tracking card"
+        width="640"
+        height="416"
+        decoding="async"
       />
 
       <img class="hero__float hero__float--storefront" src="/home/storefront-640.webp" alt="Set up storefront" width="640" height="245" decoding="async" />
-      <img class="hero__float hero__float--courier" src="/home/courier-640.webp" alt="Delivery partner rating" width="640" height="230" decoding="async" />
-      <img class="hero__float hero__float--headphones hero__float--floaty" src="/home/left-image-200.webp" alt="Package in transit" width="139" height="200" decoding="async" />
-      <img class="hero__float hero__float--airpods hero__float--floaty" src="/home/right-image-200.webp" alt="Delivered package" width="139" height="200" decoding="async" />
+      <img class="hero__float hero__float--courier" src="/home/courier-640.webp" alt="Delivery partner rating" width="640" height="229" decoding="async" />
+      <img class="hero__float hero__float--headphones hero__float--floaty" src="/home/left-image-200.webp" alt="Package in transit" width="200" height="288" decoding="async" />
+      <img class="hero__float hero__float--airpods hero__float--floaty" src="/home/right-image-200.webp" alt="Delivered package" width="200" height="288" decoding="async" />
     </div>
   </div>
 </section>

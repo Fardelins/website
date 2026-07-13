@@ -2,15 +2,32 @@
   @for (store of stores; track store.platform) {
     <a
       class="store-badge"
+      [class.store-badge--coming-soon]="!store.url"
+      [class.store-badge--unavailable]="!store.url && !fallbackToDownloadPage()"
       [href]="hrefFor(store.url)"
       [attr.target]="store.url ? '_blank' : null"
       [attr.rel]="store.url ? 'noopener noreferrer' : null"
-      [attr.aria-label]="'Download Fardelins on the ' + store.name"
-      (click)="storeClicked()"
+      [attr.aria-disabled]="!store.url && !fallbackToDownloadPage() ? 'true' : null"
+      [attr.aria-label]="
+        store.url
+          ? 'Download Fardelins on the ' + store.name
+          : fallbackToDownloadPage()
+            ? 'Learn about Fardelins for ' + store.name + ', coming soon'
+            : 'Fardelins for ' + store.name + ' coming soon'
+      "
+      (click)="storeClicked(store.url)"
     >
       <img class="store-badge__icon" [src]="store.icon" alt="" width="20" height="22" />
       <span class="store-badge__text">
-        <span class="store-badge__eyebrow">{{ store.platform === 'android' ? 'GET IT ON' : 'Download on the' }}</span>
+        <span class="store-badge__eyebrow">
+          {{
+            store.url
+              ? store.platform === 'android'
+                ? 'GET IT ON'
+                : 'Download on the'
+              : 'COMING SOON ON'
+          }}
+        </span>
         <span class="store-badge__title">{{ store.name }}</span>
       </span>
     </a>

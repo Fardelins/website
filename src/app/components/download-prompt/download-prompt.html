@@ -1,4 +1,8 @@
-<aside class="install-prompt" [class.install-prompt--visible]="visible()" [attr.aria-hidden]="!visible()">
+<aside
+  class="install-prompt"
+  [class.install-prompt--visible]="visible()"
+  [attr.aria-hidden]="!visible()"
+>
   <div class="install-prompt__bar">
     <div class="install-prompt__identity">
       <span class="app-icon" aria-hidden="true">
@@ -6,7 +10,7 @@
       </span>
       <span class="install-prompt__copy">
         <strong>Fardelins</strong>
-        <span>{{ platformLabel }} <span class="install-prompt__rating" aria-label="Rated five stars">★★★★★</span></span>
+        <span>{{ platformLabel }}</span>
       </span>
     </div>
 
@@ -16,6 +20,7 @@
       [attr.target]="external ? '_blank' : null"
       [attr.rel]="external ? 'noopener noreferrer' : null"
       (click)="download()"
-    >Download app</a>
+      >{{ ctaLabel }}</a
+    >
   </div>
 </aside>

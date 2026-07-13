@@ -38,7 +38,7 @@ export class Terms implements OnDestroy {
 
   constructor() {
     this.seo.update({
-      title: `Terms and Conditions — ${SITE_NAME}`,
+      title: `Terms and Conditions | ${SITE_NAME}`,
       description: 'The terms and conditions governing your access to and use of the Fardelins platform and services.',
       path: '/terms',
       type: 'website',

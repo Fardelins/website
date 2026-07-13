@@ -26,7 +26,7 @@
             {{ submissionState() === 'submitting' ? 'Sending…' : 'Send Message' }}
           </button>
           <div class="contact-form__status" aria-live="polite">
-            @if (submissionState() === 'success') { <p class="contact-form__success">Thanks—your message has been sent to our team.</p> }
+            @if (submissionState() === 'success') { <p class="contact-form__success">Thanks, your message has been sent to our team.</p> }
             @if (submissionState() === 'error') { <p class="contact-form__error" role="alert">We couldn't send your message. Please try again.</p> }
           </div>
         </form>

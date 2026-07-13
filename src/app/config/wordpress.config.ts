@@ -4,11 +4,10 @@ import { isPlatformBrowser } from '@angular/common';
 /**
  * Absolute origin of the WordPress backend (REST API + admin-ajax).
  *
- * The Angular app is served from fardelins.com (Railway). In the browser we call
- * WordPress with SAME-ORIGIN relative paths (`/wp-json`, `/wp-admin`) — the dev
- * server proxies these (see `proxy.conf.json`) and in production Railway must
- * reverse-proxy the same paths to WordPress. Keeping them same-origin also avoids
- * CORS on the newsletter POST.
+ * Public REST reads can go directly to this origin because WordPress exposes
+ * CORS-enabled GET endpoints. Mutating form requests still use same-origin
+ * relative paths and the Express proxy so cookies, anti-spam checks, and form
+ * tokens remain reliable.
  *
  * During server-side rendering there is no page origin, so data fetches need this
  * absolute URL instead. If WordPress ever moves off fardelins.com (e.g. to
@@ -17,8 +16,13 @@ import { isPlatformBrowser } from '@angular/common';
  */
 export const WORDPRESS_ORIGIN = 'https://fardelins.com';
 
+/** Builds an absolute URL for public, CORS-enabled WordPress REST reads. */
+export function wordpressPublicUrl(path: string): string {
+  return `${WORDPRESS_ORIGIN}${path}`;
+}
+
 /**
- * Builds a WordPress URL: relative in the browser (proxied / same-origin),
+ * Builds a private/form URL: relative in the browser (proxied / same-origin),
  * absolute during SSR. Inject `PLATFORM_ID` at the call site and pass it in.
  */
 export function wordpressUrl(path: string, platformId: object): string {

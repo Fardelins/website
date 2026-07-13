@@ -70,7 +70,7 @@ export class BlogDetail implements OnDestroy {
       if (!article) {
         this.notFound.set(true);
         this.seo.update({
-          title: `Article not found — ${SITE_NAME} Blog`,
+          title: `Article Not Found | ${SITE_NAME} Blog`,
           description: "The article you're looking for doesn't exist or may have been moved.",
           path: `/blogs/${slug}`,
           robots: 'noindex, follow',
@@ -122,7 +122,7 @@ export class BlogDetail implements OnDestroy {
     ];
 
     this.seo.update({
-      title: `${post.title} — ${SITE_NAME} Blog`,
+      title: `${post.title} | ${SITE_NAME} Blog`,
       description,
       path,
       image,
@@ -187,10 +187,11 @@ export class BlogDetail implements OnDestroy {
   }
 
   protected async copyLink(): Promise<void> {
+    // Trigger before awaiting the clipboard so iOS still has user activation.
+    this.haptics.light();
     try {
       await navigator.clipboard.writeText(this.shareUrl());
       this.copied.set(true);
-      this.haptics.light();
       setTimeout(() => this.copied.set(false), 1800);
     } catch {
       /* clipboard unavailable — no-op */

@@ -1,5 +1,5 @@
 import { Component, HostListener, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { HapticsService } from '../../services/haptics.service';
 
 @Component({
@@ -11,8 +11,12 @@ import { HapticsService } from '../../services/haptics.service';
 })
 export class Navbar {
   private readonly haptics = inject(HapticsService);
+  private readonly router = inject(Router);
   protected isMenuOpen = false;
   protected isScrolled = false;
+  protected get isDownloadPage(): boolean {
+    return this.router.url.split(/[?#]/, 1)[0] === '/download';
+  }
 
   protected readonly navLinks = [
     { label: 'Features', path: '/', fragment: 'features' },
