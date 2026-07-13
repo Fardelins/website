@@ -1,5 +1,6 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { HapticsService } from '../../services/haptics.service';
 
 @Component({
   selector: 'app-navbar',
@@ -9,6 +10,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styleUrl: './navbar.css',
 })
 export class Navbar {
+  private readonly haptics = inject(HapticsService);
   protected isMenuOpen = false;
   protected isScrolled = false;
 
@@ -18,8 +20,15 @@ export class Navbar {
     { label: 'Contact Us', path: '/contact', fragment: undefined },
   ];
 
-  protected toggleMenu(): void { this.isMenuOpen = !this.isMenuOpen; }
-  protected closeMenu(): void { this.isMenuOpen = false; }
+  protected toggleMenu(): void {
+    this.isMenuOpen = !this.isMenuOpen;
+    this.haptics.selection();
+  }
+
+  protected closeMenu(): void {
+    if (this.isMenuOpen) this.haptics.light();
+    this.isMenuOpen = false;
+  }
 
   @HostListener('window:scroll')
   protected onWindowScroll(): void { this.isScrolled = window.scrollY > 12; }

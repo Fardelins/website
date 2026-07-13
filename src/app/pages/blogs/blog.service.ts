@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { wordpressUrl } from '../../config/wordpress.config';
 import { BlogArticle, BlogArticleDetail, BlogCategory } from './blog.model';
 
-const WP_BASE = 'https://fardelins.com/wp-json/wp/v2';
 const WORDS_PER_MINUTE = 200;
 
 interface WpMediaSize {
@@ -48,11 +48,17 @@ export interface BlogPage {
 @Injectable({ providedIn: 'root' })
 export class BlogService {
   private readonly http = inject(HttpClient);
+  private readonly platformId = inject(PLATFORM_ID);
   private categoryNames = new Map<number, string>();
+
+  /** WordPress REST base — same-origin relative in the browser, absolute during SSR. */
+  private get wpBase(): string {
+    return wordpressUrl('/wp-json/wp/v2', this.platformId);
+  }
 
   async fetchCategories(): Promise<BlogCategory[]> {
     const categories = await firstValueFrom(
-      this.http.get<WpCategory[]>(`${WP_BASE}/categories`, {
+      this.http.get<WpCategory[]>(`${this.wpBase}/categories`, {
         params: { per_page: '100', hide_empty: 'true', orderby: 'count', order: 'desc', _fields: 'id,name,count' },
       }),
     );
@@ -75,7 +81,7 @@ export class BlogService {
     if (search) params['search'] = search;
 
     const response = await firstValueFrom(
-      this.http.get<WpPost[]>(`${WP_BASE}/posts`, { params, observe: 'response' }),
+      this.http.get<WpPost[]>(`${this.wpBase}/posts`, { params, observe: 'response' }),
     );
     const totalPages = Number(response.headers.get('X-WP-TotalPages') ?? '1');
 
@@ -92,7 +98,7 @@ export class BlogService {
     }
 
     const posts = await firstValueFrom(
-      this.http.get<WpPost[]>(`${WP_BASE}/posts`, {
+      this.http.get<WpPost[]>(`${this.wpBase}/posts`, {
         params: {
           slug,
           _embed: 'wp:featuredmedia',
@@ -108,6 +114,7 @@ export class BlogService {
       ...mapped,
       contentHtml: normalizeContent(post.content?.rendered ?? '', mapped.image),
       date: formatDate(post.date),
+      dateIso: post.date ? new Date(post.date).toISOString() : '',
     };
   }
 
@@ -121,12 +128,12 @@ export class BlogService {
     };
     if (categoryId) params['categories'] = String(categoryId);
 
-    let posts = await firstValueFrom(this.http.get<WpPost[]>(`${WP_BASE}/posts`, { params }));
+    let posts = await firstValueFrom(this.http.get<WpPost[]>(`${this.wpBase}/posts`, { params }));
 
     // If the category didn't yield enough, top up with the latest posts overall.
     if (posts.length < limit) {
       const fallback = await firstValueFrom(
-        this.http.get<WpPost[]>(`${WP_BASE}/posts`, {
+        this.http.get<WpPost[]>(`${this.wpBase}/posts`, {
           params: { per_page: String(limit + 1), exclude: String(excludeId), _embed: 'wp:featuredmedia', _fields: params['_fields'] },
         }),
       );
@@ -168,6 +175,21 @@ function toTitleCase(text: string): string {
 }
 
 function stripHtml(html: string): string {
+  // Server (SSR/prerender) has no DOM — fall back to a regex strip + basic entity decode.
+  if (typeof document === 'undefined') {
+    return html
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#8217;|&rsquo;/g, '’')
+      .replace(/&#8216;|&lsquo;/g, '‘')
+      .replace(/&#8220;|&ldquo;/g, '“')
+      .replace(/&#8221;|&rdquo;/g, '”')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
   const el = document.createElement('div');
   el.innerHTML = html;
   return (el.textContent ?? '').replace(/\s+/g, ' ').trim();
@@ -199,6 +221,13 @@ function imageStem(url: string | null): string {
  * normalize it into clean, semantic HTML before it reaches the template.
  */
 function normalizeContent(html: string, featuredImage: string | null): string {
+  // No DOM during SSR/prerender — strip the block-editor comments so the server
+  // HTML is clean enough for crawlers; the browser re-runs full normalization on
+  // hydration (the .article-content subtree is marked ngSkipHydration).
+  if (typeof DOMParser === 'undefined' || typeof document === 'undefined') {
+    return html.replace(/<!--[\s\S]*?-->/g, '').trim();
+  }
+
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const body = doc.body;
 

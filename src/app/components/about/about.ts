@@ -78,8 +78,8 @@ export class About {
   protected readonly progress = signal(0);
 
   protected readonly trailPreset = TRAIL_PRESET;
-  protected readonly leftImagePreset = imageDistortPreset('/home/left.png', `${ABERRATION_ID_PREFIX}left`);
-  protected readonly rightImagePreset = imageDistortPreset('/home/right.png', `${ABERRATION_ID_PREFIX}right`);
+  protected readonly leftImagePreset = imageDistortPreset('/home/left-800.webp', `${ABERRATION_ID_PREFIX}left`);
+  protected readonly rightImagePreset = imageDistortPreset('/home/right-800.webp', `${ABERRATION_ID_PREFIX}right`);
 
   protected readonly leftShader = viewChild<ShaderBackground>('leftShader');
   protected readonly rightShader = viewChild<ShaderBackground>('rightShader');

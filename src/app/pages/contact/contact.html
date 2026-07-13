@@ -7,23 +7,28 @@
       </header>
 
       <div class="contact-grid">
-        <form class="contact-form" (submit)="submitForm($event)">
+        <form class="contact-form" (submit)="submitForm($event)" novalidate>
           <div class="contact-form__intro">
             <h2>Send us a message</h2>
             <p>Fill out the form below and we'll get back to you as soon as possible.</p>
           </div>
           <div class="contact-form__row">
-            <label>First Name<input type="text" name="firstName" placeholder="Enter first name..." required /></label>
-            <label>Last Name<input type="text" name="lastName" placeholder="Enter last name..." required /></label>
+            <label>First Name<input type="text" name="firstName" autocomplete="given-name" maxlength="80" placeholder="Enter first name..." required /></label>
+            <label>Last Name<input type="text" name="lastName" autocomplete="family-name" maxlength="80" placeholder="Enter last name..." required /></label>
           </div>
-          <label>Email Address<input type="email" name="email" placeholder="We will reach you here... E.g; johndoe@example.com" required /></label>
+          <label>Email Address<input type="email" name="email" autocomplete="email" maxlength="254" placeholder="We will reach you here... E.g; johndoe@example.com" required /></label>
           <div class="contact-form__row">
-            <label>Company Name<input type="text" name="company" placeholder="Let's know who you represent..." /></label>
-            <label>Subject<input type="text" name="subject" placeholder="What is this about?" required /></label>
+            <label>Company Name<input type="text" name="company" autocomplete="organization" maxlength="120" placeholder="Let's know who you represent..." /></label>
+            <label>Subject<input type="text" name="subject" maxlength="160" placeholder="What is this about?" required /></label>
           </div>
-          <label>Message<textarea name="message" rows="7" placeholder="Tell us how we can help you..." required></textarea></label>
-          <button type="submit">Send Message</button>
-          @if (submitted()) { <p class="contact-form__success" role="status">Thanks—your message is ready for our team.</p> }
+          <label>Message<textarea name="message" rows="7" maxlength="5000" placeholder="Tell us how we can help you..." required></textarea></label>
+          <button type="submit" [disabled]="submissionState() === 'submitting'">
+            {{ submissionState() === 'submitting' ? 'Sending…' : 'Send Message' }}
+          </button>
+          <div class="contact-form__status" aria-live="polite">
+            @if (submissionState() === 'success') { <p class="contact-form__success">Thanks—your message has been sent to our team.</p> }
+            @if (submissionState() === 'error') { <p class="contact-form__error" role="alert">We couldn't send your message. Please try again.</p> }
+          </div>
         </form>
 
         <aside class="contact-direct">

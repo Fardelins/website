@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { SITE_NAME, SITE_URL, SeoService } from '../../services/seo.service';
 import { BlogCard } from '../../components/blog-card/blog-card';
 import { BlogEmptyState } from '../../components/blog-empty-state/blog-empty-state';
 import { BlogLoader } from '../../components/blog-loader/blog-loader';
@@ -17,6 +18,7 @@ const SEARCH_DEBOUNCE_MS = 350;
 })
 export class Blogs {
   private readonly blogService = inject(BlogService);
+  private readonly seo = inject(SeoService);
 
   protected readonly categories = signal<BlogCategory[]>([]);
   protected readonly activeCategoryId = signal<number | null>(null);
@@ -41,6 +43,22 @@ export class Blogs {
   private searchDebounceId: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
+    const description =
+      'Stories, guides, industry updates, and expert insights on delivery, logistics, and courier operations from Fardelins.';
+    this.seo.update({
+      title: `Blog — ${SITE_NAME}`,
+      description,
+      path: '/blogs',
+      type: 'website',
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'Blog',
+        name: `${SITE_NAME} Blog`,
+        description,
+        url: `${SITE_URL}/blogs`,
+        publisher: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+      },
+    });
     void this.init();
   }
 

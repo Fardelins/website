@@ -30,7 +30,7 @@ export class Journey {
       title: 'Send, track, and manage deliveries from one simple app.',
       description:
         'Request pickups, follow deliveries live, receive status updates, and view your delivery history without calling back and forth.',
-      phone: '/home/customer-phone.png',
+      phone: '/home/customer-phone-600.webp',
       phoneSide: 'right',
       cta: 'badges',
     },
@@ -41,7 +41,7 @@ export class Journey {
       title: 'Turn customer orders into smooth deliveries.',
       description:
         'Connect your store, manage fulfillment, and give customers real-time visibility from checkout to delivery.',
-      phone: '/home/storefront-phone.png',
+      phone: '/home/storefront-phone-600.webp',
       phoneSide: 'left',
       cta: 'badges',
     },
@@ -52,7 +52,7 @@ export class Journey {
       title: 'Coordinate deliveries with better visibility.',
       description:
         'Assign deliveries, monitor active routes, update delivery progress, and keep teams aligned in real time.',
-      phone: '/home/courier-phone.png',
+      phone: '/home/courier-phone-600.webp',
       phoneSide: 'right',
       cta: 'button',
       ctaLabel: 'Join as a Courier',

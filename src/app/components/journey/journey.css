@@ -159,6 +159,8 @@
   cursor: pointer;
 }
 
+.panel__cta-btn:hover { background: #17131c; }
+
 /* The phone image renders at its full, natural size — the panel itself
    (fixed height + overflow:hidden) is what crops it, not this frame. */
 .panel__phone-frame {

@@ -7,7 +7,10 @@ import {
   effect,
   input,
   signal,
+  PLATFORM_ID,
+  inject,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import type { ComponentConfig, ShaderInstance } from 'shaders/js';
 
 export type { ComponentConfig } from 'shaders/js';
@@ -19,6 +22,7 @@ export type { ComponentConfig } from 'shaders/js';
   styleUrl: './shader-background.css',
 })
 export class ShaderBackground implements AfterViewInit, OnDestroy {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   /** Component tree passed straight to `createShader`'s `components` array. */
   readonly preset = input.required<ComponentConfig[]>();
 
@@ -44,8 +48,9 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    if (!this.isBrowser || typeof globalThis.IntersectionObserver === 'undefined') return;
     this.viewReady = true;
-    this.loadObserver = new IntersectionObserver(
+    this.loadObserver = new globalThis.IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting || this.nearViewport) return;
         this.nearViewport = true;
@@ -60,7 +65,8 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
     // abrupt aspect-ratio jumps our CSS breakpoints cause (e.g. desktop
     // widescreen -> phone portrait), leaving the canvas rendered at the
     // stale size. Drive resize() ourselves off a ResizeObserver instead.
-    this.resizeObserver = new ResizeObserver(() => this.shader?.resize());
+    if (typeof globalThis.ResizeObserver === 'undefined') return;
+    this.resizeObserver = new globalThis.ResizeObserver(() => this.shader?.resize());
     this.resizeObserver.observe(this.canvasRef.nativeElement);
   }
 
@@ -98,7 +104,7 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
       },
     );
 
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
       this.shader.pause();
     }
   }

@@ -1,5 +1,7 @@
-import { Component, viewChild } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { NewsletterService } from '../../services/newsletter.service';
+import { HapticsService } from '../../services/haptics.service';
 import { ComponentConfig, ShaderBackground } from '../shader-background/shader-background';
 
 const BLUR_ID = 'cta-zoom-blur';
@@ -14,7 +16,7 @@ const BG_PRESET: ComponentConfig[] = [
       intensity: BLUR_RESTING,
       center: { x: 0.56, y: 0.55 },
     },
-    children: [{ type: 'ImageTexture', props: { url: '/home/footer.jpg', objectFit: 'cover' } }],
+    children: [{ type: 'ImageTexture', props: { url: '/home/footer-1920.webp', objectFit: 'cover' } }],
   },
 ];
 
@@ -26,7 +28,9 @@ const BG_PRESET: ComponentConfig[] = [
   styleUrl: './footer.css',
 })
 export class Footer {
-  protected readonly year = 2026;
+  private readonly newsletter = inject(NewsletterService);
+  private readonly haptics = inject(HapticsService);
+  protected readonly year = new Date().getFullYear();
 
   protected readonly bgPreset = BG_PRESET;
   protected readonly bgShader = viewChild<ShaderBackground>('bgShader');
@@ -34,22 +38,38 @@ export class Footer {
   private blurTarget = BLUR_RESTING;
   private blurCurrent = BLUR_RESTING;
   private blurRafId: number | null = null;
+  protected readonly subscriptionState = signal<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
   protected readonly socialLinks = [
-    { label: 'Facebook', href: '#', icon: 'facebook' },
-    { label: 'Twitter', href: '#', icon: 'twitter' },
-    { label: 'Instagram', href: '#', icon: 'instagram' },
-    { label: 'LinkedIn', href: '#', icon: 'linkedin' },
+    { label: 'Facebook', href: 'https://web.facebook.com/fardelinsng', icon: 'facebook' },
+    { label: 'Twitter', href: 'https://twitter.com/fardelins', icon: 'twitter' },
+    { label: 'Instagram', href: 'https://www.instagram.com/fardelins/', icon: 'instagram' },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/company/fardelins', icon: 'linkedin' },
   ];
 
   protected readonly companyLinks = [
-    { label: 'Contact Us', href: '#contact' },
+    { label: 'Contact Us', href: '/contact' },
     { label: 'Terms', href: '/terms' },
     { label: 'Privacy Policy', href: '/privacy' },
   ];
 
-  protected scrollToTop(href: string): void {
-    if (href === '/terms' || href === '/privacy') window.scrollTo({ top: 0, behavior: 'auto' });
+  protected async subscribe(event: SubmitEvent, email: string): Promise<void> {
+    event.preventDefault();
+    if (this.subscriptionState() === 'submitting') return;
+    if (!email.trim()) return;
+
+    const form = event.currentTarget as HTMLFormElement;
+
+    this.subscriptionState.set('submitting');
+    try {
+      await this.newsletter.subscribe(email);
+      this.subscriptionState.set('success');
+      form.reset();
+      this.haptics.success();
+    } catch {
+      this.subscriptionState.set('error');
+      this.haptics.error();
+    }
   }
 
   /** Blur eases toward 0 while hovering, and back to resting once the cursor leaves. */

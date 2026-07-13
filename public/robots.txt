@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# WordPress admin/internals are not part of the public app
+Disallow: /wp-admin/
+Disallow: /wp-json/
+
+Sitemap: https://fardelins.com/sitemap.xml

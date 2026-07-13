@@ -1,4 +1,6 @@
-import { afterNextRender, Component, computed, ElementRef, OnDestroy, signal, viewChildren } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, inject, OnDestroy, signal, viewChildren } from '@angular/core';
+import { HapticsService } from '../../services/haptics.service';
+import { SITE_NAME, SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-terms',
@@ -7,6 +9,8 @@ import { afterNextRender, Component, computed, ElementRef, OnDestroy, signal, vi
   styleUrl: './terms.css',
 })
 export class Terms implements OnDestroy {
+  private readonly haptics = inject(HapticsService);
+  private readonly seo = inject(SeoService);
   protected readonly sections = [
     { id: 'about-fardelins', label: 'About Fardelins' },
     { id: 'eligibility', label: 'Eligibility' },
@@ -33,12 +37,19 @@ export class Terms implements OnDestroy {
   private observer?: IntersectionObserver;
 
   constructor() {
+    this.seo.update({
+      title: `Terms and Conditions — ${SITE_NAME}`,
+      description: 'The terms and conditions governing your access to and use of the Fardelins platform and services.',
+      path: '/terms',
+      type: 'website',
+    });
     afterNextRender(() => this.observeSections());
   }
 
   protected selectSection(event: MouseEvent, id: string, index: number): void {
     event.preventDefault();
     this.activeSection.set(index);
+    this.haptics.selection();
 
     const target = document.getElementById(id);
     if (!target) return;

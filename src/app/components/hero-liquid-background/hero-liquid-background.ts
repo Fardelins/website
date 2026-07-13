@@ -1,4 +1,6 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, inject, OnDestroy, PLATFORM_ID, ViewChild } from '@angular/core';
+import { HapticsService } from '../../services/haptics.service';
 
 const VERTEX_SHADER = `
   attribute vec2 a_position;
@@ -83,6 +85,8 @@ const FRAGMENT_SHADER = `
   styleUrl: './hero-liquid-background.css',
 })
 export class HeroLiquidBackground implements AfterViewInit, OnDestroy {
+  private readonly haptics = inject(HapticsService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   @ViewChild('canvas', { static: true }) private readonly canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private gl: WebGLRenderingContext | null = null;
@@ -90,9 +94,9 @@ export class HeroLiquidBackground implements AfterViewInit, OnDestroy {
   private resizeObserver: ResizeObserver | null = null;
   private visibilityObserver: IntersectionObserver | null = null;
   private rafId = 0;
-  private startTime = performance.now();
+  private startTime = this.isBrowser ? performance.now() : 0;
   private visible = true;
-  private readonly reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  private readonly reducedMotion = !this.isBrowser || Boolean(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
   private pointer = { x: 0.5, y: 0.5 };
   private pointerTarget = { x: 0.5, y: 0.5 };
   private energy = 0;
@@ -108,6 +112,7 @@ export class HeroLiquidBackground implements AfterViewInit, OnDestroy {
   private rippleAgeLocation: WebGLUniformLocation | null = null;
 
   ngAfterViewInit(): void {
+    if (!this.isBrowser) return;
     if (!this.initialize()) return;
     const canvas = this.canvasRef.nativeElement;
     this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -125,6 +130,7 @@ export class HeroLiquidBackground implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (!this.isBrowser) return;
     cancelAnimationFrame(this.rafId);
     this.resizeObserver?.disconnect();
     this.visibilityObserver?.disconnect();
@@ -210,6 +216,7 @@ export class HeroLiquidBackground implements AfterViewInit, OnDestroy {
   private readonly onPointerDown = (event: PointerEvent): void => {
     const rect = this.canvasRef.nativeElement.getBoundingClientRect();
     this.triggerRipple((event.clientX - rect.left) / rect.width, 1 - (event.clientY - rect.top) / rect.height, performance.now());
+    this.haptics.heroRipple(event);
   };
 
   private triggerRipple(x: number, y: number, now: number): void {

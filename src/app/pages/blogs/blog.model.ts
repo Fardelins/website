@@ -22,4 +22,6 @@ export interface BlogArticleDetail extends BlogArticle {
   contentHtml: string;
   /** Human-formatted publish date, e.g. "May 12, 2025". */
   date: string;
+  /** Raw ISO publish date for structured data (`datePublished`). */
+  dateIso: string;
 }

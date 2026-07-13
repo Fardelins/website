@@ -29,7 +29,8 @@
   margin: 0;
   padding: 0;
   gap: var(--spacing-184);
-  animation: marquee-scroll 40s linear infinite;
+  /* `reverse` drifts the logos rightward — opposite to the audience carousel below. */
+  animation: marquee-scroll 40s linear infinite reverse;
 }
 
 .marquee__viewport:hover .marquee__track {

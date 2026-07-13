@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { NewsletterService } from '../../services/newsletter.service';
+import { HapticsService } from '../../services/haptics.service';
 
 @Component({
   selector: 'app-blog-newsletter',
@@ -6,10 +8,25 @@ import { Component } from '@angular/core';
   styleUrl: './blog-newsletter.css',
 })
 export class BlogNewsletter {
-  protected submitted = false;
+  private readonly newsletter = inject(NewsletterService);
+  private readonly haptics = inject(HapticsService);
+  protected readonly state = signal<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
-  protected submit(event: Event): void {
+  protected async submit(event: SubmitEvent, email: string): Promise<void> {
     event.preventDefault();
-    this.submitted = true;
+    if (this.state() === 'submitting') return;
+    if (!email.trim()) return;
+
+    const form = event.currentTarget as HTMLFormElement;
+    this.state.set('submitting');
+    try {
+      await this.newsletter.subscribe(email);
+      this.state.set('success');
+      form.reset();
+      this.haptics.success();
+    } catch {
+      this.state.set('error');
+      this.haptics.error();
+    }
   }
 }

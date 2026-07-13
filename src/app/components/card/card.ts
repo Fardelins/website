@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 @Component({
   selector: 'app-card',
@@ -10,4 +10,5 @@ export class Card {
   readonly image = input.required<string>();
   readonly title = input.required<string>();
   readonly description = input<string>('');
+  protected readonly imageBase = computed(() => this.image().replace(/\.(png|jpe?g)$/i, ''));
 }

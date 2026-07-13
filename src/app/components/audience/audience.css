@@ -85,7 +85,6 @@
   margin-inline: auto;
   padding: var(--spacing-40) var(--spacing-80) var(--spacing-sm);
   overflow-x: auto;
-  scroll-snap-type: x proximity;
   scrollbar-width: none;
 }
 
@@ -96,7 +95,6 @@
 .audience__item {
   flex: 0 0 400px;
   width: 400px;
-  scroll-snap-align: start;
 }
 
 @media (max-width: 900px) {

@@ -1,4 +1,5 @@
-import { Directive, ElementRef, Input, OnDestroy, inject } from '@angular/core';
+import { Directive, ElementRef, Input, OnDestroy, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 
 const TILT_EASE = 0.12;
 const TILT_PERSPECTIVE_PX = 800;
@@ -31,12 +32,19 @@ export class TiltDirective implements OnDestroy {
     this.startLoop();
   };
 
+  private enabled = false;
+
   constructor() {
+    // Skip on the server (no pointer) and when the user prefers reduced motion.
+    if (!isPlatformBrowser(inject(PLATFORM_ID))) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    this.enabled = true;
     this.el.addEventListener('pointermove', this.onPointerMove);
     this.el.addEventListener('pointerleave', this.onPointerLeave);
   }
 
   ngOnDestroy(): void {
+    if (!this.enabled) return;
     this.el.removeEventListener('pointermove', this.onPointerMove);
     this.el.removeEventListener('pointerleave', this.onPointerLeave);
     if (this.rafId !== null) {

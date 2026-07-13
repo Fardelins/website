@@ -14,5 +14,9 @@ export const routes: Routes = [
   { path: 'blogs/:slug', component: BlogDetail },
   { path: 'terms', component: Terms },
   { path: 'privacy', component: Privacy },
+  {
+    path: 'download',
+    loadComponent: () => import('./pages/download/download').then(({ Download }) => Download),
+  },
   { path: '**', redirectTo: '' },
 ];

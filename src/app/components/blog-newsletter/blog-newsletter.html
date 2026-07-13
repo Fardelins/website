@@ -3,18 +3,31 @@
     <div class="blogs-newsletter__content">
       <h2>Stay ahead of delivery trends</h2>
       <p>Get logistics insights, product updates, and industry news delivered to your inbox.</p>
-      <form class="blogs-newsletter__form" (submit)="submit($event)">
-        <input type="email" placeholder="Enter your email address" aria-label="Email address" required />
-        <button type="submit">Subscribe</button>
+      <form class="blogs-newsletter__form" (submit)="submit($event, newsletterEmail.value)">
+        <input
+          #newsletterEmail
+          type="email"
+          name="email"
+          autocomplete="email"
+          placeholder="Enter your email address"
+          aria-label="Email address"
+          required
+          [disabled]="state() === 'submitting'"
+        />
+        <button type="submit" [disabled]="state() === 'submitting'">
+          {{ state() === 'submitting' ? 'Subscribing…' : 'Subscribe' }}
+        </button>
       </form>
-      @if (submitted) {
-        <p class="blogs-newsletter__hint">Thanks — you're on the list.</p>
-      } @else {
-        <p class="blogs-newsletter__hint">No spam. Unsubscribe anytime.</p>
-      }
+      <p class="blogs-newsletter__hint" aria-live="polite">
+        @switch (state()) {
+          @case ('success') { You have been successfully subscribed! }
+          @case ('error') { Something went wrong. Please try again. }
+          @default { No spam. Unsubscribe anytime. }
+        }
+      </p>
     </div>
     <div class="blogs-newsletter__visual" aria-hidden="true">
-      <img src="/blogs/subscribe-banner.png" alt="" />
+      <img src="/blogs/subscribe-banner-600.webp" alt="" width="600" height="936" loading="lazy" decoding="async" />
     </div>
   </div>
 </section>

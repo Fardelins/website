@@ -14,7 +14,12 @@
   border-radius: var(--radius-md);
   padding: 8px 16px;
   text-decoration: none;
+  transition: background-color 180ms ease;
 }
+
+.store-badge:hover { background: #17131c; }
+.store-badge:active { background: #261e2d; }
+.store-badge:focus-visible { outline: 3px solid color-mix(in srgb, var(--color-primary-500) 35%, transparent); outline-offset: 3px; }
 
 .store-badge__text {
   display: flex;
@@ -34,3 +39,5 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+@media (prefers-reduced-motion: reduce) { .store-badge { transition: none; } }

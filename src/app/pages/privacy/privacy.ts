@@ -1,4 +1,6 @@
-import { afterNextRender, Component, computed, ElementRef, OnDestroy, signal, viewChildren } from '@angular/core';
+import { afterNextRender, Component, computed, ElementRef, inject, OnDestroy, signal, viewChildren } from '@angular/core';
+import { HapticsService } from '../../services/haptics.service';
+import { SITE_NAME, SeoService } from '../../services/seo.service';
 
 @Component({
   selector: 'app-privacy',
@@ -7,6 +9,8 @@ import { afterNextRender, Component, computed, ElementRef, OnDestroy, signal, vi
   styleUrl: './privacy.css',
 })
 export class Privacy implements OnDestroy {
+  private readonly haptics = inject(HapticsService);
+  private readonly seo = inject(SeoService);
   protected readonly sections = [
     { id: 'information-we-collect', label: 'Information We Collect' },
     { id: 'personal-information', label: 'Personal Information' },
@@ -37,11 +41,20 @@ export class Privacy implements OnDestroy {
   private readonly sectionElements = viewChildren<ElementRef<HTMLElement>>('privacySection');
   private observer?: IntersectionObserver;
 
-  constructor() { afterNextRender(() => this.observeSections()); }
+  constructor() {
+    this.seo.update({
+      title: `Privacy Policy — ${SITE_NAME}`,
+      description: 'How Fardelins collects, uses, stores, and protects your personal information across our platform and services.',
+      path: '/privacy',
+      type: 'website',
+    });
+    afterNextRender(() => this.observeSections());
+  }
 
   protected selectSection(event: MouseEvent, id: string, index: number): void {
     event.preventDefault();
     this.activeSection.set(index);
+    this.haptics.selection();
     const target = document.getElementById(id);
     if (!target) return;
     window.history.pushState(null, '', `/privacy#${id}`);

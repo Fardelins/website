@@ -1,4 +1,12 @@
-<section class="audience">
+<section
+  class="audience"
+  (mouseenter)="pauseAuto()"
+  (mouseleave)="resumeAuto()"
+  (focusin)="pauseAuto()"
+  (focusout)="resumeAuto()"
+  (touchstart)="pauseAuto()"
+  (touchend)="resumeAuto()"
+>
   <div class="audience__header">
     <div class="audience__intro">
       <h2 class="audience__title">Who Fardelins is <span class="audience__title-accent">built for</span></h2>
@@ -29,8 +37,8 @@
   </div>
 
   <div class="audience__track" #track>
-    @for (item of items; track item.title) {
-      <div class="audience__item">
+    @for (item of loopItems; track $index) {
+      <div class="audience__item" [attr.aria-hidden]="$index >= items.length ? 'true' : null">
         <app-card [image]="item.image" [title]="item.title" [description]="item.description" />
       </div>
     }
