@@ -42,6 +42,7 @@ __screenshots__/
 # Local project notes and generated files
 /.impeccable.md
 /SHADERS.md
+/DEPLOY.md
 /.agents/
 /.claude/
 
