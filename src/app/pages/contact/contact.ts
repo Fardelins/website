@@ -1,5 +1,6 @@
 import { Component, inject, signal, viewChild } from '@angular/core';
 import { ComponentConfig, ShaderBackground } from '../../components/shader-background/shader-background';
+import { TiltDirective } from '../../directives/tilt.directive';
 import { ContactFormMessage, ContactFormService } from '../../services/contact-form.service';
 import { HapticsService } from '../../services/haptics.service';
 import { SITE_NAME, SeoService } from '../../services/seo.service';
@@ -23,7 +24,7 @@ const CONTACT_IMAGE_PRESET: ComponentConfig[] = [
 
 @Component({
   selector: 'app-contact',
-  imports: [ShaderBackground],
+  imports: [ShaderBackground, TiltDirective],
   templateUrl: './contact.html',
   styleUrl: './contact.css',
 })

@@ -70,21 +70,34 @@
 
         @if (toc().length) {
           <aside class="article-toc">
-            <nav class="article-toc__nav" aria-label="On this page">
+            <nav class="article-toc__nav" aria-label="On this page" [style.--progress]="tocProgress()">
               <p class="article-toc__title">On this page</p>
-              @for (item of toc(); track item.id) {
-                <a
-                  [href]="'#' + item.id"
-                  [class.is-active]="activeTocId() === item.id"
-                  [attr.aria-current]="activeTocId() === item.id ? 'location' : null"
-                  (click)="jumpTo($event, item.id)"
-                >{{ item.label }}</a>
-              }
+              <div class="article-toc__list">
+                <span class="article-toc__track" aria-hidden="true">
+                  <span class="article-toc__progress">
+                    <span class="article-toc__progress-head"></span>
+                  </span>
+                </span>
+                @for (item of toc(); track item.id) {
+                  <a
+                    [href]="'#' + item.id"
+                    [class.is-active]="activeTocId() === item.id"
+                    [attr.aria-current]="activeTocId() === item.id ? 'location' : null"
+                    (click)="jumpTo($event, item.id)"
+                  >{{ item.label }}</a>
+                }
+              </div>
             </nav>
           </aside>
         }
       </div>
     </article>
+
+    <!-- Reading progress (top edge, above the navbar): fills left→right as you scroll
+         through the article and retracts on scroll up. Shown where the side TOC is hidden. -->
+    <div class="article-progress" [class.article-progress--active]="readProgress() > 0.005" aria-hidden="true">
+      <span class="article-progress__fill" [style.transform]="'scaleX(' + readProgress() + ')'"></span>
+    </div>
 
     @if (related().length) {
       <section class="article-related">

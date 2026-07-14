@@ -1,5 +1,5 @@
 .journey {
-  padding: clamp(64px, 8vw, 112px) var(--spacing-80) 0;
+  padding: clamp(64px, 8vw, 112px) var(--spacing-80) clamp(56px, 7vw, 96px);
   background: var(--color-neutral-white);
 }
 
@@ -32,6 +32,9 @@
   height: 300svh;
   margin: 0 auto;
 }
+
+/* Shown only on small screens (see the 640px block) as a plain stacked list. */
+.journey__mobile { display: none; }
 
 .journey__stage {
   position: sticky;
@@ -169,11 +172,6 @@
   height: 100%;
 }
 
-.journey-card--blue .journey-card__image-wrap {
-  scale: 1.4;
-  transform-origin: top center;
-}
-
 .journey-card__phone {
   position: absolute;
   inset: -16px 0 auto;
@@ -280,7 +278,7 @@
 }
 
 @media (max-width: 900px) {
-  .journey { padding: 72px var(--spacing-xl) 0; }
+  .journey { padding: 72px var(--spacing-xl) clamp(48px, 9vw, 72px); }
 
   .journey__stage {
     top: 76px;
@@ -304,17 +302,27 @@
   .journey { padding-inline: 16px; }
   .journey__intro { margin-bottom: 32px; }
 
-  .journey__stage {
-    height: calc(100svh - 92px);
-    min-height: 590px;
+  /* Swap the desktop sticky scroll-through for a plain, snappy vertical stack:
+     each card is just scrolled past — no sticky, no scroll-driven index, no lag. */
+  .journey__scroll-shell { display: none; }
+
+  .journey__mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
   }
 
   .journey-card {
+    height: auto;
+    min-height: 660px;
     border-radius: 28px;
-    padding: 28px 22px 22px;
+    /* No bottom padding: the phone bleeds to the rounded edge and is cropped
+       by the card itself — never by an inner box. */
+    padding: 28px 22px 0;
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(210px, 1fr);
-    gap: 12px;
+    grid-template-rows: auto 1fr;
+    gap: 8px;
   }
 
   .journey-card__content {
@@ -336,25 +344,27 @@
   .journey-card__mask--description { margin-top: 12px; }
   .journey-card__mask--cta { margin-top: 18px; }
 
+  /* Static stack — drop the entrance reveal so it reads instantly, not animated. */
+  .journey-card__mask > * { animation: none; }
+
   .journey-card__mask--cta app-store-badges {
     transform: scale(0.82);
     transform-origin: left center;
   }
 
+  /* The rounded card (overflow:hidden) is the only clip. The phone stands
+     inside the visual and is cropped by the card's bottom edge, matching desktop. */
   .journey-card__visual {
-    min-height: 210px;
-    overflow: hidden;
+    overflow: visible;
+    align-self: stretch;
   }
 
-  .journey-card__image-wrap { width: min(62vw, 250px); }
-
-  .journey-card__phone { inset-block-start: 0; }
-
-  .journey-card__pagination {
-    left: 22px;
-    bottom: 18px;
-    width: 132px;
+  .journey-card__image-wrap {
+    width: min(72vw, 280px);
+    height: 100%;
   }
+
+  .journey-card__phone { inset: 0 0 auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {

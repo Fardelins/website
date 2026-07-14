@@ -8,6 +8,7 @@ import {
   inject,
 } from '@angular/core';
 import { ComponentConfig, ShaderBackground } from '../shader-background/shader-background';
+import { TiltDirective } from '../../directives/tilt.directive';
 import { HapticsService } from '../../services/haptics.service';
 
 const ABOUT_TEXT =
@@ -71,6 +72,7 @@ const ASCII_PRESET: ComponentConfig[] = [
 const ABERRATION_ID_PREFIX = 'aberration-';
 const ABERRATION_HOVER_STRENGTH = 0.5;
 const HOVER_EASE = 0.12;
+// (3D pointer-tilt is handled by the shared [appTilt] directive.)
 
 function imageDistortPreset(url: string, aberrationId: string): ComponentConfig[] {
   return [
@@ -97,13 +99,10 @@ interface HoverState {
   rafId: number | null;
 }
 
-const TILT_TRANSLATE_PX = 5;
-const TILT_ROTATE_DEG = 1.2;
-
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [ShaderBackground],
+  imports: [ShaderBackground, TiltDirective],
   templateUrl: './about.html',
   styleUrl: './about.css',
 })
@@ -126,9 +125,6 @@ export class About {
 
   protected readonly leftShader = viewChild<ShaderBackground>('leftShader');
   protected readonly rightShader = viewChild<ShaderBackground>('rightShader');
-
-  protected readonly leftTilt = signal({ x: 0, y: 0 });
-  protected readonly rightTilt = signal({ x: 0, y: 0 });
 
   private readonly hoverStates: Record<ImageSide, HoverState> = {
     left: { target: 0, current: 0, rafId: null },
@@ -238,23 +234,5 @@ export class About {
       state.rafId = settled ? null : requestAnimationFrame(step);
     };
     state.rafId = requestAnimationFrame(step);
-  }
-
-  /** Only the hovered image tilts, and only toward its own local cursor position. */
-  protected onImagePointerMove(event: PointerEvent, imageEl: HTMLElement, side: ImageSide): void {
-    const rect = imageEl.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    const y = ((event.clientY - rect.top) / rect.height) * 2 - 1;
-    (side === 'left' ? this.leftTilt : this.rightTilt).set({ x, y });
-  }
-
-  protected onImageLeave(side: ImageSide): void {
-    this.setImageHover(side, false);
-    (side === 'left' ? this.leftTilt : this.rightTilt).set({ x: 0, y: 0 });
-  }
-
-  protected imageTransform(side: ImageSide): string {
-    const { x, y } = side === 'left' ? this.leftTilt() : this.rightTilt();
-    return `translate(${x * TILT_TRANSLATE_PX}px, ${y * TILT_TRANSLATE_PX}px) rotate(${x * TILT_ROTATE_DEG}deg)`;
   }
 }

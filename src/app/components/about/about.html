@@ -16,11 +16,9 @@
       class="about__image"
       role="img"
       aria-label="Fardelins packaging"
-      #leftImageEl
-      [style.transform]="imageTransform('left')"
+      [appTilt]="9"
       (pointerenter)="setImageHover('left', true)"
-      (pointermove)="onImagePointerMove($event, leftImageEl, 'left')"
-      (pointerleave)="onImageLeave('left')"
+      (pointerleave)="setImageHover('left', false)"
     >
       <app-shader-background #leftShader [preset]="leftImagePreset" />
     </div>
@@ -28,11 +26,9 @@
       class="about__image"
       role="img"
       aria-label="Fardelins team collaborating"
-      #rightImageEl
-      [style.transform]="imageTransform('right')"
+      [appTilt]="9"
       (pointerenter)="setImageHover('right', true)"
-      (pointermove)="onImagePointerMove($event, rightImageEl, 'right')"
-      (pointerleave)="onImageLeave('right')"
+      (pointerleave)="setImageHover('right', false)"
     >
       <app-shader-background #rightShader [preset]="rightImagePreset" />
     </div>

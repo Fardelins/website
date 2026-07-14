@@ -1,4 +1,4 @@
-import { isPlatformBrowser } from '@angular/common';
+import { NgTemplateOutlet, isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -27,7 +27,7 @@ interface JourneyPanel {
 @Component({
   selector: 'app-journey',
   standalone: true,
-  imports: [StoreBadges],
+  imports: [StoreBadges, NgTemplateOutlet],
   templateUrl: './journey.html',
   styleUrl: './journey.css',
 })
@@ -126,6 +126,10 @@ export class Journey implements AfterViewInit, OnDestroy {
   private updateActiveState(): void {
     const shell = this.scrollShell?.nativeElement;
     if (!shell) return;
+
+    // Mobile renders a plain stacked list (the sticky shell is hidden via CSS),
+    // so there's no scroll-driven active panel to compute.
+    if (globalThis.innerWidth <= 640) return;
 
     const travel = Math.max(shell.offsetHeight - globalThis.innerHeight, 1);
     const progress = Math.min(

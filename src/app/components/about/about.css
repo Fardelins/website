@@ -109,7 +109,9 @@
   height: 380px;
   border-radius: var(--radius-2xl);
   overflow: hidden;
-  transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* Transform is driven frame-by-frame by [appTilt]; no CSS transition (it would
+     fight the directive's own easing). */
+  will-change: transform;
 }
 
 @media (max-width: 900px) {

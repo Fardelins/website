@@ -41,20 +41,69 @@ export class BlogDetail implements OnDestroy {
   protected readonly copied = signal(false);
   protected readonly shareUrl = computed(() => this.article()?.link ?? '');
 
+  /** Catchy, contextual message pre-filled into share intents (not just the bare title). */
+  protected readonly shareText = computed(() => {
+    const post = this.article();
+    if (!post) return '';
+    const snippet = post.excerpt.trim().replace(/\s+/g, ' ');
+    const short = snippet.length > 120 ? `${snippet.slice(0, 117).trimEnd()}…` : snippet;
+    return `Read our latest story on Fardelins 📦 “${post.title}”${short ? ` — ${short}` : ''}`;
+  });
+
   protected readonly toc = signal<TocItem[]>([]);
   protected readonly activeTocId = signal('');
 
+  /** Fill level (0–1) of the sticky TOC rail, driven by the active section — mirrors Terms. */
+  protected readonly tocProgress = computed(() => {
+    const items = this.toc();
+    if (items.length < 2) return 0;
+    const idx = items.findIndex((item) => item.id === this.activeTocId());
+    return idx <= 0 ? 0 : idx / (items.length - 1);
+  });
+
+  /** Continuous scroll-through progress (0–1) for the mobile bottom reading bar. */
+  protected readonly readProgress = signal(0);
+
   private tocObserver: IntersectionObserver | null = null;
+  private scrollRaf: number | null = null;
 
   constructor() {
     this.route.paramMap.subscribe((params) => {
       const slug = params.get('slug');
       if (slug) void this.load(slug);
     });
+
+    if (this.isBrowser) {
+      globalThis.addEventListener('scroll', this.onScroll, { passive: true });
+      globalThis.addEventListener('resize', this.onScroll, { passive: true });
+    }
   }
 
   ngOnDestroy(): void {
     this.tocObserver?.disconnect();
+    if (this.isBrowser) {
+      globalThis.removeEventListener('scroll', this.onScroll);
+      globalThis.removeEventListener('resize', this.onScroll);
+    }
+    if (this.scrollRaf !== null) cancelAnimationFrame(this.scrollRaf);
+  }
+
+  private readonly onScroll = (): void => {
+    if (this.scrollRaf !== null) return;
+    this.scrollRaf = requestAnimationFrame(() => {
+      this.scrollRaf = null;
+      this.updateReadProgress();
+    });
+  };
+
+  /** How far the reader has scrolled through the article body, clamped to 0–1. */
+  private updateReadProgress(): void {
+    const el = this.contentRef()?.nativeElement;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + globalThis.scrollY;
+    const scrolled = globalThis.scrollY + globalThis.innerHeight - top;
+    const progress = Math.min(Math.max(scrolled / el.offsetHeight, 0), 1);
+    this.readProgress.set(progress);
   }
 
   private async load(slug: string): Promise<void> {
@@ -64,6 +113,7 @@ export class BlogDetail implements OnDestroy {
     this.article.set(null);
     this.related.set([]);
     this.toc.set([]);
+    this.readProgress.set(0);
     this.tocObserver?.disconnect();
     try {
       const article = await this.blogService.fetchArticleBySlug(slug);
@@ -81,7 +131,7 @@ export class BlogDetail implements OnDestroy {
       this.setMeta(article);
       this.related.set(await this.blogService.fetchRelated(article.categoryId, article.id, RELATED_COUNT));
       // Content lands in the DOM via [innerHTML] on the next tick — build the TOC after that (browser only).
-      if (this.isBrowser) setTimeout(() => this.buildToc(), 0);
+      if (this.isBrowser) setTimeout(() => { this.buildToc(); this.updateReadProgress(); }, 0);
     } catch {
       this.error.set(true);
     } finally {
@@ -200,7 +250,7 @@ export class BlogDetail implements OnDestroy {
 
   protected shareTo(network: 'twitter' | 'whatsapp' | 'linkedin'): string {
     const url = encodeURIComponent(this.shareUrl());
-    const text = encodeURIComponent(this.article()?.title ?? '');
+    const text = encodeURIComponent(this.shareText());
     switch (network) {
       case 'twitter':
         return `https://twitter.com/intent/tweet?url=${url}&text=${text}`;

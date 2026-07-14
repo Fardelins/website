@@ -26,15 +26,23 @@
 .article-body__inner { display: grid; grid-template-columns: minmax(0, 860px) 1fr; align-items: start; gap: clamp(48px, 6vw, 96px); width: min(100%, var(--content-max-width)); margin-inline: auto; }
 .article-main { min-width: 0; }
 
-/* On this page — sticky jump links, mirroring the Terms index. */
+/* On this page — sticky jump links with a moving progress rail, mirroring the Terms index. */
 .article-toc { position: sticky; top: 120px; align-self: start; max-height: calc(100vh - 150px); overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
 .article-toc::-webkit-scrollbar { display: none; }
-.article-toc__nav { display: flex; flex-direction: column; padding-left: 18px; border-left: 2px solid var(--color-styles-stroke); }
+.article-toc__nav { --progress: 0; display: flex; flex-direction: column; }
 .article-toc__title { margin-bottom: 10px; color: var(--color-styles-label); font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-.article-toc__nav a { position: relative; padding: 7px 0; color: var(--color-styles-label); font-size: 14px; line-height: 1.45; text-decoration: none; transition: color 160ms ease; }
-.article-toc__nav a:hover { color: var(--color-primary-500); }
-.article-toc__nav a.is-active { color: var(--color-primary-500); font-weight: 600; }
-.article-toc__nav a.is-active::before { content: ''; position: absolute; left: -20px; top: 6px; bottom: 6px; width: 2px; border-radius: 2px; background: var(--color-primary-500); }
+.article-toc__list { position: relative; display: flex; flex-direction: column; padding-left: 18px; }
+.article-toc__track { position: absolute; top: 8px; bottom: 8px; left: 4px; width: 2px; border-radius: 99px; background: var(--color-primary-100); }
+/* Fill height is driven directly by --progress; the head is anchored to its
+   bottom edge, so both move off a single property and stay perfectly in sync. */
+.article-toc__progress { position: absolute; top: 0; left: 0; right: 0; height: calc(var(--progress) * 100%); border-radius: inherit; background: linear-gradient(180deg, var(--color-primary-300), var(--color-primary-500)); transition: height 360ms cubic-bezier(.22, 1, .36, 1); will-change: height; }
+.article-toc__progress-head { position: absolute; left: 50%; bottom: 0; width: 9px; height: 9px; border-radius: 99px; background: var(--color-primary-500); box-shadow: 0 4px 14px rgba(82, 28, 153, .34); transform: translate(-50%, 50%); }
+.article-toc__list a { position: relative; padding: 7px 0; color: var(--color-styles-label); font-size: 14px; line-height: 1.45; text-decoration: none; transition: color 160ms ease, transform 160ms ease; }
+.article-toc__list a:hover { color: var(--color-primary-500); }
+.article-toc__list a.is-active { color: var(--color-primary-500); font-weight: 600; transform: translateX(2px); }
+
+/* Mobile reading progress bar — floats above the bottom edge like the download bar. */
+.article-progress { display: none; }
 
 /* Share */
 .article-share { margin-top: 48px; }
@@ -57,9 +65,38 @@
   .article-hero__inner { gap: var(--spacing-40); }
 }
 @media (max-width: 1100px) {
-  /* Not enough width for the side TOC — collapse to a single column. */
+  /* Not enough width for the side TOC — collapse to a single column and
+     surface reading progress as a floating bar at the bottom instead. */
   .article-body__inner { grid-template-columns: 1fr; }
   .article-toc { display: none; }
+
+  /* Pinned to the very top edge (above the floating navbar) so it's always
+     visible and never hidden behind the global install prompt at the bottom. */
+  .article-progress {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 35;
+    height: 4px;
+    background: color-mix(in srgb, var(--color-primary-500) 14%, transparent);
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 240ms ease;
+    pointer-events: none;
+  }
+  .article-progress--active { opacity: 1; }
+  .article-progress__fill {
+    display: block;
+    height: 100%;
+    border-radius: 0 99px 99px 0;
+    background: linear-gradient(90deg, var(--color-primary-500), var(--color-primary-700));
+    box-shadow: 0 0 10px rgba(82, 28, 153, .45);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 120ms linear;
+  }
 }
 @media (max-width: 1000px) {
   .article-hero__inner { grid-template-columns: 1fr; padding-block: var(--spacing-60); }
@@ -77,5 +114,10 @@
   .article-related__grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .article-share__btn { transition: none; }
+  .article-share__btn,
+  .article-toc__progress,
+  .article-toc__progress-head,
+  .article-toc__list a,
+  .article-progress,
+  .article-progress__fill { transition: none; }
 }
