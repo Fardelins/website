@@ -155,4 +155,17 @@
       </li>
     }
   </ol>
+
+  <nav class="feature-showcase__dots" aria-label="Feature steps">
+    @for (item of items(); track item.title; let index = $index) {
+      <button
+        class="feature-showcase__dot"
+        type="button"
+        [class.feature-showcase__dot--active]="index === currentIndex()"
+        [attr.aria-current]="index === currentIndex() ? 'step' : null"
+        [attr.aria-label]="item.title"
+        (click)="selectIndex(index)"
+      ></button>
+    }
+  </nav>
 </section>

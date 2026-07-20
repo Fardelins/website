@@ -11,6 +11,7 @@
   --color-primary-600: #41167a;
   --color-primary-700: #31105b;
   --color-primary-800: #200b3d;
+  --color-primary-900: #150726;
   --color-styles-body: #333333;
   --color-styles-title: #151515;
   --color-styles-label: #707070;
@@ -29,6 +30,13 @@
   --color-7: #e8e8e8;
   --color-8: #adadad;
   --color-1: #8a38f5;
+
+  /* Semantic aliases — reuse the primitives above so recurring UI roles
+     (form borders, focus rings, feedback states) stay consistent. */
+  --color-border-input: #c9c4ce;
+  --color-focus-ring: rgba(82, 28, 153, 0.1); /* --color-primary-500 @ 10% */
+  --color-feedback-error: #a52828;
+  --color-surface-veil: var(--color-6); /* rgba(211, 214, 216, 0.17) */
 
   /* Spacing */
   --spacing-xs: 4px;

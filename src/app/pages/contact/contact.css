@@ -72,7 +72,7 @@
 .contact-form input,
 .contact-form textarea {
   width: 100%;
-  border: 1px solid #c9c4ce;
+  border: 1px solid var(--color-border-input);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   color: var(--color-styles-body);
@@ -90,7 +90,7 @@
 .contact-form input:focus,
 .contact-form textarea:focus {
   border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(82, 28, 153, 0.1);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 .contact-form button {
   justify-self: start;
@@ -127,7 +127,7 @@
   font-weight: 600;
 }
 .contact-form__error {
-  color: #a52828;
+  color: var(--color-feedback-error);
   font-size: 14px;
   font-weight: 600;
 }
