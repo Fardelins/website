@@ -179,7 +179,6 @@
   border-radius: inherit;
   background: linear-gradient(180deg, var(--color-primary-300), var(--color-primary-500));
   transition: height 360ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: height;
 }
 .article-toc__progress-head {
   position: absolute;

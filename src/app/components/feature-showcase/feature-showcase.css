@@ -51,6 +51,11 @@
 .feature-showcase__visual-plane {
   width: 100%;
   transform-origin: center;
+}
+
+/* Promote the tilting plane to its own layer only while it is actively
+   animating (pointer over the visual), not for the whole page lifetime. */
+.feature-showcase__visual:hover .feature-showcase__visual-plane {
   will-change: transform;
 }
 
@@ -105,7 +110,8 @@
   width: 100%;
   height: auto;
   filter: drop-shadow(0 14px 18px rgb(31 12 72 / 0.1));
-  will-change: transform, opacity;
+  /* The one-shot entrance animation is driven via the Web Animations API,
+     which manages its own compositing; no persistent will-change needed. */
 }
 
 .feature-showcase__layer--mockup {
@@ -333,6 +339,34 @@
   display: contents;
 }
 
+/* Step indicators only exist for the single-card small-screen layout. */
+.feature-showcase__dots {
+  display: none;
+}
+
+.feature-showcase__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-100);
+  background: var(--color-primary-100);
+  cursor: pointer;
+  transition:
+    width 320ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 320ms ease;
+}
+
+.feature-showcase__dot--active {
+  width: 26px;
+  background: var(--color-primary-500);
+}
+
+.feature-showcase__dot:focus-visible {
+  outline: 3px solid var(--color-primary-300);
+  outline-offset: 3px;
+}
+
 @keyframes feature-progress {
   to {
     transform: scaleX(1);
@@ -407,6 +441,14 @@
     color: var(--color-styles-body);
   }
 
+  .feature-showcase__dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 28px;
+  }
+
   .feature-showcase__mask {
     display: block;
     overflow: hidden;
@@ -440,6 +482,71 @@
   }
 }
 
+/* On phones the 16:9 stage gets narrow, shrinking the layered mockup cards to
+   the point they're unreadable. Give the visual the full viewport width and
+   scale up each variant's cards + mockup so the composition stays legible.
+   (Card widths are kept so that left% + width% stays within the frame.) */
+@media (max-width: 640px) {
+  .feature-showcase__visual {
+    width: calc(100% + 48px);
+    margin-inline: -24px;
+    border-radius: var(--radius-xl);
+  }
+
+  .feature-showcase__visual-plane--tracking .feature-showcase__layer--mockup {
+    width: 38%;
+  }
+  .feature-showcase__visual-plane--tracking .feature-showcase__layer--first {
+    width: 32%;
+  }
+  .feature-showcase__visual-plane--tracking .feature-showcase__layer--second {
+    width: 38%;
+  }
+  .feature-showcase__visual-plane--tracking .feature-showcase__layer--third {
+    width: 32%;
+  }
+
+  .feature-showcase__visual-plane--dispatcher .feature-showcase__layer--mockup {
+    width: 36%;
+  }
+  .feature-showcase__visual-plane--dispatcher .feature-showcase__layer--first {
+    width: 33%;
+  }
+  .feature-showcase__visual-plane--dispatcher .feature-showcase__layer--second {
+    width: 30%;
+  }
+  .feature-showcase__visual-plane--dispatcher .feature-showcase__layer--third {
+    width: 35%;
+  }
+
+  .feature-showcase__visual-plane--merchant .feature-showcase__layer--mockup {
+    width: 38%;
+  }
+  .feature-showcase__visual-plane--merchant .feature-showcase__layer--first {
+    width: 35%;
+  }
+  .feature-showcase__visual-plane--merchant .feature-showcase__layer--second {
+    width: 35%;
+  }
+
+  .feature-showcase__visual-plane--delivery .feature-showcase__layer--mockup {
+    width: 38%;
+  }
+  .feature-showcase__visual-plane--delivery .feature-showcase__layer--first {
+    width: 29%;
+  }
+
+  .feature-showcase__visual-plane--courier .feature-showcase__layer--mockup {
+    width: 86%;
+  }
+  .feature-showcase__visual-plane--courier .feature-showcase__layer--first {
+    width: 24%;
+  }
+  .feature-showcase__visual-plane--courier .feature-showcase__layer--second {
+    width: 32%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .feature-showcase__visual-plane {
     will-change: auto;
@@ -466,12 +573,17 @@
 
   /* The auto-advance timer is disabled under reduced motion, so a single
      cycling card would strand three of the four features. Fall back to the
-     full stacked list with no reveal animation. */
+     full stacked list with no reveal animation, and drop the now-redundant
+     step dots. */
   .feature-showcase__item {
     display: block;
   }
 
   .feature-showcase__mask > * {
     animation: none;
+  }
+
+  .feature-showcase__dots {
+    display: none;
   }
 }
