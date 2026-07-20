@@ -2,13 +2,20 @@ import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 
+// AVIF quality: 55 is ample for photos and decorative backgrounds. UI
+// screenshots (phone/desktop mockups, card panels) carry crisp text and flat
+// gradients that soften and band at 55, so they get a higher quality.
+const AVIF_PHOTO = 55;
+const AVIF_UI = 63;
+
 /** Emit WebP + AVIF (both alpha-capable) for a feature asset at one rendered-appropriate width. */
-const featureVariants = (name, width) =>
+const featureVariants = (name, width, avifQuality = AVIF_PHOTO) =>
   ['webp', 'avif'].map((format) => ({
     input: `image-sources/features/${name}.png`,
     output: `public/features/${name}-${width}.${format}`,
     width,
     format,
+    avifQuality,
   }));
 
 // Widths are ~2x the on-screen render size, not the 2400–6000px originals.
@@ -41,9 +48,9 @@ const FEATURE_CARDS = [
 
 const jobs = [
   ...FEATURE_BACKGROUNDS.flatMap((name) => featureVariants(name, 1600)),
-  ...FEATURE_PHONE_MOCKUPS.flatMap((name) => featureVariants(name, 1000)),
-  ...featureVariants('courier-management-mockup', 1800), // wide desktop dashboard
-  ...FEATURE_CARDS.flatMap((name) => featureVariants(name, 760)),
+  ...FEATURE_PHONE_MOCKUPS.flatMap((name) => featureVariants(name, 1000, AVIF_UI)),
+  ...featureVariants('courier-management-mockup', 1800, AVIF_UI), // wide desktop dashboard
+  ...FEATURE_CARDS.flatMap((name) => featureVariants(name, 760, AVIF_UI)),
   ...featureVariants('features-hero-courier', 1600),
   ...[
     'everyday-customer',
@@ -120,6 +127,7 @@ const jobs = [
       output: `public/home/phone-image-${width}.avif`,
       width,
       format: 'avif',
+      avifQuality: AVIF_UI, // app home screen — crisp UI text
     },
   ]),
   {
@@ -185,12 +193,12 @@ const jobs = [
 ];
 
 await Promise.all(
-  jobs.map(async ({ input, output, width, format }) => {
+  jobs.map(async ({ input, output, width, format, avifQuality = AVIF_PHOTO }) => {
     await mkdir(path.dirname(output), { recursive: true });
     let pipeline = sharp(input).rotate().resize({ width, withoutEnlargement: true });
     pipeline =
       format === 'avif'
-        ? pipeline.avif({ quality: 55, effort: 5 })
+        ? pipeline.avif({ quality: avifQuality, effort: 5 })
         : pipeline.webp({ quality: 76, alphaQuality: 82, smartSubsample: true });
     await pipeline.toFile(output);
   }),
