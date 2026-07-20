@@ -26,4 +26,19 @@ describe('App', () => {
     expect(compiled.querySelector('app-footer')).toBeTruthy();
     expect(compiled.querySelector('app-download-prompt')).toBeTruthy();
   });
+
+  it('provides a skip link that moves focus to the stable main landmark', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const skipLink = compiled.querySelector<HTMLAnchorElement>('.skip-link');
+    const main = compiled.querySelector<HTMLElement>('#main-content');
+
+    expect(skipLink?.textContent?.trim()).toBe('Skip to main content');
+    expect(main?.tagName).toBe('MAIN');
+    expect(main?.tabIndex).toBe(-1);
+
+    skipLink?.click();
+    expect(document.activeElement).toBe(main);
+  });
 });

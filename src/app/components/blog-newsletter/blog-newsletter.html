@@ -20,14 +20,27 @@
       </form>
       <p class="blogs-newsletter__hint" aria-live="polite">
         @switch (state()) {
-          @case ('success') { You have been successfully subscribed! }
-          @case ('error') { Something went wrong. Please try again. }
-          @default { No spam. Unsubscribe anytime. }
+          @case ('success') {
+            You have been successfully subscribed!
+          }
+          @case ('error') {
+            Something went wrong. Please try again.
+          }
+          @default {
+            No spam. Unsubscribe anytime.
+          }
         }
       </p>
     </div>
     <div class="blogs-newsletter__visual" aria-hidden="true">
-      <img src="/blogs/subscribe-banner-600.webp" alt="" width="600" height="936" loading="lazy" decoding="async" />
+      <img
+        src="/blogs/subscribe-banner-600.webp"
+        alt=""
+        width="600"
+        height="936"
+        loading="lazy"
+        decoding="async"
+      />
     </div>
   </div>
 </section>

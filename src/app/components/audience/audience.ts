@@ -1,4 +1,12 @@
-import { AfterViewInit, Component, ElementRef, PLATFORM_ID, inject, OnDestroy, viewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  PLATFORM_ID,
+  inject,
+  OnDestroy,
+  viewChild,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Card } from '../card/card';
 import { HapticsService } from '../../services/haptics.service';
@@ -47,7 +55,8 @@ export class Audience implements AfterViewInit, OnDestroy {
     {
       image: '/home/restaurants-food.png',
       title: 'Restaurants & Vendors',
-      description: 'Food businesses that need fast pickup, delivery tracking, and customer updates.',
+      description:
+        'Food businesses that need fast pickup, delivery tracking, and customer updates.',
     },
     {
       image: '/home/courier-companies.png',
@@ -58,7 +67,8 @@ export class Audience implements AfterViewInit, OnDestroy {
     {
       image: '/home/dispatch-riders.png',
       title: 'Dispatch Riders',
-      description: 'Riders who receive delivery tasks, follow routes, update statuses, and complete deliveries.',
+      description:
+        'Riders who receive delivery tasks, follow routes, update statuses, and complete deliveries.',
     },
   ];
 
@@ -102,15 +112,15 @@ export class Audience implements AfterViewInit, OnDestroy {
     if (!first || !firstClone) return;
 
     const previousLoopWidth = this.loopWidth;
-    const previousOffset = previousLoopWidth > 0
-      ? ((el.scrollLeft % previousLoopWidth) + previousLoopWidth) % previousLoopWidth
-      : 0;
+    const previousOffset =
+      previousLoopWidth > 0
+        ? ((el.scrollLeft % previousLoopWidth) + previousLoopWidth) % previousLoopWidth
+        : 0;
     this.loopWidth = firstClone.offsetLeft - first.offsetLeft;
     if (this.loopWidth <= 0) return;
 
-    const scaledOffset = previousLoopWidth > 0
-      ? previousOffset * (this.loopWidth / previousLoopWidth)
-      : 0;
+    const scaledOffset =
+      previousLoopWidth > 0 ? previousOffset * (this.loopWidth / previousLoopWidth) : 0;
     this.jumpWithoutAnimation(this.loopWidth + scaledOffset);
     this.initialized = true;
   };

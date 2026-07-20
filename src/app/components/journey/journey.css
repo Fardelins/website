@@ -16,7 +16,9 @@
   color: var(--color-styles-title);
 }
 
-.journey__title-accent { color: var(--color-1); }
+.journey__title-accent {
+  color: var(--color-1);
+}
 
 .journey__subtitle {
   margin-top: var(--spacing-lg);
@@ -34,7 +36,9 @@
 }
 
 /* Shown only on small screens (see the 640px block) as a plain stacked list. */
-.journey__mobile { display: none; }
+.journey__mobile {
+  display: none;
+}
 
 .journey__stage {
   position: sticky;
@@ -57,9 +61,15 @@
   transition: background-color 650ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.journey-card--purple { background: var(--color-primary-700); }
-.journey-card--dark { background: var(--color-accent-charcoal); }
-.journey-card--blue { background: var(--color-accent-blue); }
+.journey-card--purple {
+  background: var(--color-primary-700);
+}
+.journey-card--dark {
+  background: var(--color-accent-charcoal);
+}
+.journey-card--blue {
+  background: var(--color-accent-blue);
+}
 
 .journey-card__content {
   z-index: 2;
@@ -87,12 +97,24 @@
   animation: journey-mask-reveal 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.journey-card__mask--heading { margin-top: clamp(24px, 4vh, 42px); }
-.journey-card__mask--description { margin-top: var(--spacing-lg); }
-.journey-card__mask--cta { margin-top: clamp(24px, 4vh, 36px); }
-.journey-card__mask--heading > * { animation-delay: 70ms; }
-.journey-card__mask--description > * { animation-delay: 130ms; }
-.journey-card__mask--cta > * { animation-delay: 190ms; }
+.journey-card__mask--heading {
+  margin-top: clamp(24px, 4vh, 42px);
+}
+.journey-card__mask--description {
+  margin-top: var(--spacing-lg);
+}
+.journey-card__mask--cta {
+  margin-top: clamp(24px, 4vh, 36px);
+}
+.journey-card__mask--heading > * {
+  animation-delay: 70ms;
+}
+.journey-card__mask--description > * {
+  animation-delay: 130ms;
+}
+.journey-card__mask--cta > * {
+  animation-delay: 190ms;
+}
 
 .journey-card__mask--cta app-store-badges {
   display: block;
@@ -110,8 +132,12 @@
   line-height: 1;
 }
 
-.journey-card--text-light .journey-card__chip { background: rgb(255 255 255 / 18%); }
-.journey-card--text-dark .journey-card__chip { background: rgb(0 0 0 / 10%); }
+.journey-card--text-light .journey-card__chip {
+  background: rgb(255 255 255 / 18%);
+}
+.journey-card--text-dark .journey-card__chip {
+  background: rgb(0 0 0 / 10%);
+}
 
 .journey-card__heading {
   max-width: 620px;
@@ -132,13 +158,17 @@
   color: var(--color-neutral-white);
 }
 
-.journey-card--text-light .journey-card__description { color: var(--color-styles-off-white); }
+.journey-card--text-light .journey-card__description {
+  color: var(--color-styles-off-white);
+}
 
 .journey-card--text-dark :is(.journey-card__chip, .journey-card__heading) {
   color: var(--color-styles-title);
 }
 
-.journey-card--text-dark .journey-card__description { color: var(--color-styles-body); }
+.journey-card--text-dark .journey-card__description {
+  color: var(--color-styles-body);
+}
 
 .journey-card__cta {
   min-height: 48px;
@@ -242,14 +272,19 @@
   background: currentColor;
   opacity: 0.4;
   transform: translate(-50%, -50%);
-  transition:
-    opacity 220ms ease;
+  transition: opacity 220ms ease;
 }
 
-.journey-card__step--active::before { opacity: 0; }
+.journey-card__step--active::before {
+  opacity: 0;
+}
 
-.journey-card--text-light .journey-card__pagination { color: var(--color-neutral-white); }
-.journey-card--text-dark .journey-card__pagination { color: var(--color-styles-title); }
+.journey-card--text-light .journey-card__pagination {
+  color: var(--color-neutral-white);
+}
+.journey-card--text-dark .journey-card__pagination {
+  color: var(--color-styles-title);
+}
 
 .journey-card__sr-only {
   position: absolute;
@@ -263,22 +298,42 @@
 }
 
 @keyframes journey-mask-reveal {
-  from { opacity: 0; transform: translate3d(0, 108%, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 108%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @keyframes journey-phone-forward {
-  from { opacity: 0; transform: translate3d(72px, 0, 0) scale(0.98); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translate3d(72px, 0, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 
 @keyframes journey-phone-backward {
-  from { opacity: 0; transform: translate3d(-72px, 0, 0) scale(0.98); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translate3d(-72px, 0, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 
 @media (max-width: 900px) {
-  .journey { padding: 72px var(--spacing-xl) clamp(48px, 9vw, 72px); }
+  .journey {
+    padding: 72px var(--spacing-xl) clamp(48px, 9vw, 72px);
+  }
 
   .journey__stage {
     top: 76px;
@@ -293,18 +348,30 @@
     gap: 20px;
   }
 
-  .journey-card__heading { font-size: clamp(28px, 4vw, 36px); }
-  .journey-card__description { font-size: 17px; }
-  .journey-card__pagination { left: clamp(28px, 5vw, 40px); }
+  .journey-card__heading {
+    font-size: clamp(28px, 4vw, 36px);
+  }
+  .journey-card__description {
+    font-size: 17px;
+  }
+  .journey-card__pagination {
+    left: clamp(28px, 5vw, 40px);
+  }
 }
 
 @media (max-width: 640px) {
-  .journey { padding-inline: 16px; }
-  .journey__intro { margin-bottom: 32px; }
+  .journey {
+    padding-inline: 16px;
+  }
+  .journey__intro {
+    margin-bottom: 32px;
+  }
 
   /* Swap the desktop sticky scroll-through for a plain, snappy vertical stack:
      each card is just scrolled past — no sticky, no scroll-driven index, no lag. */
-  .journey__scroll-shell { display: none; }
+  .journey__scroll-shell {
+    display: none;
+  }
 
   .journey__mobile {
     display: flex;
@@ -340,12 +407,20 @@
     line-height: 1.45;
   }
 
-  .journey-card__mask--heading { margin-top: 18px; }
-  .journey-card__mask--description { margin-top: 12px; }
-  .journey-card__mask--cta { margin-top: 18px; }
+  .journey-card__mask--heading {
+    margin-top: 18px;
+  }
+  .journey-card__mask--description {
+    margin-top: 12px;
+  }
+  .journey-card__mask--cta {
+    margin-top: 18px;
+  }
 
   /* Static stack — drop the entrance reveal so it reads instantly, not animated. */
-  .journey-card__mask > * { animation: none; }
+  .journey-card__mask > * {
+    animation: none;
+  }
 
   .journey-card__mask--cta app-store-badges {
     transform: scale(0.82);
@@ -364,7 +439,9 @@
     height: 100%;
   }
 
-  .journey-card__phone { inset: 0 0 auto; }
+  .journey-card__phone {
+    inset: 0 0 auto;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

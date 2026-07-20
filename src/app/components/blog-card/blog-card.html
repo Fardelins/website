@@ -1,7 +1,16 @@
 <a class="blog-card" [routerLink]="['/blogs', article().slug]">
   <div class="blog-card__media">
     @if (article().image) {
-      <img class="blog-card__image" [src]="article().image" alt="" loading="lazy" />
+      <img
+        class="blog-card__image"
+        [src]="article().image"
+        [attr.srcset]="article().imageSrcset"
+        sizes="(max-width: 640px) 88vw, (max-width: 1000px) 44vw, 30vw"
+        width="600"
+        height="400"
+        alt=""
+        loading="lazy"
+      />
     } @else {
       <div class="blog-card__media-fallback">
         <img src="/home/logo.svg" alt="" width="132" height="36" />

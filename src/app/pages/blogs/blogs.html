@@ -1,4 +1,4 @@
-<main class="blogs-page">
+<div class="blogs-page">
   <section class="blogs-hero">
     <div class="blogs-hero__inner">
       <div class="blogs-hero__row">
@@ -11,7 +11,22 @@
 
       <form class="blogs-search" role="search" (submit)="$event.preventDefault()">
         <div class="blogs-search__field">
-          <svg class="blogs-search__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg
+            class="blogs-search__icon"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+            <path
+              d="M21 21l-4.35-4.35"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
           <input
             #searchInput
             type="search"
@@ -27,7 +42,14 @@
               aria-label="Clear search"
               (click)="setSearch(''); searchInput.value = ''"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M18 6 6 18M6 6l12 12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
             </button>
           }
         </div>
@@ -37,11 +59,10 @@
 
   <section class="blogs-body">
     <div class="blogs-body__inner">
-      <div class="blogs-filters" role="tablist" aria-label="Article categories">
+      <div class="blogs-filters" role="group" aria-label="Filter articles by category">
         <button
           type="button"
-          role="tab"
-          [attr.aria-selected]="activeCategoryId() === null"
+          [attr.aria-pressed]="activeCategoryId() === null"
           [class.blogs-filters__chip--active]="activeCategoryId() === null"
           class="blogs-filters__chip"
           (click)="setCategory(null)"
@@ -51,8 +72,7 @@
         @for (category of categories(); track category.id) {
           <button
             type="button"
-            role="tab"
-            [attr.aria-selected]="activeCategoryId() === category.id"
+            [attr.aria-pressed]="activeCategoryId() === category.id"
             [class.blogs-filters__chip--active]="activeCategoryId() === category.id"
             class="blogs-filters__chip"
             (click)="setCategory(category.id)"
@@ -65,7 +85,10 @@
       @if (error()) {
         <div class="blogs-error" role="alert">
           <h3>Couldn't load articles</h3>
-          <p>Something went wrong while loading the latest posts. Check your connection and try again.</p>
+          <p>
+            Something went wrong while loading the latest posts. Check your connection and try
+            again.
+          </p>
           <button type="button" (click)="retry()">Retry</button>
         </div>
       } @else if (loading()) {
@@ -80,7 +103,12 @@
         </div>
 
         @if (hasMore()) {
-          <button type="button" class="blogs-load-more" [disabled]="loadingMore()" (click)="loadMore()">
+          <button
+            type="button"
+            class="blogs-load-more"
+            [disabled]="loadingMore()"
+            (click)="loadMore()"
+          >
             {{ loadingMore() ? 'Loading…' : 'Load More' }}
             <img src="/blogs/load-more-arrow.svg" alt="" width="18" height="18" />
           </button>
@@ -90,4 +118,4 @@
   </section>
 
   <app-blog-newsletter />
-</main>
+</div>

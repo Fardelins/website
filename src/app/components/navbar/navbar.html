@@ -1,14 +1,27 @@
 @if (isMenuOpen) {
-  <button class="navbar__overlay" type="button" aria-label="Close menu" (click)="closeMenu()"></button>
+  <button
+    class="navbar__overlay"
+    type="button"
+    aria-label="Close menu"
+    (click)="closeMenu(true)"
+  ></button>
 }
 
 <header
   class="navbar"
   [class.navbar--download]="isDownloadPage"
+  [class.navbar--features]="isFeaturesPage"
   [class.navbar--menu-open]="isMenuOpen"
   [class.navbar--scrolled]="isScrolled"
 >
-  <a class="navbar__brand" routerLink="/" (click)="closeMenu()"><img class="navbar__logo" src="/home/logo.svg" alt="Fardelins" width="236" height="64" /></a>
+  <a class="navbar__brand" routerLink="/" (click)="closeMenu()"
+    ><img
+      class="navbar__logo"
+      [src]="useLightNavigation ? '/home/logo-white-512.webp' : '/home/logo.svg'"
+      alt="Fardelins"
+      width="236"
+      height="64"
+  /></a>
   <nav class="navbar__nav" aria-label="Primary">
     @for (link of navLinks; track link.label) {
       <a
@@ -17,21 +30,52 @@
         [fragment]="link.fragment"
         routerLinkActive="navbar__nav-link--active"
         [routerLinkActiveOptions]="{ exact: link.path === '/' }"
-      >{{ link.label }}</a>
+        >{{ link.label }}</a
+      >
     }
   </nav>
   <div class="navbar__actions">
-    <a class="navbar__btn navbar__btn--outline navbar__login" href="https://app.fardelins.com/#/auth/login">Log In</a>
-    <a class="navbar__btn navbar__btn--solid" href="https://app.fardelins.com/#/auth/register">Sign Up</a>
-    <button class="navbar__menu-toggle" type="button" [attr.aria-label]="isMenuOpen ? 'Close menu' : 'Open menu'" [attr.aria-expanded]="isMenuOpen" aria-controls="primary-navigation" (click)="toggleMenu()">
+    <a
+      class="navbar__btn navbar__btn--outline navbar__login"
+      href="https://app.fardelins.com/#/auth/login"
+      >Log In</a
+    >
+    <a class="navbar__btn navbar__btn--solid" href="https://app.fardelins.com/#/auth/register"
+      >Sign Up</a
+    >
+    <button
+      #menuToggle
+      class="navbar__menu-toggle"
+      type="button"
+      [attr.aria-label]="isMenuOpen ? 'Close menu' : 'Open menu'"
+      [attr.aria-expanded]="isMenuOpen"
+      aria-controls="primary-navigation"
+      (click)="toggleMenu()"
+    >
       <img src="/home/hamburger.svg" alt="" width="24" height="24" />
     </button>
   </div>
   <nav id="primary-navigation" class="navbar__mobile-nav" aria-label="Primary mobile">
     @for (link of navLinks; track link.label) {
-      <a class="navbar__mobile-link" [routerLink]="link.path" [fragment]="link.fragment" (click)="closeMenu()">{{ link.label }}</a>
+      <a
+        class="navbar__mobile-link"
+        [routerLink]="link.path"
+        [fragment]="link.fragment"
+        (click)="closeMenu()"
+        >{{ link.label }}</a
+      >
     }
-    <a class="navbar__btn navbar__btn--outline navbar__mobile-login" href="https://app.fardelins.com/#/auth/login" (click)="closeMenu()">Log In</a>
-    <a class="navbar__btn navbar__btn--solid navbar__mobile-signup" href="https://app.fardelins.com/#/auth/register" (click)="closeMenu()">Sign Up</a>
+    <a
+      class="navbar__btn navbar__btn--outline navbar__mobile-login"
+      href="https://app.fardelins.com/#/auth/login"
+      (click)="closeMenu()"
+      >Log In</a
+    >
+    <a
+      class="navbar__btn navbar__btn--solid navbar__mobile-signup"
+      href="https://app.fardelins.com/#/auth/register"
+      (click)="closeMenu()"
+      >Sign Up</a
+    >
   </nav>
 </header>

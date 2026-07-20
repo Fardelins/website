@@ -1,5 +1,8 @@
+<a class="skip-link" href="#main-content" (click)="focusMainContent($event)"
+  >Skip to main content</a
+>
 <app-navbar />
-<main class="app-shell">
+<main id="main-content" class="app-shell" tabindex="-1" aria-label="Main content">
   <router-outlet />
 </main>
 <app-footer />

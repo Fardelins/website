@@ -1,4 +1,13 @@
-import { afterNextRender, Component, computed, ElementRef, inject, OnDestroy, signal, viewChildren } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  OnDestroy,
+  signal,
+  viewChildren,
+} from '@angular/core';
 import { HapticsService } from '../../services/haptics.service';
 import { SITE_NAME, SeoService } from '../../services/seo.service';
 
@@ -39,7 +48,8 @@ export class Terms implements OnDestroy {
   constructor() {
     this.seo.update({
       title: `Terms and Conditions | ${SITE_NAME}`,
-      description: 'The terms and conditions governing your access to and use of the Fardelins platform and services.',
+      description:
+        'The terms and conditions governing your access to and use of the Fardelins platform and services.',
       path: '/terms',
       type: 'website',
     });
@@ -63,20 +73,22 @@ export class Terms implements OnDestroy {
 
   private observeSections(): void {
     this.observer = new IntersectionObserver(
-      entries => {
+      (entries) => {
         const visible = entries
-          .filter(entry => entry.isIntersecting)
+          .filter((entry) => entry.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
 
         if (visible.length) {
-          const index = this.sectionElements().findIndex(item => item.nativeElement === visible[0].target);
+          const index = this.sectionElements().findIndex(
+            (item) => item.nativeElement === visible[0].target,
+          );
           if (index >= 0) this.activeSection.set(index);
         }
       },
       { rootMargin: '-20% 0px -65% 0px', threshold: 0 },
     );
 
-    this.sectionElements().forEach(item => this.observer?.observe(item.nativeElement));
+    this.sectionElements().forEach((item) => this.observer?.observe(item.nativeElement));
   }
 
   ngOnDestroy(): void {

@@ -1,4 +1,13 @@
-import { afterNextRender, Component, computed, ElementRef, inject, OnDestroy, signal, viewChildren } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  OnDestroy,
+  signal,
+  viewChildren,
+} from '@angular/core';
 import { HapticsService } from '../../services/haptics.service';
 import { SITE_NAME, SeoService } from '../../services/seo.service';
 
@@ -44,7 +53,8 @@ export class Privacy implements OnDestroy {
   constructor() {
     this.seo.update({
       title: `Privacy Policy | ${SITE_NAME}`,
-      description: 'How Fardelins collects, uses, stores, and protects your personal information across our platform and services.',
+      description:
+        'How Fardelins collects, uses, stores, and protects your personal information across our platform and services.',
       path: '/privacy',
       type: 'website',
     });
@@ -65,14 +75,23 @@ export class Privacy implements OnDestroy {
   }
 
   private observeSections(): void {
-    this.observer = new IntersectionObserver(entries => {
-      const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-      if (!visible.length) return;
-      const index = this.sectionElements().findIndex(item => item.nativeElement === visible[0].target);
-      if (index >= 0) this.activeSection.set(index);
-    }, { rootMargin: '-20% 0px -65% 0px', threshold: 0 });
-    this.sectionElements().forEach(item => this.observer?.observe(item.nativeElement));
+    this.observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (!visible.length) return;
+        const index = this.sectionElements().findIndex(
+          (item) => item.nativeElement === visible[0].target,
+        );
+        if (index >= 0) this.activeSection.set(index);
+      },
+      { rootMargin: '-20% 0px -65% 0px', threshold: 0 },
+    );
+    this.sectionElements().forEach((item) => this.observer?.observe(item.nativeElement));
   }
 
-  ngOnDestroy(): void { this.observer?.disconnect(); }
+  ngOnDestroy(): void {
+    this.observer?.disconnect();
+  }
 }

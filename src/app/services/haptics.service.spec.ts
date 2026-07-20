@@ -8,18 +8,16 @@ describe('HapticsService', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    vi.mocked(matchMedia).mockImplementation(
-      (query: string) => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(() => false),
-      }),
-    );
+    vi.mocked(matchMedia).mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(() => false),
+    }));
     vibrate = vi.fn(() => true);
     Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: 1 });
     Object.defineProperty(navigator, 'vibrate', { configurable: true, value: vibrate });
@@ -27,7 +25,10 @@ describe('HapticsService', () => {
   });
 
   afterEach(() => {
-    Object.defineProperty(WebHaptics, 'isSupported', { configurable: true, value: detectedSupport });
+    Object.defineProperty(WebHaptics, 'isSupported', {
+      configurable: true,
+      value: detectedSupport,
+    });
     vi.restoreAllMocks();
     document.querySelectorAll('label[for^="web-haptics-"]').forEach((element) => element.remove());
     localStorage.clear();
@@ -52,18 +53,16 @@ describe('HapticsService', () => {
   });
 
   it('suppresses haptics when reduced motion is requested', async () => {
-    vi.mocked(matchMedia).mockImplementation(
-      (query: string) => ({
-        matches: query === '(prefers-reduced-motion: reduce)',
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(() => false),
-      }),
-    );
+    vi.mocked(matchMedia).mockImplementation((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(() => false),
+    }));
     const service = TestBed.inject(HapticsService);
     service.light();
     await new Promise((resolve) => setTimeout(resolve, 20));

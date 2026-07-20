@@ -326,9 +326,27 @@
   letter-spacing: 0.15px;
 }
 
+/* Layout-neutral by default: the mask only becomes a real clipping box on
+   small screens, where it drives the text-reveal. On desktop it disappears
+   from the box tree so the four-up grid is unaffected. */
+.feature-showcase__mask {
+  display: contents;
+}
+
 @keyframes feature-progress {
   to {
     transform: scaleX(1);
+  }
+}
+
+@keyframes feature-reveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 108%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -367,14 +385,44 @@
     border-radius: var(--radius-2xl);
   }
 
+  /* Collapse the four stacked items into a single auto-cycling card: only the
+     active step is shown, its text reveals from a mask, and the shared timer
+     advances (and loops) it — mirroring the journey card's reveal. */
   .feature-showcase__items {
     margin-top: 40px;
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 0;
+  }
+
+  .feature-showcase__item {
+    display: none;
+  }
+
+  .feature-showcase__item:has(.feature-showcase__item-control--active) {
+    display: block;
   }
 
   .feature-showcase__item-control {
     min-height: 0;
+    color: var(--color-styles-body);
+  }
+
+  .feature-showcase__mask {
+    display: block;
+    overflow: hidden;
+  }
+
+  .feature-showcase__mask > * {
+    display: block;
+    animation: feature-reveal 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .feature-showcase__mask--title > * {
+    animation-delay: 80ms;
+  }
+
+  .feature-showcase__mask--description > * {
+    animation-delay: 150ms;
   }
 
   .feature-showcase__copy {
@@ -413,6 +461,17 @@
 
   .feature-showcase__progress {
     transform: scaleX(1);
+    animation: none;
+  }
+
+  /* The auto-advance timer is disabled under reduced motion, so a single
+     cycling card would strand three of the four features. Fall back to the
+     full stacked list with no reveal animation. */
+  .feature-showcase__item {
+    display: block;
+  }
+
+  .feature-showcase__mask > * {
     animation: none;
   }
 }

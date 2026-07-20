@@ -14,12 +14,17 @@
     <div class="journey__stage">
       <article
         class="journey-card"
-        [class]="'journey-card--' + activePanel().theme + ' journey-card--text-' + activePanel().textTone"
+        [class]="
+          'journey-card--' + activePanel().theme + ' journey-card--text-' + activePanel().textTone
+        "
       >
         @for (panel of panels; track panel.title; let index = $index) {
           @if (index === activeIndex()) {
             <ng-container
-              *ngTemplateOutlet="cardBody; context: { $implicit: panel, direction: slideDirection() }"
+              *ngTemplateOutlet="
+                cardBody;
+                context: { $implicit: panel, direction: slideDirection() }
+              "
             ></ng-container>
           }
         }
@@ -27,7 +32,7 @@
         <nav class="journey-card__pagination" aria-label="Delivery journey audiences">
           <span
             class="journey-card__active-line"
-            [style.left.%]="activeIndex() * 100 / (panels.length - 1)"
+            [style.left.%]="(activeIndex() * 100) / (panels.length - 1)"
             aria-hidden="true"
           ></span>
           @for (panel of panels; track panel.title; let index = $index) {
@@ -35,7 +40,7 @@
               class="journey-card__step"
               type="button"
               [class.journey-card__step--active]="index === activeIndex()"
-              [style.left.%]="index * 100 / (panels.length - 1)"
+              [style.left.%]="(index * 100) / (panels.length - 1)"
               [attr.aria-current]="index === activeIndex() ? 'step' : null"
               [attr.aria-label]="'Show ' + panel.chip"
               (click)="goToPanel(index)"

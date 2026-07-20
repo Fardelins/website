@@ -36,4 +36,3 @@ export class AppPlatformService {
     return isAppleMobile || isModernIPad ? 'ios' : 'other';
   }
 }
-

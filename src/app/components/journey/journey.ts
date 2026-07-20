@@ -84,7 +84,8 @@ export class Journey implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     if (!this.isBrowser) return;
 
-    this.reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    this.reducedMotion =
+      globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
     globalThis.addEventListener('scroll', this.onScroll, { passive: true });
     globalThis.addEventListener('resize', this.onResize, { passive: true });
     this.updateActiveState();

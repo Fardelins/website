@@ -27,9 +27,13 @@ describe('ContactFormService', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('checks the email, loads fresh form tokens, and submits the WPForms field mapping', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch')
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce({ ok: true } as Response)
-      .mockResolvedValueOnce({ ok: true, text: vi.fn().mockResolvedValue(formHtml) } as unknown as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        text: vi.fn().mockResolvedValue(formHtml),
+      } as unknown as Response)
       .mockResolvedValueOnce({
         ok: true,
         json: vi.fn().mockResolvedValue({ success: true, data: { token: 'fresh-token' } }),
@@ -62,7 +66,9 @@ describe('ContactFormService', () => {
   });
 
   it('does not submit when the anti-spam email check fails', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 403 } as Response);
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue({ ok: false, status: 403 } as Response);
     await expect(service.send(message)).rejects.toThrow('Email check failed');
     expect(fetchMock).toHaveBeenCalledOnce();
   });

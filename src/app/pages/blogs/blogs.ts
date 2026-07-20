@@ -33,10 +33,14 @@ export class Blogs {
 
   protected readonly articles = signal<BlogArticle[]>([]);
   protected readonly hasMore = signal(false);
-  protected readonly isEmpty = computed(() => !this.loading() && !this.error() && this.articles().length === 0);
+  protected readonly isEmpty = computed(
+    () => !this.loading() && !this.error() && this.articles().length === 0,
+  );
 
   protected readonly activeCategoryName = computed(
-    () => this.categories().find((category) => category.id === this.activeCategoryId())?.name ?? 'All Articles',
+    () =>
+      this.categories().find((category) => category.id === this.activeCategoryId())?.name ??
+      'All Articles',
   );
 
   private page = 1;
@@ -83,7 +87,9 @@ export class Blogs {
         this.activeCategoryId() ?? undefined,
         this.searchQuery().trim() || undefined,
       );
-      this.articles.update((current) => (append ? [...current, ...result.articles] : result.articles));
+      this.articles.update((current) =>
+        append ? [...current, ...result.articles] : result.articles,
+      );
       this.hasMore.set(page < result.totalPages);
       this.page = page;
       this.error.set(false);

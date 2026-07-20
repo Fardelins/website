@@ -3,8 +3,15 @@
     <h1>Terms and Conditions</h1>
     <p class="terms__updated"><strong>Last Updated:</strong> June 2026</p>
     <div class="terms__intro">
-      <p>Welcome to Fardelins. These Terms and Conditions ("Terms") govern your access to and use of the Fardelins platform, including our website, mobile applications, services, and related features.</p>
-      <p>By accessing or using Fardelins, you agree to these Terms. If you do not agree with any part of these Terms, you should not use our services.</p>
+      <p>
+        Welcome to Fardelins. These Terms and Conditions ("Terms") govern your access to and use of
+        the Fardelins platform, including our website, mobile applications, services, and related
+        features.
+      </p>
+      <p>
+        By accessing or using Fardelins, you agree to these Terms. If you do not agree with any part
+        of these Terms, you should not use our services.
+      </p>
     </div>
   </header>
 
@@ -16,7 +23,12 @@
           <span class="terms__progress-head"></span>
         </span>
         @for (section of sections; track section.id; let index = $index) {
-          <a [href]="'/terms#' + section.id" [class.is-active]="activeSection() === index" [attr.aria-current]="activeSection() === index ? 'location' : null" (click)="selectSection($event, section.id, index)">
+          <a
+            [href]="'/terms#' + section.id"
+            [class.is-active]="activeSection() === index"
+            [attr.aria-current]="activeSection() === index ? 'location' : null"
+            (click)="selectSection($event, section.id, index)"
+          >
             <span>{{ index + 1 }}.</span> {{ section.label }}
           </a>
         }
@@ -24,22 +36,180 @@
     </aside>
 
     <div class="terms__content">
-    <section #termSection id="about-fardelins"><h2>1. About Fardelins</h2><p>Fardelins provides technology solutions that help customers, businesses, dispatchers, and courier companies manage deliveries, tracking, dispatch operations, and related logistics activities.</p><p>Fardelins acts as a technology platform and may facilitate connections between customers, businesses, dispatchers, riders, and courier organizations.</p></section>
-    <section #termSection id="eligibility"><h2>2. Eligibility</h2><p>To use Fardelins, you must:</p><ul><li>Be at least 18 years old or the legal age required in your jurisdiction.</li><li>Provide accurate account information.</li><li>Maintain the security of your account credentials.</li><li>Comply with applicable laws and regulations.</li></ul><p>You are responsible for all activities performed under your account.</p></section>
-    <section #termSection id="user-accounts"><h2>3. User Accounts</h2><p>Users may be required to create an account to access certain services.</p><p>You agree to:</p><ul><li>Provide accurate information.</li><li>Keep your information updated.</li><li>Protect your login credentials.</li><li>Notify Fardelins immediately of any unauthorized access.</li></ul><p>Fardelins reserves the right to suspend or terminate accounts that violate these Terms.</p></section>
-    <section #termSection id="delivery-services"><h2>4. Delivery Services</h2><p>Fardelins facilitates delivery-related activities through connected courier networks and delivery teams.</p><p>Users acknowledge that:</p><ul><li>Delivery estimates are approximate.</li><li>Actual delivery times may vary.</li><li>External factors such as traffic, weather, operational delays, or unforeseen circumstances may affect service performance.</li><li>Fardelins does not guarantee exact delivery times unless explicitly stated.</li></ul></section>
-    <section #termSection id="prohibited-activities"><h2>5. Prohibited Activities</h2><p>Users may not:</p><ul><li>Use the platform for unlawful activities.</li><li>Submit false or misleading information.</li><li>Attempt to gain unauthorized access to systems or accounts.</li><li>Interfere with platform operations.</li><li>Distribute harmful software or malicious code.</li><li>Use the platform to transport prohibited or restricted goods.</li></ul><p>Violation of these rules may result in account suspension or termination.</p></section>
-    <section #termSection id="payments-and-fees"><h2>6. Payments and Fees</h2><p>Certain services may require payment.</p><p>By making a payment through Fardelins, you agree to:</p><ul><li>Provide valid payment information.</li><li>Authorize applicable charges.</li><li>Pay all applicable fees associated with requested services.</li></ul><p>Refund eligibility may be governed by separate refund policies where applicable.</p></section>
-    <section #termSection id="user-content"><h2>7. User Content</h2><p>Users may upload information, images, delivery notes, proof of delivery, and other content.</p><p>You retain ownership of your content but grant Fardelins a limited license to use such content for operating, improving, and supporting the platform.</p><p>You are responsible for ensuring uploaded content does not violate any laws or third-party rights.</p></section>
-    <section #termSection id="privacy"><h2>8. Privacy</h2><p>Your use of Fardelins is also governed by our Privacy Policy.</p><p>The Privacy Policy explains how we collect, use, store, and protect personal information.</p></section>
-    <section #termSection id="intellectual-property"><h2>9. Intellectual Property</h2><p>All trademarks, logos, software, designs, content, and platform materials provided by Fardelins are protected by intellectual property laws.</p><p>You may not copy, reproduce, distribute, modify, or exploit platform content without prior written permission.</p></section>
-    <section #termSection id="service-availability"><h2>10. Service Availability</h2><p>While we strive to provide reliable service, Fardelins does not guarantee uninterrupted availability.</p><p>Services may occasionally be affected by:</p><ul><li>Maintenance</li><li>Technical issues</li><li>Network interruptions</li><li>Third-party service failures</li></ul><p>We reserve the right to modify, suspend, or discontinue features when necessary.</p></section>
-    <section #termSection id="limitation-of-liability"><h2>11. Limitation of Liability</h2><p>To the maximum extent permitted by law, Fardelins shall not be liable for indirect, incidental, special, consequential, or punitive damages arising from the use of the platform.</p><p>Users acknowledge that platform usage is at their own risk.</p></section>
-    <section #termSection id="indemnification"><h2>12. Indemnification</h2><p>You agree to indemnify and hold harmless Fardelins, its affiliates, employees, partners, and service providers from claims, damages, liabilities, and expenses arising from your use of the platform or violation of these Terms.</p></section>
-    <section #termSection id="changes-to-terms"><h2>13. Changes to These Terms</h2><p>We may update these Terms periodically. When significant changes are made, we will provide notice through appropriate channels.</p><p>Continued use of the platform after updates become effective constitutes acceptance of the revised Terms.</p></section>
-    <section #termSection id="termination"><h2>14. Termination</h2><p>Fardelins reserves the right to suspend or terminate access to the platform at its discretion where users violate these Terms or applicable laws.</p><p>Users may stop using the platform at any time.</p></section>
-    <section #termSection id="contact-information"><h2>15. Contact Information</h2><p>If you have questions regarding these Terms and Conditions, please contact us:</p><address>Email: <a href="mailto:contact@fardelins.com">contact@fardelins.com</a><br />Website: <a href="https://fardelins.com">https://fardelins.com</a></address></section>
-      <p class="terms__acknowledgement">By accessing or using Fardelins, you acknowledge that you have read, understood, and agreed to these Terms and Conditions.</p>
+      <section #termSection id="about-fardelins">
+        <h2>1. About Fardelins</h2>
+        <p>
+          Fardelins provides technology solutions that help customers, businesses, dispatchers, and
+          courier companies manage deliveries, tracking, dispatch operations, and related logistics
+          activities.
+        </p>
+        <p>
+          Fardelins acts as a technology platform and may facilitate connections between customers,
+          businesses, dispatchers, riders, and courier organizations.
+        </p>
+      </section>
+      <section #termSection id="eligibility">
+        <h2>2. Eligibility</h2>
+        <p>To use Fardelins, you must:</p>
+        <ul>
+          <li>Be at least 18 years old or the legal age required in your jurisdiction.</li>
+          <li>Provide accurate account information.</li>
+          <li>Maintain the security of your account credentials.</li>
+          <li>Comply with applicable laws and regulations.</li>
+        </ul>
+        <p>You are responsible for all activities performed under your account.</p>
+      </section>
+      <section #termSection id="user-accounts">
+        <h2>3. User Accounts</h2>
+        <p>Users may be required to create an account to access certain services.</p>
+        <p>You agree to:</p>
+        <ul>
+          <li>Provide accurate information.</li>
+          <li>Keep your information updated.</li>
+          <li>Protect your login credentials.</li>
+          <li>Notify Fardelins immediately of any unauthorized access.</li>
+        </ul>
+        <p>
+          Fardelins reserves the right to suspend or terminate accounts that violate these Terms.
+        </p>
+      </section>
+      <section #termSection id="delivery-services">
+        <h2>4. Delivery Services</h2>
+        <p>
+          Fardelins facilitates delivery-related activities through connected courier networks and
+          delivery teams.
+        </p>
+        <p>Users acknowledge that:</p>
+        <ul>
+          <li>Delivery estimates are approximate.</li>
+          <li>Actual delivery times may vary.</li>
+          <li>
+            External factors such as traffic, weather, operational delays, or unforeseen
+            circumstances may affect service performance.
+          </li>
+          <li>Fardelins does not guarantee exact delivery times unless explicitly stated.</li>
+        </ul>
+      </section>
+      <section #termSection id="prohibited-activities">
+        <h2>5. Prohibited Activities</h2>
+        <p>Users may not:</p>
+        <ul>
+          <li>Use the platform for unlawful activities.</li>
+          <li>Submit false or misleading information.</li>
+          <li>Attempt to gain unauthorized access to systems or accounts.</li>
+          <li>Interfere with platform operations.</li>
+          <li>Distribute harmful software or malicious code.</li>
+          <li>Use the platform to transport prohibited or restricted goods.</li>
+        </ul>
+        <p>Violation of these rules may result in account suspension or termination.</p>
+      </section>
+      <section #termSection id="payments-and-fees">
+        <h2>6. Payments and Fees</h2>
+        <p>Certain services may require payment.</p>
+        <p>By making a payment through Fardelins, you agree to:</p>
+        <ul>
+          <li>Provide valid payment information.</li>
+          <li>Authorize applicable charges.</li>
+          <li>Pay all applicable fees associated with requested services.</li>
+        </ul>
+        <p>Refund eligibility may be governed by separate refund policies where applicable.</p>
+      </section>
+      <section #termSection id="user-content">
+        <h2>7. User Content</h2>
+        <p>
+          Users may upload information, images, delivery notes, proof of delivery, and other
+          content.
+        </p>
+        <p>
+          You retain ownership of your content but grant Fardelins a limited license to use such
+          content for operating, improving, and supporting the platform.
+        </p>
+        <p>
+          You are responsible for ensuring uploaded content does not violate any laws or third-party
+          rights.
+        </p>
+      </section>
+      <section #termSection id="privacy">
+        <h2>8. Privacy</h2>
+        <p>Your use of Fardelins is also governed by our Privacy Policy.</p>
+        <p>
+          The Privacy Policy explains how we collect, use, store, and protect personal information.
+        </p>
+      </section>
+      <section #termSection id="intellectual-property">
+        <h2>9. Intellectual Property</h2>
+        <p>
+          All trademarks, logos, software, designs, content, and platform materials provided by
+          Fardelins are protected by intellectual property laws.
+        </p>
+        <p>
+          You may not copy, reproduce, distribute, modify, or exploit platform content without prior
+          written permission.
+        </p>
+      </section>
+      <section #termSection id="service-availability">
+        <h2>10. Service Availability</h2>
+        <p>
+          While we strive to provide reliable service, Fardelins does not guarantee uninterrupted
+          availability.
+        </p>
+        <p>Services may occasionally be affected by:</p>
+        <ul>
+          <li>Maintenance</li>
+          <li>Technical issues</li>
+          <li>Network interruptions</li>
+          <li>Third-party service failures</li>
+        </ul>
+        <p>We reserve the right to modify, suspend, or discontinue features when necessary.</p>
+      </section>
+      <section #termSection id="limitation-of-liability">
+        <h2>11. Limitation of Liability</h2>
+        <p>
+          To the maximum extent permitted by law, Fardelins shall not be liable for indirect,
+          incidental, special, consequential, or punitive damages arising from the use of the
+          platform.
+        </p>
+        <p>Users acknowledge that platform usage is at their own risk.</p>
+      </section>
+      <section #termSection id="indemnification">
+        <h2>12. Indemnification</h2>
+        <p>
+          You agree to indemnify and hold harmless Fardelins, its affiliates, employees, partners,
+          and service providers from claims, damages, liabilities, and expenses arising from your
+          use of the platform or violation of these Terms.
+        </p>
+      </section>
+      <section #termSection id="changes-to-terms">
+        <h2>13. Changes to These Terms</h2>
+        <p>
+          We may update these Terms periodically. When significant changes are made, we will provide
+          notice through appropriate channels.
+        </p>
+        <p>
+          Continued use of the platform after updates become effective constitutes acceptance of the
+          revised Terms.
+        </p>
+      </section>
+      <section #termSection id="termination">
+        <h2>14. Termination</h2>
+        <p>
+          Fardelins reserves the right to suspend or terminate access to the platform at its
+          discretion where users violate these Terms or applicable laws.
+        </p>
+        <p>Users may stop using the platform at any time.</p>
+      </section>
+      <section #termSection id="contact-information">
+        <h2>15. Contact Information</h2>
+        <p>If you have questions regarding these Terms and Conditions, please contact us:</p>
+        <address>
+          Email: <a href="mailto:contact@fardelins.com">contact@fardelins.com</a><br />Website:
+          <a href="https://fardelins.com">https://fardelins.com</a>
+        </address>
+      </section>
+      <p class="terms__acknowledgement">
+        By accessing or using Fardelins, you acknowledge that you have read, understood, and agreed
+        to these Terms and Conditions.
+      </p>
     </div>
   </div>
 </article>

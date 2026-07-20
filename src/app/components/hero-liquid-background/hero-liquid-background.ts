@@ -1,9 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { HapticsService } from '../../services/haptics.service';
-import {
-  ComponentConfig,
-  ShaderBackground,
-} from '../shader-background/shader-background';
+import { ComponentConfig, ShaderBackground } from '../shader-background/shader-background';
 
 @Component({
   selector: 'app-hero-liquid-background',

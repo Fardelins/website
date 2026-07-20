@@ -63,7 +63,9 @@ describe('BlogDetail', () => {
   it('renders a recoverable error state when loading fails', async () => {
     const { fixture } = await render(vi.fn().mockRejectedValue(new Error('offline')));
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('[role="alert"]')?.textContent).toContain("Couldn't load this article");
+    expect(element.querySelector('[role="alert"]')?.textContent).toContain(
+      "Couldn't load this article",
+    );
     expect(element.querySelector('a')?.getAttribute('href')).toBe('/blogs');
   });
 });

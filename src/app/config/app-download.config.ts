@@ -32,4 +32,3 @@ export const APP_DOWNLOAD_CONFIG = {
     },
   } satisfies Record<'android' | 'ios', AppStoreLink>,
 } as const;
-

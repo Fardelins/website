@@ -1,4 +1,4 @@
-<main class="article-page">
+<div class="article-page">
   @if (loading()) {
     <div class="article-page__state">
       <app-blog-loader />
@@ -23,11 +23,19 @@
             <h1>{{ post.title }}</h1>
             <p class="article-hero__supporting">{{ post.excerpt }}</p>
           </div>
-          <p class="article-hero__meta">Written on {{ post.date }}  •  {{ post.readTime }}</p>
+          <p class="article-hero__meta">Written on {{ post.date }} • {{ post.readTime }}</p>
         </div>
         <div class="article-hero__media" [appTilt]="9">
           @if (post.image) {
-            <img [src]="post.image" alt="" />
+            <img
+              [src]="post.image"
+              [attr.srcset]="post.imageSrcset"
+              sizes="(max-width: 1000px) 90vw, 560px"
+              width="608"
+              height="400"
+              alt=""
+              fetchpriority="high"
+            />
           } @else {
             <div class="article-hero__media-fallback">
               <img src="/home/logo.svg" alt="" width="180" height="49" />
@@ -40,27 +48,63 @@
     <article class="article-body">
       <div class="article-body__inner">
         <div class="article-main">
-          <div class="article-content" ngSkipHydration #articleContent [innerHTML]="post.contentHtml"></div>
+          <div
+            class="article-content"
+            ngSkipHydration
+            #articleContent
+            [innerHTML]="post.contentHtml"
+          ></div>
 
           <div class="article-share">
             <hr class="article-share__divider" />
             <div class="article-share__row">
               <span class="article-share__label">Share this post</span>
               <div class="article-share__icons">
-                <button type="button" class="article-share__btn" (click)="copyLink()" [attr.aria-label]="copied() ? 'Link copied' : 'Copy link'">
+                <button
+                  type="button"
+                  class="article-share__btn"
+                  (click)="copyLink()"
+                  [attr.aria-label]="copied() ? 'Link copied' : 'Copy link'"
+                >
                   @if (copied()) {
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M20 6 9 17l-5-5"
+                        stroke="#16a34a"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
                   } @else {
                     <img src="/blogs/link.svg" alt="" width="32" height="32" />
                   }
                 </button>
-                <a class="article-share__btn" [href]="shareTo('twitter')" target="_blank" rel="noopener" aria-label="Share on X">
+                <a
+                  class="article-share__btn"
+                  [href]="shareTo('twitter')"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="Share on X"
+                >
                   <img src="/blogs/twitter.svg" alt="" width="32" height="32" />
                 </a>
-                <a class="article-share__btn" [href]="shareTo('whatsapp')" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
+                <a
+                  class="article-share__btn"
+                  [href]="shareTo('whatsapp')"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="Share on WhatsApp"
+                >
                   <img src="/blogs/whatsapp.svg" alt="" width="32" height="32" />
                 </a>
-                <a class="article-share__btn" [href]="shareTo('linkedin')" target="_blank" rel="noopener" aria-label="Share on LinkedIn">
+                <a
+                  class="article-share__btn"
+                  [href]="shareTo('linkedin')"
+                  target="_blank"
+                  rel="noopener"
+                  aria-label="Share on LinkedIn"
+                >
                   <img src="/blogs/linkedIn.svg" alt="" width="32" height="32" />
                 </a>
               </div>
@@ -70,7 +114,11 @@
 
         @if (toc().length) {
           <aside class="article-toc">
-            <nav class="article-toc__nav" aria-label="On this page" [style.--progress]="tocProgress()">
+            <nav
+              class="article-toc__nav"
+              aria-label="On this page"
+              [style.--progress]="tocProgress()"
+            >
               <p class="article-toc__title">On this page</p>
               <div class="article-toc__list">
                 <span class="article-toc__track" aria-hidden="true">
@@ -84,7 +132,8 @@
                     [class.is-active]="activeTocId() === item.id"
                     [attr.aria-current]="activeTocId() === item.id ? 'location' : null"
                     (click)="jumpTo($event, item.id)"
-                  >{{ item.label }}</a>
+                    >{{ item.label }}</a
+                  >
                 }
               </div>
             </nav>
@@ -95,8 +144,15 @@
 
     <!-- Reading progress (top edge, above the navbar): fills left→right as you scroll
          through the article and retracts on scroll up. Shown where the side TOC is hidden. -->
-    <div class="article-progress" [class.article-progress--active]="readProgress() > 0.005" aria-hidden="true">
-      <span class="article-progress__fill" [style.transform]="'scaleX(' + readProgress() + ')'"></span>
+    <div
+      class="article-progress"
+      [class.article-progress--active]="readProgress() > 0.005"
+      aria-hidden="true"
+    >
+      <span
+        class="article-progress__fill"
+        [style.transform]="'scaleX(' + readProgress() + ')'"
+      ></span>
     </div>
 
     @if (related().length) {
@@ -114,4 +170,4 @@
 
     <app-blog-newsletter />
   }
-</main>
+</div>

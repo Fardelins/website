@@ -100,7 +100,9 @@
 }
 
 @media (max-width: 900px) {
-  .audience { padding-top: var(--spacing-60); }
+  .audience {
+    padding-top: var(--spacing-60);
+  }
 
   .audience__header {
     flex-direction: column;

@@ -17,7 +17,9 @@ describe('Contact form', () => {
   });
 
   function fillForm(): HTMLFormElement {
-    const form = (fixture.nativeElement as HTMLElement).querySelector<HTMLFormElement>('.contact-form')!;
+    const form = (fixture.nativeElement as HTMLElement).querySelector<HTMLFormElement>(
+      '.contact-form',
+    )!;
     const values: Record<string, string> = {
       firstName: 'Bami',
       lastName: 'Boss',

@@ -1,8 +1,24 @@
 <article class="card">
   <picture>
-    <source type="image/avif" [srcset]="imageBase() + '-480.avif 480w, ' + imageBase() + '-800.avif 800w'" sizes="(max-width: 640px) 88vw, 440px" />
-    <source type="image/webp" [srcset]="imageBase() + '-480.webp 480w, ' + imageBase() + '-800.webp 800w'" sizes="(max-width: 640px) 88vw, 440px" />
-    <img class="card__image" [src]="imageBase() + '-480.webp'" [alt]="title()" width="480" height="672" loading="lazy" decoding="async" />
+    <source
+      type="image/avif"
+      [srcset]="imageBase() + '-480.avif 480w, ' + imageBase() + '-800.avif 800w'"
+      sizes="(max-width: 640px) 88vw, 440px"
+    />
+    <source
+      type="image/webp"
+      [srcset]="imageBase() + '-480.webp 480w, ' + imageBase() + '-800.webp 800w'"
+      sizes="(max-width: 640px) 88vw, 440px"
+    />
+    <img
+      class="card__image"
+      [src]="imageBase() + '-480.webp'"
+      [alt]="title()"
+      width="480"
+      height="672"
+      loading="lazy"
+      decoding="async"
+    />
   </picture>
   <div class="card__gradient"></div>
 

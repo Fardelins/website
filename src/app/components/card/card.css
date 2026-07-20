@@ -28,7 +28,9 @@
   bottom: 0;
   height: 22%;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
-  transition: height 0.4s ease, background 0.4s ease;
+  transition:
+    height 0.4s ease,
+    background 0.4s ease;
 }
 
 .card:hover .card__gradient {
@@ -57,7 +59,9 @@
   font-size: 28px;
   line-height: 36px;
   color: var(--color-styles-off-white);
-  transition: font-size 0.35s ease, line-height 0.35s ease;
+  transition:
+    font-size 0.35s ease,
+    line-height 0.35s ease;
 }
 
 .card:hover .card__title {
@@ -74,7 +78,9 @@
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: max-height 0.4s ease, opacity 0.3s ease 0.05s;
+  transition:
+    max-height 0.4s ease,
+    opacity 0.3s ease 0.05s;
 }
 
 .card:hover .card__description {

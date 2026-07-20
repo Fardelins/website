@@ -12,13 +12,7 @@
     black 92%,
     transparent 100%
   );
-  mask-image: linear-gradient(
-    to right,
-    transparent 0%,
-    black 8%,
-    black 92%,
-    transparent 100%
-  );
+  mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
 }
 
 .marquee__track {
@@ -48,7 +42,9 @@
   width: auto;
   opacity: 0.6;
   filter: grayscale(1);
-  transition: opacity 0.2s ease, filter 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease;
 }
 
 .marquee__item img:hover {

@@ -5,7 +5,7 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
-import { join } from 'node:path';
+import { basename, extname, join, sep } from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -63,7 +63,9 @@ app.use((req, res, next) => {
       .then(async (upstream) => {
         res.status(upstream.status);
         upstream.headers.forEach((value, key) => {
-          if (!['content-encoding', 'transfer-encoding', 'connection', 'content-length'].includes(key)) {
+          if (
+            !['content-encoding', 'transfer-encoding', 'connection', 'content-length'].includes(key)
+          ) {
             res.setHeader(key, value);
           }
         });
@@ -74,14 +76,55 @@ app.use((req, res, next) => {
   req.on('error', next);
 });
 
+const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+const ONE_DAY_SECONDS = 60 * 60 * 24;
+
+/**
+ * Serve static files from /browser with cache lifetimes matched to how each
+ * asset is versioned:
+ *
+ * - Hashed JS/CSS bundles (and Angular's hashed `media/` assets) carry a
+ *   content hash in the filename, so a new deploy always yields a new URL.
+ *   These can be cached forever and served `immutable`.
+ * - Unversioned metadata that must reflect the latest deploy immediately
+ *   (sitemap, robots, HTML, and the service-worker manifest/scripts) is served
+ *   `no-cache` so clients always revalidate before reuse.
+ * - Everything else copied from /public is unversioned but replaceable — the
+ *   favicon, social image, and section imagery. These get a short lifetime so a
+ *   redeploy propagates within a day while still avoiding a fetch per request.
+ */
+function setStaticCacheHeaders(res: express.Response, filePath: string): void {
+  const file = basename(filePath);
+  const ext = extname(filePath).toLowerCase();
+  const isHashedBundle =
+    ((ext === '.js' || ext === '.css') && /-[A-Za-z0-9]{8,}\.\w+$/.test(file)) ||
+    filePath.split(sep).includes('media');
+
+  const neverCache =
+    file === 'robots.txt' ||
+    file === 'sitemap.xml' ||
+    file === 'ngsw.json' ||
+    file === 'ngsw-worker.js' ||
+    file === 'safety-worker.js' ||
+    ext === '.html';
+
+  if (neverCache) {
+    res.setHeader('Cache-Control', 'no-cache');
+  } else if (isHashedBundle) {
+    res.setHeader('Cache-Control', `public, max-age=${ONE_YEAR_SECONDS}, immutable`);
+  } else {
+    res.setHeader('Cache-Control', `public, max-age=${ONE_DAY_SECONDS}, must-revalidate`);
+  }
+}
+
 /**
  * Serve static files from /browser
  */
 app.use(
   express.static(browserDistFolder, {
-    maxAge: '1y',
     index: false,
     redirect: false,
+    setHeaders: setStaticCacheHeaders,
   }),
 );
 

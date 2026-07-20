@@ -140,10 +140,16 @@
               ></span>
             }
           }
-          <span class="feature-showcase__number">{{ itemNumber(index) }}.</span>
+          <span class="feature-showcase__mask feature-showcase__mask--number">
+            <span class="feature-showcase__number">{{ itemNumber(index) }}.</span>
+          </span>
           <span class="feature-showcase__copy">
-            <span class="feature-showcase__item-title">{{ item.title }}</span>
-            <span class="feature-showcase__item-description">{{ item.description }}</span>
+            <span class="feature-showcase__mask feature-showcase__mask--title">
+              <span class="feature-showcase__item-title">{{ item.title }}</span>
+            </span>
+            <span class="feature-showcase__mask feature-showcase__mask--description">
+              <span class="feature-showcase__item-description">{{ item.description }}</span>
+            </span>
           </span>
         </button>
       </li>

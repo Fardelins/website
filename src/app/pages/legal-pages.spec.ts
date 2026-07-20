@@ -18,9 +18,7 @@ describe.each([
 
   it('provides a working anchor for every numbered section', () => {
     const element = fixture.nativeElement as HTMLElement;
-    const links = Array.from(
-      element.querySelectorAll<HTMLAnchorElement>('aside nav a'),
-    );
+    const links = Array.from(element.querySelectorAll<HTMLAnchorElement>('aside nav a'));
     expect(links).toHaveLength(count);
     links.forEach((link, index) => {
       expect(link.getAttribute('href')).toMatch(new RegExp(`^${path}#`));

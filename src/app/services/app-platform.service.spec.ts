@@ -5,7 +5,10 @@ describe('AppPlatformService', () => {
   const setNavigator = (userAgent: string, platform = '', maxTouchPoints = 0): void => {
     Object.defineProperty(navigator, 'userAgent', { configurable: true, value: userAgent });
     Object.defineProperty(navigator, 'platform', { configurable: true, value: platform });
-    Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: maxTouchPoints });
+    Object.defineProperty(navigator, 'maxTouchPoints', {
+      configurable: true,
+      value: maxTouchPoints,
+    });
   };
 
   beforeEach(() => TestBed.resetTestingModule());
@@ -36,4 +39,3 @@ describe('AppPlatformService', () => {
     expect(service.hrefFor()).toBe('/download');
   });
 });
-

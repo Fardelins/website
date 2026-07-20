@@ -54,8 +54,7 @@ export class TiltDirective implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (!this.enabled) return;
-    this.interactionSurface =
-      this.appTiltSurface === 'parent' ? this.el.parentElement : this.el;
+    this.interactionSurface = this.appTiltSurface === 'parent' ? this.el.parentElement : this.el;
     this.interactionSurface?.addEventListener('pointermove', this.onPointerMove);
     this.interactionSurface?.addEventListener('pointerleave', this.onPointerLeave);
   }

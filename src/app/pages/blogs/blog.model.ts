@@ -8,6 +8,13 @@ export interface BlogArticle {
   excerpt: string;
   /** Featured image URL, or null when the WordPress post has none set. */
   image: string | null;
+  /**
+   * Responsive `srcset` built from WordPress's generated sizes, or null when
+   * unavailable. The display box is cropped to a fixed landscape ratio in CSS,
+   * so the template supplies static `width`/`height` for that ratio; `srcset`
+   * only governs which resolution the browser downloads.
+   */
+  imageSrcset: string | null;
   /** Live fardelins.com/wp-admin post URL — cards link straight out to it. */
   link: string;
 }

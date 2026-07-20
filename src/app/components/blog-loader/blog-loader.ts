@@ -26,7 +26,14 @@ const STAGES: ComponentConfig[][] = [
   [
     {
       type: 'Ascii',
-      props: { characters: '@%#*+=-:.', cellSize: 14, fontFamily: 'JetBrains', spacing: 1, gamma: 1, alphaThreshold: 0.1 },
+      props: {
+        characters: '@%#*+=-:.',
+        cellSize: 14,
+        fontFamily: 'JetBrains',
+        spacing: 1,
+        gamma: 1,
+        alphaThreshold: 0.1,
+      },
       children: [{ type: 'ImageTexture', props: { url: LOGO_URL, objectFit: 'contain' } }],
     },
   ],
@@ -53,7 +60,8 @@ export class BlogLoader implements OnInit, OnDestroy {
   private intervalId: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
-    if (!this.isBrowser || globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    if (!this.isBrowser || globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
+      return;
     this.intervalId = setInterval(() => {
       this.stageIndex.update((i) => (i + 1) % STAGES.length);
     }, STAGE_INTERVAL_MS);

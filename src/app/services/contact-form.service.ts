@@ -54,12 +54,14 @@ export class ContactFormService {
       }),
       this.getFreshToken(),
     ]);
-    if (!response.ok) throw new Error(`Could not load contact form configuration: ${response.status}`);
+    if (!response.ok)
+      throw new Error(`Could not load contact form configuration: ${response.status}`);
 
     const document = new DOMParser().parseFromString(await response.text(), 'text/html');
     const form =
       document.querySelector<HTMLFormElement>(`#wpforms-form-${FORM_ID}`) ??
-      document.querySelector<HTMLInputElement>(`input[name="wpforms[id]"][value="${FORM_ID}"]`)?.form;
+      document.querySelector<HTMLInputElement>(`input[name="wpforms[id]"][value="${FORM_ID}"]`)
+        ?.form;
     if (!form) throw new Error('Contact form configuration was not found');
 
     const body = new URLSearchParams();
@@ -102,11 +104,13 @@ export class ContactFormService {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
       body: new URLSearchParams({ action: 'wpforms_get_token', formId: FORM_ID }).toString(),
     });
-    if (!response.ok) throw new Error(`Could not refresh the contact form token: ${response.status}`);
+    if (!response.ok)
+      throw new Error(`Could not refresh the contact form token: ${response.status}`);
 
     const result = (await response.json()) as { success?: boolean; data?: { token?: string } };
     const token = result.data?.token;
-    if (!result.success || !token) throw new Error('The contact form security token is unavailable');
+    if (!result.success || !token)
+      throw new Error('The contact form security token is unavailable');
     return token;
   }
 }

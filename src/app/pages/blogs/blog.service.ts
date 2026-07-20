@@ -8,11 +8,12 @@ const WORDS_PER_MINUTE = 200;
 
 interface WpMediaSize {
   source_url: string;
+  width?: number;
 }
 
 interface WpFeaturedMedia {
   source_url?: string;
-  media_details?: { sizes?: Record<string, WpMediaSize> };
+  media_details?: { width?: number; sizes?: Record<string, WpMediaSize> };
 }
 
 interface WpPost {
@@ -56,14 +57,25 @@ export class BlogService {
   async fetchCategories(): Promise<BlogCategory[]> {
     const categories = await firstValueFrom(
       this.http.get<WpCategory[]>(`${this.wpBase}/categories`, {
-        params: { per_page: '100', hide_empty: 'true', orderby: 'count', order: 'desc', _fields: 'id,name,count' },
+        params: {
+          per_page: '100',
+          hide_empty: 'true',
+          orderby: 'count',
+          order: 'desc',
+          _fields: 'id,name,count',
+        },
       }),
     );
     this.categoryNames = new Map(categories.map((category) => [category.id, category.name]));
     return categories.map((category) => ({ id: category.id, name: category.name }));
   }
 
-  async fetchArticles(page: number, perPage: number, categoryId?: number, search?: string): Promise<BlogPage> {
+  async fetchArticles(
+    page: number,
+    perPage: number,
+    categoryId?: number,
+    search?: string,
+  ): Promise<BlogPage> {
     if (this.categoryNames.size === 0) {
       await this.fetchCategories();
     }
@@ -116,7 +128,11 @@ export class BlogService {
   }
 
   /** Sibling posts in the same category, excluding the one being viewed. */
-  async fetchRelated(categoryId: number | null, excludeId: number, limit: number): Promise<BlogArticle[]> {
+  async fetchRelated(
+    categoryId: number | null,
+    excludeId: number,
+    limit: number,
+  ): Promise<BlogArticle[]> {
     const params: Record<string, string> = {
       per_page: String(limit),
       exclude: String(excludeId),
@@ -131,7 +147,12 @@ export class BlogService {
     if (posts.length < limit) {
       const fallback = await firstValueFrom(
         this.http.get<WpPost[]>(`${this.wpBase}/posts`, {
-          params: { per_page: String(limit + 1), exclude: String(excludeId), _embed: 'wp:featuredmedia', _fields: params['_fields'] },
+          params: {
+            per_page: String(limit + 1),
+            exclude: String(excludeId),
+            _embed: 'wp:featuredmedia',
+            _fields: params['_fields'],
+          },
         }),
       );
       const seen = new Set(posts.map((p) => p.id));
@@ -143,11 +164,7 @@ export class BlogService {
 
   private mapPost(post: WpPost): BlogArticle {
     const media = post._embedded?.['wp:featuredmedia']?.[0];
-    const image =
-      media?.media_details?.sizes?.['medium_large']?.source_url ??
-      media?.media_details?.sizes?.['large']?.source_url ??
-      media?.source_url ??
-      null;
+    const { image, imageSrcset } = mapMedia(media);
 
     const categoryId = post.categories?.[0] ?? null;
     const category = categoryId !== null ? (this.categoryNames.get(categoryId) ?? 'Blog') : 'Blog';
@@ -161,14 +178,58 @@ export class BlogService {
       title: toTitleCase(stripHtml(post.title?.rendered ?? '')),
       excerpt: stripHtml(post.excerpt?.rendered ?? ''),
       image,
+      imageSrcset,
       link: post.link,
     };
   }
 }
 
+interface MappedMedia {
+  image: string | null;
+  imageSrcset: string | null;
+}
+
+/**
+ * Resolves the featured image to display alongside a responsive `srcset` (so the
+ * browser can pick a size that fits the slot instead of always pulling the widest
+ * render). WordPress exposes every generated size under `media_details.sizes`,
+ * each with its own width; the display `src` stays at a mid size. The visible box
+ * is cropped to a fixed landscape ratio in CSS, so intrinsic dimensions aren't
+ * carried here — the templates set static width/height for that display ratio.
+ */
+function mapMedia(media?: WpFeaturedMedia): MappedMedia {
+  const sizes = media?.media_details?.sizes ?? {};
+  const chosen = sizes['medium_large'] ?? sizes['large'];
+  const image = chosen?.source_url ?? media?.source_url ?? null;
+  if (!image) {
+    return { image: null, imageSrcset: null };
+  }
+
+  // De-dupe by URL and require a width for each candidate; sort ascending so the
+  // srcset reads naturally. Fall back to null when there's only the single src.
+  const candidates = new Map<string, number>();
+  for (const size of Object.values(sizes)) {
+    if (size.source_url && size.width) candidates.set(size.source_url, size.width);
+  }
+  if (media?.source_url && media.media_details?.width) {
+    candidates.set(media.source_url, media.media_details.width);
+  }
+  const imageSrcset =
+    candidates.size > 1
+      ? [...candidates.entries()]
+          .sort((a, b) => a[1] - b[1])
+          .map(([url, width]) => `${url} ${width}w`)
+          .join(', ')
+      : null;
+
+  return { image, imageSrcset };
+}
+
 /** WordPress titles arrive in inconsistent casing (some fully uppercase) — normalize to Title Case. */
 function toTitleCase(text: string): string {
-  return text.toLowerCase().replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1));
+  return text
+    .toLowerCase()
+    .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1));
 }
 
 function stripHtml(html: string): string {
@@ -262,7 +323,9 @@ function normalizeContent(html: string, featuredImage: string | null): string {
       const items = Array.from(list.children).filter((child) => child.tagName === 'LI');
       if (items.length !== 1) return;
       const li = items[0];
-      const innerLists = Array.from(li.children).filter((child) => child.tagName === 'UL' || child.tagName === 'OL');
+      const innerLists = Array.from(li.children).filter(
+        (child) => child.tagName === 'UL' || child.tagName === 'OL',
+      );
       if (innerLists.length === 1 && !textOf(li).replace(textOf(innerLists[0]), '').trim()) {
         list.replaceWith(innerLists[0]);
         changed = true;

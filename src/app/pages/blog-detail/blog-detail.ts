@@ -1,4 +1,13 @@
-import { Component, ElementRef, OnDestroy, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { BlogCard } from '../../components/blog-card/blog-card';
@@ -129,9 +138,15 @@ export class BlogDetail implements OnDestroy {
       }
       this.article.set(article);
       this.setMeta(article);
-      this.related.set(await this.blogService.fetchRelated(article.categoryId, article.id, RELATED_COUNT));
+      this.related.set(
+        await this.blogService.fetchRelated(article.categoryId, article.id, RELATED_COUNT),
+      );
       // Content lands in the DOM via [innerHTML] on the next tick — build the TOC after that (browser only).
-      if (this.isBrowser) setTimeout(() => { this.buildToc(); this.updateReadProgress(); }, 0);
+      if (this.isBrowser)
+        setTimeout(() => {
+          this.buildToc();
+          this.updateReadProgress();
+        }, 0);
     } catch {
       this.error.set(true);
     } finally {
