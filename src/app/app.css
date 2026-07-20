@@ -24,8 +24,12 @@
   min-height: 100vh;
 }
 
-.app-shell:focus,
-.app-shell h1[tabindex='-1']:focus {
+/* Keyboard/skip-link focus only. Plain `:focus` also fires when a mouse click
+   lands on the `tabindex="-1"` main, drawing this outline around the whole
+   content area — whose bottom edge then reads as a stray line above the footer.
+   `:focus-visible` keeps the indicator for keyboard users without that artifact. */
+.app-shell:focus-visible,
+.app-shell h1[tabindex='-1']:focus-visible {
   outline: 3px solid var(--color-primary-300);
   outline-offset: 4px;
 }
