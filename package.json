@@ -10,6 +10,9 @@
     "optimize:images": "node scripts/optimize-images.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "test:ci": "ng test --no-watch",
+    "lint": "prettier --check \"src/**/*.{ts,html,css}\" \"scripts/**/*.mjs\"",
+    "format": "prettier --write \"src/**/*.{ts,html,css}\" \"scripts/**/*.mjs\"",
     "serve:prod": "serve -s dist/fardelins-app/browser",
     "serve:ssr:fardelins-app": "node dist/fardelins-app/server/server.mjs"
   },
