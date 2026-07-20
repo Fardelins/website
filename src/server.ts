@@ -4,6 +4,7 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
+import compression from 'compression';
 import express from 'express';
 import { basename, extname, join, sep } from 'node:path';
 
@@ -11,6 +12,27 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+
+// Gzip/deflate every response the app serves (HTML, JSON proxied from
+// WordPress, and any static asset not already precompressed).
+app.use(compression());
+
+/**
+ * Baseline security headers applied to every response. These are conservative
+ * defaults that don't depend on a CDN/reverse proxy being in front of the app;
+ * if one exists, it can still override or extend them. A Content-Security-Policy
+ * is intentionally omitted here — the app uses inline WebGL shaders and injected
+ * WordPress markup, so a CSP needs to be authored deliberately rather than
+ * guessed at.
+ */
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  next();
+});
 
 /**
  * Reverse-proxy WordPress paths to the headless WordPress origin.
