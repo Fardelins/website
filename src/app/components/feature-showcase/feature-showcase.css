@@ -1,0 +1,418 @@
+:host {
+  display: block;
+}
+
+.feature-showcase {
+  padding: 112px max(80px, calc((100% - var(--content-max-width)) / 2)) 120px;
+  color: var(--color-styles-body);
+  background: var(--color-neutral-white);
+}
+
+.feature-showcase__header {
+  display: flex;
+  width: min(722px, 100%);
+  margin-inline: auto;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-lg);
+  text-align: center;
+}
+
+.feature-showcase__eyebrow {
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 34px;
+  letter-spacing: 0.15px;
+}
+
+.feature-showcase h2 {
+  color: var(--color-styles-title);
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 56px;
+  letter-spacing: -0.5px;
+}
+
+.feature-showcase h2 span {
+  color: var(--color-primary-500);
+}
+
+.feature-showcase__visual {
+  position: relative;
+  width: min(1280px, 100%);
+  margin: 48px auto 0;
+  overflow: hidden;
+  border-radius: var(--radius-40);
+  background: var(--color-styles-off-white);
+  aspect-ratio: 16 / 9;
+  perspective: 1000px;
+}
+
+.feature-showcase__visual-plane {
+  width: 100%;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.feature-showcase__composite {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.feature-showcase__background {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Live shader sits below the tilting mockup layers (which establish their own
+   z-index >= 1). The solid light-brand fill is the fallback shown before the
+   canvas fades in, or if WebGPU / motion is unavailable. */
+.feature-showcase__shader {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: var(--color-primary-50);
+}
+
+.feature-showcase__visual-plane--layered {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+/* <picture> is a layout-neutral wrapper for the AVIF/WebP sources; let the
+   <img> inside behave as if it were the direct child (positioning, width: 100%). */
+.feature-showcase__visual picture {
+  display: contents;
+}
+
+.feature-showcase__layer {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.feature-showcase__layer img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 14px 18px rgb(31 12 72 / 0.1));
+  will-change: transform, opacity;
+}
+
+.feature-showcase__layer--mockup {
+  z-index: 1;
+  left: 50%;
+  transform: translateX(-50%) translateZ(12px);
+}
+
+.feature-showcase__layer--first {
+  z-index: 3;
+  transform: translateZ(44px);
+}
+
+.feature-showcase__layer--second {
+  z-index: 4;
+  transform: translateZ(56px);
+}
+
+.feature-showcase__layer--third {
+  z-index: 3;
+  transform: translateZ(44px);
+}
+
+.feature-showcase__visual-plane--tracking .feature-showcase__layer--mockup {
+  top: 5%;
+  width: 31.5%;
+}
+
+.feature-showcase__visual-plane--tracking .feature-showcase__layer--first {
+  top: 7.5%;
+  left: 19.5%;
+  width: 24%;
+}
+
+.feature-showcase__visual-plane--tracking .feature-showcase__layer--second {
+  top: 24%;
+  left: 59.5%;
+  width: 29%;
+}
+
+.feature-showcase__visual-plane--tracking .feature-showcase__layer--third {
+  top: 56%;
+  left: 55%;
+  width: 24%;
+}
+
+.feature-showcase__visual-plane--dispatcher .feature-showcase__layer--mockup {
+  top: 5.5%;
+  width: 29.7%;
+}
+
+.feature-showcase__visual-plane--dispatcher .feature-showcase__layer--first {
+  top: 24%;
+  left: 18%;
+  width: 25%;
+}
+
+.feature-showcase__visual-plane--dispatcher .feature-showcase__layer--second {
+  top: 2.8%;
+  left: 58%;
+  width: 22%;
+}
+
+.feature-showcase__visual-plane--dispatcher .feature-showcase__layer--third {
+  top: 58%;
+  left: 61%;
+  width: 27%;
+}
+
+.feature-showcase__visual-plane--merchant .feature-showcase__layer--mockup {
+  top: 7%;
+  width: 31.25%;
+}
+
+.feature-showcase__visual-plane--merchant .feature-showcase__layer--first {
+  top: 20.3%;
+  left: 16.2%;
+  width: 27%;
+}
+
+.feature-showcase__visual-plane--merchant .feature-showcase__layer--second {
+  top: 60%;
+  left: 53.9%;
+  width: 27%;
+}
+
+.feature-showcase__visual-plane--delivery .feature-showcase__layer--mockup {
+  top: 7%;
+  width: 31.25%;
+}
+
+.feature-showcase__visual-plane--delivery .feature-showcase__layer--first {
+  top: 35.8%;
+  left: 19.4%;
+  width: 21%;
+}
+
+/* Courier Management uses a wide, centered desktop dashboard mockup rather than a phone. */
+.feature-showcase__visual-plane--courier .feature-showcase__layer--mockup {
+  top: 11%;
+  width: 78%;
+}
+
+.feature-showcase__visual-plane--courier .feature-showcase__layer--first {
+  top: 6%;
+  left: 73.9%;
+  width: 17.7%;
+}
+
+.feature-showcase__visual-plane--courier .feature-showcase__layer--second {
+  top: 80.5%;
+  left: 4%;
+  width: 24%;
+}
+
+.feature-showcase__items {
+  display: grid;
+  width: min(1280px, 100%);
+  margin: 64px auto 0;
+  padding: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-xl);
+  list-style: none;
+}
+
+.feature-showcase__item {
+  min-width: 0;
+}
+
+.feature-showcase__item-control {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 180px;
+  min-width: 0;
+  padding: 24px 16px 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  border: 0;
+  border-top: 1px solid var(--color-styles-stroke);
+  color: var(--color-styles-label);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.feature-showcase__item-control--active {
+  color: var(--color-styles-body);
+}
+
+.feature-showcase__item-control--active
+  :is(.feature-showcase__number, .feature-showcase__item-title) {
+  color: var(--color-styles-title);
+}
+
+.feature-showcase__item-control:not(.feature-showcase__item-control--active):hover {
+  border-top-color: var(--color-primary-200);
+  color: var(--color-primary-600);
+}
+
+.feature-showcase__item-control:focus-visible {
+  border-radius: var(--radius-md);
+  outline: 3px solid var(--color-primary-300);
+  outline-offset: 3px;
+}
+
+.feature-showcase__progress {
+  position: absolute;
+  top: -2px;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--color-primary-500);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: feature-progress var(--feature-duration) linear forwards;
+}
+
+.feature-showcase__number {
+  color: inherit;
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.176px;
+}
+
+.feature-showcase__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  transform: translateY(4px);
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.feature-showcase__item-control--active .feature-showcase__copy {
+  transform: translateY(0);
+}
+
+.feature-showcase__item-title {
+  color: inherit;
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.feature-showcase__item-description {
+  color: inherit;
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+  letter-spacing: 0.15px;
+}
+
+@keyframes feature-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (max-width: 1100px) {
+  .feature-showcase {
+    padding-right: 48px;
+    padding-left: 48px;
+  }
+
+  .feature-showcase__items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .feature-showcase {
+    padding: 72px 24px 80px;
+  }
+
+  .feature-showcase__header {
+    gap: var(--spacing-md);
+  }
+
+  .feature-showcase__eyebrow {
+    font-size: 18px;
+    line-height: 26px;
+  }
+
+  .feature-showcase h2 {
+    font-size: clamp(34px, 9vw, 42px);
+    line-height: 1.2;
+  }
+
+  .feature-showcase__visual {
+    margin-top: 36px;
+    border-radius: var(--radius-2xl);
+  }
+
+  .feature-showcase__items {
+    margin-top: 40px;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .feature-showcase__item-control {
+    min-height: 0;
+  }
+
+  .feature-showcase__copy {
+    gap: var(--spacing-md);
+  }
+
+  .feature-showcase__item-title {
+    font-size: 21px;
+    line-height: 28px;
+  }
+
+  .feature-showcase__item-description {
+    font-size: 16px;
+    line-height: 23px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-showcase__visual-plane {
+    will-change: auto;
+  }
+
+  .feature-showcase__layer img {
+    filter: none;
+    will-change: auto;
+  }
+
+  .feature-showcase__item-control {
+    transition: none;
+  }
+
+  .feature-showcase__copy {
+    transform: none;
+    transition: none;
+  }
+
+  .feature-showcase__progress {
+    transform: scaleX(1);
+    animation: none;
+  }
+}

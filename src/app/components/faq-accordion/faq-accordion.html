@@ -1,0 +1,25 @@
+<section class="faq" aria-labelledby="faq-heading">
+  <div class="faq__inner">
+    <h2 id="faq-heading">{{ heading() }}</h2>
+    <div class="faq__list">
+      @for (item of items(); track item.question; let index = $index) {
+        <article class="faq__item" [class.faq__item--open]="openIndex() === index">
+          <button
+            type="button"
+            [attr.aria-expanded]="openIndex() === index"
+            [attr.aria-controls]="'faq-answer-' + index"
+            (click)="toggle(index)"
+          >
+            <span>{{ item.question }}</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
+          </button>
+          <div class="faq__answer" [id]="'faq-answer-' + index">
+            <div>
+              <p>{{ item.answer }}</p>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+</section>

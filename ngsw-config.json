@@ -15,7 +15,7 @@
       "installMode": "lazy",
       "updateMode": "prefetch",
       "resources": {
-        "files": ["/home/**", "/contact/**", "/blogs/**", "/chunk-*.js"]
+        "files": ["/home/**", "/contact/**", "/blogs/**", "/features/**", "/chunk-*.js"]
       },
       "cacheQueryOptions": { "ignoreSearch": true }
     }

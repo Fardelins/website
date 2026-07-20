@@ -1,5 +1,9 @@
 import { Component, inject, signal, viewChild } from '@angular/core';
-import { ComponentConfig, ShaderBackground } from '../../components/shader-background/shader-background';
+import {
+  ComponentConfig,
+  ShaderBackground,
+} from '../../components/shader-background/shader-background';
+import { FaqAccordion } from '../../components/faq-accordion/faq-accordion';
 import { TiltDirective } from '../../directives/tilt.directive';
 import { ContactFormMessage, ContactFormService } from '../../services/contact-form.service';
 import { HapticsService } from '../../services/haptics.service';
@@ -16,7 +20,9 @@ const CONTACT_IMAGE_PRESET: ComponentConfig[] = [
       {
         type: 'GridDistortion',
         props: { intensity: 2.5, decay: 4, radius: 2.4, gridSize: 24, edges: 'stretch' },
-        children: [{ type: 'ImageTexture', props: { url: '/contact/image-960.webp', objectFit: 'cover' } }],
+        children: [
+          { type: 'ImageTexture', props: { url: '/contact/image-960.webp', objectFit: 'cover' } },
+        ],
       },
     ],
   },
@@ -24,7 +30,7 @@ const CONTACT_IMAGE_PRESET: ComponentConfig[] = [
 
 @Component({
   selector: 'app-contact',
-  imports: [ShaderBackground, TiltDirective],
+  imports: [ShaderBackground, TiltDirective, FaqAccordion],
   templateUrl: './contact.html',
   styleUrl: './contact.css',
 })
@@ -32,7 +38,6 @@ export class Contact {
   private readonly contactForm = inject(ContactFormService);
   private readonly haptics = inject(HapticsService);
   private readonly seo = inject(SeoService);
-  protected readonly openFaq = signal<number | null>(null);
   protected readonly submissionState = signal<'idle' | 'submitting' | 'success' | 'error'>('idle');
   protected readonly faqs = CONTACT_FAQS;
   protected readonly contactImagePreset = CONTACT_IMAGE_PRESET;
@@ -66,11 +71,6 @@ export class Contact {
         },
       ],
     });
-  }
-
-  protected toggleFaq(index: number): void {
-    this.openFaq.set(this.openFaq() === index ? null : index);
-    this.haptics.selection();
   }
 
   protected async submitForm(event: SubmitEvent): Promise<void> {
@@ -109,7 +109,8 @@ export class Contact {
     const step = (): void => {
       this.hoverCurrent += (this.hoverTarget - this.hoverCurrent) * 0.12;
       this.imageShader()?.update(CONTACT_ABERRATION_ID, { strength: this.hoverCurrent });
-      this.hoverRafId = Math.abs(this.hoverTarget - this.hoverCurrent) < 0.002 ? null : requestAnimationFrame(step);
+      this.hoverRafId =
+        Math.abs(this.hoverTarget - this.hoverCurrent) < 0.002 ? null : requestAnimationFrame(step);
     };
     this.hoverRafId = requestAnimationFrame(step);
   }

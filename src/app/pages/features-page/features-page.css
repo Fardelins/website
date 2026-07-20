@@ -1,0 +1,126 @@
+:host {
+  display: block;
+}
+
+.features-hero {
+  position: relative;
+  min-height: 960px;
+  overflow: hidden;
+  color: var(--color-neutral-white);
+  background: var(--color-primary-300);
+}
+
+.features-hero__title {
+  position: absolute;
+  z-index: 2;
+  top: 194px;
+  left: max(80px, calc(50% - 640px));
+  width: 460px;
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 64px;
+  letter-spacing: 0;
+}
+
+.features-hero picture {
+  display: contents;
+}
+
+.features-hero__courier {
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  left: 4.38%;
+  width: auto;
+  height: 104.99%;
+  max-width: none;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.features-hero__description {
+  position: absolute;
+  z-index: 2;
+  right: max(59px, calc(50% - 661px));
+  bottom: 48px;
+  width: 405px;
+  color: var(--color-styles-off-white);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 30px;
+  letter-spacing: 0.15px;
+}
+
+@media (max-width: 1100px) {
+  .features-hero__title {
+    left: 48px;
+    width: 390px;
+    font-size: 42px;
+    line-height: 56px;
+  }
+
+  .features-hero__description {
+    right: 48px;
+    width: 350px;
+    font-size: 18px;
+    line-height: 27px;
+  }
+}
+
+@media (max-width: 760px) {
+  .features-hero {
+    min-height: 860px;
+  }
+
+  .features-hero::after {
+    position: absolute;
+    z-index: 1;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 44%;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      color-mix(in srgb, var(--color-primary-700) 78%, transparent)
+    );
+    content: '';
+    pointer-events: none;
+  }
+
+  .features-hero__title {
+    top: 132px;
+    left: 24px;
+    width: min(390px, calc(100% - 48px));
+    font-size: clamp(34px, 9vw, 44px);
+    line-height: 1.22;
+  }
+
+  .features-hero__courier {
+    left: 50%;
+    width: auto;
+    height: 72%;
+    transform: translateX(-50%);
+    object-fit: contain;
+  }
+
+  .features-hero__description {
+    right: 24px;
+    bottom: 28px;
+    left: 24px;
+    width: auto;
+    font-size: 17px;
+    line-height: 25px;
+  }
+}
+
+@media (max-width: 420px) {
+  .features-hero {
+    min-height: 800px;
+  }
+
+  .features-hero__courier {
+    height: 66%;
+  }
+}

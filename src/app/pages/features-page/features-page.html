@@ -1,0 +1,80 @@
+<section class="features-hero" aria-labelledby="features-hero-title">
+  <h1 id="features-hero-title" class="features-hero__title">
+    Everything you need to move deliveries forward.
+  </h1>
+
+  <picture>
+    <source srcset="/features/features-hero-courier-1600.avif" type="image/avif" />
+    <img
+      class="features-hero__courier"
+      src="/features/features-hero-courier-1600.webp"
+      alt="A Fardelins courier holding a parcel and phone"
+      width="1600"
+      height="1067"
+      fetchpriority="high"
+      decoding="async"
+    />
+  </picture>
+
+  <p class="features-hero__description">
+    From pickup requests to real-time tracking and dispatch operations, Fardelins brings customers,
+    businesses, and delivery teams together in one connected platform.
+  </p>
+</section>
+
+<app-feature-showcase
+  sectionId="real-time-tracking"
+  eyebrow="Know where every delivery is."
+  title="Real-Time"
+  accentTitle="Tracking"
+  [layeredVisual]="trackingVisual"
+  [shaderPreset]="trackingShaderPreset"
+  [items]="trackingFeatures"
+  [activeIndex]="1"
+/>
+
+<app-feature-showcase
+  sectionId="dispatcher-operations"
+  eyebrow="Stay in control of active deliveries."
+  title="Dispatcher"
+  accentTitle="Operations"
+  [layeredVisual]="dispatcherVisual"
+  [shaderPreset]="dispatcherShaderPreset"
+  [items]="dispatcherFeatures"
+  [activeIndex]="0"
+/>
+
+<app-feature-showcase
+  sectionId="courier-management"
+  eyebrow="Coordinate your delivery workforce."
+  title="Courier"
+  accentTitle="Management"
+  [layeredVisual]="courierVisual"
+  [shaderPreset]="courierShaderPreset"
+  [items]="courierFeatures"
+  [activeIndex]="3"
+/>
+
+<app-feature-showcase
+  sectionId="merchant-integrations"
+  eyebrow="Turn orders into deliveries."
+  title="Merchant & Storefront"
+  accentTitle="Integrations"
+  [layeredVisual]="merchantVisual"
+  [shaderPreset]="merchantShaderPreset"
+  [items]="merchantFeatures"
+  [activeIndex]="1"
+/>
+
+<app-feature-showcase
+  sectionId="proof-of-delivery"
+  eyebrow="Delivery confirmation you can trust."
+  title="Proof of"
+  accentTitle="Delivery"
+  [layeredVisual]="deliveryVisual"
+  [shaderPreset]="deliveryShaderPreset"
+  [items]="deliveryFeatures"
+  [activeIndex]="0"
+/>
+
+<app-faq-accordion [items]="faqs" />

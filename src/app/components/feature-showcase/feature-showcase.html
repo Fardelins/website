@@ -1,0 +1,152 @@
+<section
+  class="feature-showcase"
+  [attr.id]="sectionId()"
+  [attr.aria-labelledby]="sectionId() + '-title'"
+>
+  <header class="feature-showcase__header">
+    <p class="feature-showcase__eyebrow">{{ eyebrow() }}</p>
+    <h2 [attr.id]="sectionId() + '-title'">
+      {{ title() }} <span>{{ accentTitle() }}</span>
+    </h2>
+  </header>
+
+  <div class="feature-showcase__visual">
+    @if (layeredVisual(); as visual) {
+      @if (shaderPreset(); as preset) {
+        <app-shader-background
+          class="feature-showcase__shader"
+          [preset]="preset"
+          preloadMargin="200% 0px"
+        />
+      } @else {
+        <picture>
+          <source [srcset]="avif(visual.background.src)" type="image/avif" />
+          <img
+            class="feature-showcase__background"
+            [src]="visual.background.src"
+            alt=""
+            [width]="visual.background.width"
+            [height]="visual.background.height"
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
+      }
+      <div
+        #visualScene
+        class="feature-showcase__visual-plane feature-showcase__visual-plane--layered"
+        [class.feature-showcase__visual-plane--tracking]="visual.variant === 'tracking'"
+        [class.feature-showcase__visual-plane--dispatcher]="visual.variant === 'dispatcher'"
+        [class.feature-showcase__visual-plane--merchant]="visual.variant === 'merchant'"
+        [class.feature-showcase__visual-plane--delivery]="visual.variant === 'delivery'"
+        [class.feature-showcase__visual-plane--courier]="visual.variant === 'courier'"
+        [appTilt]="4"
+        appTiltSurface="parent"
+        role="img"
+        [attr.aria-label]="visual.alt"
+      >
+        <span class="feature-showcase__layer feature-showcase__layer--mockup">
+          <picture>
+            <source [srcset]="avif(visual.mockup.src)" type="image/avif" />
+            <img
+              data-visual-layer
+              [src]="visual.mockup.src"
+              [width]="visual.mockup.width"
+              [height]="visual.mockup.height"
+              alt=""
+              loading="eager"
+              decoding="async"
+            />
+          </picture>
+        </span>
+        <span class="feature-showcase__layer feature-showcase__layer--first">
+          <picture>
+            <source [srcset]="avif(visual.firstLayer.src)" type="image/avif" />
+            <img
+              data-visual-layer
+              [src]="visual.firstLayer.src"
+              [width]="visual.firstLayer.width"
+              [height]="visual.firstLayer.height"
+              alt=""
+              loading="eager"
+              decoding="async"
+            />
+          </picture>
+        </span>
+        @if (visual.secondLayer; as secondLayer) {
+          <span class="feature-showcase__layer feature-showcase__layer--second">
+            <picture>
+              <source [srcset]="avif(secondLayer.src)" type="image/avif" />
+              <img
+                data-visual-layer
+                [src]="secondLayer.src"
+                [width]="secondLayer.width"
+                [height]="secondLayer.height"
+                alt=""
+                loading="eager"
+                decoding="async"
+              />
+            </picture>
+          </span>
+        }
+        @if (visual.thirdLayer; as thirdLayer) {
+          <span class="feature-showcase__layer feature-showcase__layer--third">
+            <picture>
+              <source [srcset]="avif(thirdLayer.src)" type="image/avif" />
+              <img
+                data-visual-layer
+                [src]="thirdLayer.src"
+                [width]="thirdLayer.width"
+                [height]="thirdLayer.height"
+                alt=""
+                loading="eager"
+                decoding="async"
+              />
+            </picture>
+          </span>
+        }
+      </div>
+    } @else {
+      <div class="feature-showcase__visual-plane" [appTilt]="4" appTiltSurface="parent">
+        <img
+          class="feature-showcase__composite"
+          [src]="imageSrc()"
+          [alt]="imageAlt()"
+          width="1024"
+          height="576"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    }
+  </div>
+
+  <ol class="feature-showcase__items">
+    @for (item of items(); track item.title; let index = $index) {
+      <li class="feature-showcase__item">
+        <button
+          class="feature-showcase__item-control"
+          type="button"
+          [class.feature-showcase__item-control--active]="index === currentIndex()"
+          [attr.aria-current]="index === currentIndex() ? 'step' : null"
+          (click)="selectIndex(index)"
+        >
+          @if (index === currentIndex()) {
+            @for (cycle of [activationCycle()]; track cycle) {
+              <span
+                class="feature-showcase__progress"
+                [style.--feature-duration]="durationMs + 'ms'"
+                aria-hidden="true"
+              ></span>
+            }
+          }
+          <span class="feature-showcase__number">{{ itemNumber(index) }}.</span>
+          <span class="feature-showcase__copy">
+            <span class="feature-showcase__item-title">{{ item.title }}</span>
+            <span class="feature-showcase__item-description">{{ item.description }}</span>
+          </span>
+        </button>
+      </li>
+    }
+  </ol>
+</section>

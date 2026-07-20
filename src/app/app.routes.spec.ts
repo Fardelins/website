@@ -1,6 +1,8 @@
+import '@angular/compiler';
 import { Location } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { routes } from './app.routes';
 
 describe('application routing', () => {
@@ -13,7 +15,7 @@ describe('application routing', () => {
     location = TestBed.inject(Location);
   });
 
-  it.each(['/contact', '/blogs', '/terms', '/privacy', '/download'])(
+  it.each(['/contact', '/blogs', '/terms', '/privacy', '/features', '/download'])(
     'recognizes the %s route',
     async (url) => {
       expect(await router.navigateByUrl(url)).toBe(true);
@@ -21,12 +23,14 @@ describe('application routing', () => {
     },
   );
 
-  it('redirects legacy and unknown URLs to home', async () => {
+  it('redirects legacy URLs to home', async () => {
     await router.navigateByUrl('/home');
     expect(location.path()).toBe('');
+  });
 
+  it('renders the not-found page for unknown URLs', async () => {
     await router.navigateByUrl('/missing-page');
-    expect(location.path()).toBe('');
+    expect(location.path()).toBe('/missing-page');
   });
 
   it('preserves blog-detail slugs', async () => {
