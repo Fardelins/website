@@ -36,9 +36,9 @@ describe('Footer', () => {
 
   it('routes company links within the Angular application', () => {
     const element = fixture.nativeElement as HTMLElement;
-    const links = Array.from(
-      element.querySelectorAll<HTMLAnchorElement>('.footer__nav-link'),
-    ).map((link) => ({ label: link.textContent?.trim(), href: link.getAttribute('href') }));
+    const links = Array.from(element.querySelectorAll<HTMLAnchorElement>('.footer__nav-link')).map(
+      (link) => ({ label: link.textContent?.trim(), href: link.getAttribute('href') }),
+    );
 
     expect(links).toEqual([
       { label: 'Contact Us', href: '/contact' },
@@ -49,9 +49,7 @@ describe('Footer', () => {
 
   it('uses safe external social links', () => {
     const element = fixture.nativeElement as HTMLElement;
-    const links = Array.from(
-      element.querySelectorAll<HTMLAnchorElement>('.footer__social-link'),
-    );
+    const links = Array.from(element.querySelectorAll<HTMLAnchorElement>('.footer__social-link'));
     expect(links).toHaveLength(4);
     links.forEach((link) => {
       expect(link.target).toBe('_blank');

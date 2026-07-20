@@ -26,6 +26,12 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   /** Component tree passed straight to `createShader`'s `components` array. */
   readonly preset = input.required<ComponentConfig[]>();
+  /**
+   * How far ahead of the viewport to start loading the shader, as an
+   * IntersectionObserver `rootMargin`. Larger values give the shader more time
+   * to become ready before it scrolls into view (avoiding a fallback flash).
+   */
+  readonly preloadMargin = input('300px 0px');
   readonly readyChange = output<boolean>();
 
   @ViewChild('canvas', { static: true })
@@ -59,7 +65,7 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
         this.loadObserver?.disconnect();
         void this.recreateShader();
       },
-      { rootMargin: '300px 0px' },
+      { rootMargin: this.preloadMargin() },
     );
     this.loadObserver.observe(this.canvasRef.nativeElement);
 
@@ -82,6 +88,16 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
   /** Patch a live component's props in place — skips the recreate/reload the `preset` input triggers. */
   update(componentId: string, props: Record<string, unknown>): void {
     this.shader?.update(componentId, props);
+  }
+
+  /** Stop the animation loop (last frame is preserved). No-op if not yet created. */
+  pause(): void {
+    this.shader?.pause();
+  }
+
+  /** Restart the animation loop after pause(). */
+  resume(): void {
+    this.shader?.resume();
   }
 
   private async recreateShader(): Promise<void> {

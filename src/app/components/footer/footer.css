@@ -11,7 +11,20 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  z-index: -4;
+}
+
+.cta__fog {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: -3;
+  /* Screen blend turns the grey fog field into translucent mist over the
+     scene; opacity (bound in the template) carries the overall haze density. */
+  mix-blend-mode: screen;
+  pointer-events: none;
+  will-change: opacity;
 }
 
 .cta__bg-sharp {
@@ -33,6 +46,49 @@
     rgba(0, 0, 0, 0.45) 100%
   );
   z-index: -1;
+}
+
+.cta__hint {
+  position: absolute;
+  top: var(--spacing-xl);
+  left: 50%;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 8px 16px;
+  border-radius: var(--radius-100);
+  background: rgba(20, 8, 40, 0.42);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--color-neutral-white);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -6px);
+  transition:
+    opacity 480ms ease,
+    transform 480ms ease;
+}
+
+.cta__hint--visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.cta__hint-icon {
+  flex: 0 0 auto;
+  filter: brightness(0) invert(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta__hint {
+    transition: none;
+  }
 }
 
 .cta__content {
@@ -100,14 +156,18 @@
   color: var(--color-neutral-white);
 }
 
-.cta__btn--solid:hover { background: var(--color-primary-700); }
+.cta__btn--solid:hover {
+  background: var(--color-primary-700);
+}
 
 .cta__btn--light {
   background: var(--color-neutral-white);
   color: var(--color-primary-500);
 }
 
-.cta__btn--light:hover { background: var(--color-primary-50); }
+.cta__btn--light:hover {
+  background: var(--color-primary-50);
+}
 
 /* Footer */
 
@@ -238,11 +298,14 @@
   font-size: 16px;
   color: var(--color-styles-body);
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .footer__email::placeholder {
-  color: var(--color-4);
+  color: var(--color-styles-placeholder);
+  opacity: 1;
 }
 
 .footer__email:focus {
@@ -268,6 +331,42 @@
   font-family: var(--font-body);
   font-size: 16px;
   color: var(--color-styles-off-white);
+  /* Dim base with a bright streak that travels left -> right across the text. */
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0.35) 40%,
+    #ffffff 50%,
+    rgba(255, 255, 255, 0.35) 60%,
+    rgba(255, 255, 255, 0.35) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: footer-copyright-shimmer 9s linear infinite;
+}
+
+@keyframes footer-copyright-shimmer {
+  0% {
+    background-position: 100% 0;
+  } /* streak enters at the left */
+  61% {
+    background-position: -100% 0;
+  } /* ~5.5s glide across */
+  100% {
+    background-position: -100% 0;
+  } /* ~3500ms rest, then repeat */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer__copyright {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: var(--color-styles-off-white);
+    color: var(--color-styles-off-white);
+  }
 }
 @media (max-width: 1200px) {
   .cta__title {
@@ -337,7 +436,7 @@
     width: 100%;
   }
   .footer__copyright {
-  text-align: left;
+    text-align: left;
   }
 }
 
@@ -359,7 +458,9 @@
   }
 }
 
-.footer__subscribe-btn:hover { background: var(--color-primary-100); }
+.footer__subscribe-btn:hover {
+  background: var(--color-primary-100);
+}
 
 .footer__sr-only {
   position: absolute;

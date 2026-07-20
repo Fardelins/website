@@ -1,20 +1,46 @@
-<section class="cta" (pointerenter)="setBackgroundHover(true)" (pointerleave)="setBackgroundHover(false)">
+<section
+  class="cta"
+  (pointerenter)="setBackgroundHover(true)"
+  (pointerleave)="setBackgroundHover(false)"
+  (pointermove)="wipe($event)"
+>
   <app-shader-background class="cta__bg" #bgShader [preset]="bgPreset" />
-  <img class="cta__bg-sharp" src="/home/footer-transparent-1920.webp" alt="" width="1920" height="1252" loading="lazy" decoding="async" />
+  <app-shader-background
+    class="cta__fog"
+    #fogShader
+    [preset]="fogPreset"
+    [style.opacity]="fogOpacity()"
+    aria-hidden="true"
+  />
+  <img
+    class="cta__bg-sharp"
+    src="/home/footer-transparent-1920.webp"
+    alt=""
+    width="1920"
+    height="1252"
+    loading="lazy"
+    decoding="async"
+  />
   <div class="cta__scrim"></div>
+
+  <p class="cta__hint" [class.cta__hint--visible]="hintVisible()" aria-hidden="true">
+    <img class="cta__hint-icon" src="/home/swipe.svg" alt="" width="24" height="24" />
+    Swipe to reveal
+  </p>
 
   <div class="cta__content">
     <div class="cta__intro">
       <h2 class="cta__title">Ready to move deliveries smarter?</h2>
       <p class="cta__subtitle">
-        Join customers, stores, couriers, and dispatchers using Fardelins to keep deliveries
-        moving.
+        Join customers, stores, couriers, and dispatchers using Fardelins to keep deliveries moving.
       </p>
     </div>
 
     <div class="cta__actions">
       <a class="cta__btn cta__btn--solid" routerLink="/download">Download Our App</a>
-      <a class="cta__btn cta__btn--light" href="https://app.fardelins.com/#/auth/register">Get Started</a>
+      <a class="cta__btn cta__btn--light" href="https://app.fardelins.com/#/auth/register"
+        >Get Started</a
+      >
     </div>
   </div>
 
@@ -30,7 +56,15 @@
             (pointerleave)="setLogoHover(false)"
           >
             <span class="footer__logo-mark">
-              <img class="footer__logo" src="/home/logo.svg" alt="Fardelins" width="236" height="64" loading="lazy" decoding="async" />
+              <img
+                class="footer__logo"
+                src="/home/logo.svg"
+                alt="Fardelins"
+                width="236"
+                height="64"
+                loading="lazy"
+                decoding="async"
+              />
               <app-shader-background
                 class="footer__logo-shader"
                 #logoShader
@@ -43,7 +77,13 @@
 
           <div class="footer__socials">
             @for (social of socialLinks; track social.label) {
-              <a class="footer__social-link" [href]="social.href" target="_blank" rel="noopener noreferrer" [attr.aria-label]="social.label + ' (opens in a new tab)'">
+              <a
+                class="footer__social-link"
+                [href]="social.href"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="social.label + ' (opens in a new tab)'"
+              >
                 @switch (social.icon) {
                   @case ('facebook') {
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
@@ -61,7 +101,15 @@
                   }
                   @case ('instagram') {
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-                      <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.6" />
+                      <rect
+                        x="3"
+                        y="3"
+                        width="18"
+                        height="18"
+                        rx="5"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                      />
                       <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.6" />
                       <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" />
                     </svg>
@@ -89,14 +137,32 @@
 
           <form class="footer__subscribe" (submit)="subscribe($event, newsletterEmail.value)">
             <label class="footer__sr-only" for="footer-email">Email address</label>
-            <input #newsletterEmail id="footer-email" class="footer__email" name="email" type="email" autocomplete="email" placeholder="Email Address" required [disabled]="subscriptionState() === 'submitting'" />
-            <button class="footer__subscribe-btn" type="submit" [disabled]="subscriptionState() === 'submitting'">
+            <input
+              #newsletterEmail
+              id="footer-email"
+              class="footer__email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder="Email Address"
+              required
+              [disabled]="subscriptionState() === 'submitting'"
+            />
+            <button
+              class="footer__subscribe-btn"
+              type="submit"
+              [disabled]="subscriptionState() === 'submitting'"
+            >
               {{ subscriptionState() === 'submitting' ? 'Subscribing…' : 'Subscribe' }}
             </button>
           </form>
           <p class="footer__subscribe-status" aria-live="polite">
-            @if (subscriptionState() === 'success') { You have been successfully subscribed! }
-            @if (subscriptionState() === 'error') { Something went wrong. Please try again. }
+            @if (subscriptionState() === 'success') {
+              You have been successfully subscribed!
+            }
+            @if (subscriptionState() === 'error') {
+              Something went wrong. Please try again.
+            }
           </p>
         </div>
       </div>
