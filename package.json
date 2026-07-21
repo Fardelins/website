@@ -7,6 +7,7 @@
     "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "ng build",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
+    "generate:fonts": "node scripts/selfhost-fonts.mjs",
     "optimize:images": "node scripts/optimize-images.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -34,7 +35,6 @@
     "compression": "^1.8.0",
     "express": "^5.1.0",
     "rxjs": "~7.8.0",
-    "serve": "^14.2.4",
     "shaders": "^2.5.135",
     "tslib": "^2.3.0",
     "web-haptics": "0.0.6"
@@ -48,6 +48,7 @@
     "@types/node": "^20.17.19",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
+    "serve": "^14.2.4",
     "sharp": "^0.35.3",
     "typescript": "~6.0.2",
     "vitest": "^4.0.8"

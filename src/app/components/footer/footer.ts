@@ -14,31 +14,21 @@ import { NewsletterService } from '../../services/newsletter.service';
 import { HapticsService } from '../../services/haptics.service';
 import { ComponentConfig, ShaderBackground } from '../shader-background/shader-background';
 
-// --- Fog scratch-off: the scene sits under a drifting haze (blur + mist). The
-// cursor parts the fog locally where it moves; the *accumulated* swiping thins
-// it overall, and once you've wiped enough (~ACTIVATION_SWIPES) the fog "lets
-// go" and melts away for good. Give up early and it slowly creeps back. The
-// rider cutout floats above the fog and stays sharp throughout.
+// Fog scratch-off: a haze (blur + mist) over the scene. Swiping thins it, and past
+// ~ACTIVATION_SWIPES it latches and melts for good; give up early and it re-fogs.
 const BLUR_ID = 'cta-diffuse-blur';
 const BLUR_RESTING = 22; // medium haze
-// Both transitions share the same organic, fog-like exponential ease — the
-// dissipate is slower (~5s) than the settle-back (~3s). At ~60fps the time to
-// ~99% is roughly 4.6 / (k * 60) seconds.
 const DISSIPATE_EASE = 0.015; // ~5s to melt away as you clear it
 const REFOG_EASE = 0.026; // ~3s for the fog to settle back in
-const REFOG_DELAY_MS = 3000; // grace period after leaving before the fog settles back
+const REFOG_DELAY_MS = 5000; // grace period after leaving before the fog settles back
 const FOG_RESTING_OPACITY = 0.72;
 const FOG_CLEAR_OPACITY = 0; // fully dissipated
-// How much swiping it takes. A "swipe" is measured as a fraction of the footer
-// width, so it scales with the viewport. Clearing latches (melts fully on its
-// own) once the accumulated wipe passes ACTIVATE_AT of the full budget.
-const ACTIVATION_SWIPES = 7; // full wipe budget
+const ACTIVATION_SWIPES = 7; // full wipe budget (a "swipe" ≈ SWIPE_FRACTION of footer width)
 const SWIPE_FRACTION = 0.5; // one swipe ≈ half the footer width
 const ACTIVATE_AT = 0.8; // melt latches around swipe ~5–6, before they finish
 const PRE_ACTIVATION_CAP = 0.82; // manual wiping thins to here before the melt
 
-// Discoverability: on scroll-in the fog wipes itself once to show it's clearable,
-// while a "swipe to reveal" label fades out the moment real wiping begins.
+// Discoverability: auto-wipe once on scroll-in, with a hint label until real wiping starts.
 const TEASE_LEVEL = 0.68; // how far the auto-tease thins the fog
 const TEASE_EASE = 0.05; // quicker than the manual melt so the demo reads
 const TEASE_START_MS = 550; // beat after entering view before the tease
@@ -66,10 +56,8 @@ const BG_PRESET: ComponentConfig[] = [
   },
 ];
 
-// Standalone mist field, blended over the scene (mix-blend-mode: screen in CSS).
-// `mouseInfluence` makes the cursor push the fog aside locally; the ambient
-// drift comes from `speed`/`turbulence`. Overall thinning is done in CSS by
-// easing the layer's opacity, not by touching the shader.
+// Mist field blended over the scene (screen blend in CSS). Overall thinning is
+// done by easing the layer's opacity in CSS, not by touching the shader.
 const FOG_PRESET: ComponentConfig[] = [
   {
     type: 'Fog',
@@ -197,8 +185,7 @@ export class Footer implements AfterViewInit, OnDestroy {
   private logoSpeedTarget = 1;
 
   constructor() {
-    // No hover on reduced-motion (shaders are paused): start fully clear so the
-    // scene is legible and nothing depends on interaction.
+    // Reduced-motion pauses shaders — start fully clear so the scene stays legible.
     if (this.prefersReducedMotion) {
       this.latched = true;
       this.clearCurrent = 1;

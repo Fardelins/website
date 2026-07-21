@@ -10,14 +10,23 @@
   background: var(--color-neutral-white);
   font: 600 14px/20px var(--font-body);
   text-decoration: none;
+  /* Hidden until focused. opacity + pointer-events guarantee it stays gone even
+     where the transform slide-up mis-renders (iOS Safari). */
+  opacity: 0;
+  pointer-events: none;
   transform: translateY(calc(-100% - 16px));
   transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.skip-link:focus {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 .skip-link:focus-visible {
   outline: 3px solid var(--color-primary-200);
   outline-offset: 3px;
-  transform: translateY(0);
 }
 
 .app-shell {

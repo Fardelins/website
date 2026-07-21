@@ -155,7 +155,7 @@ export class BlogDetail implements OnDestroy {
   }
 
   private setMeta(post: BlogArticleDetail): void {
-    const description = post.excerpt.slice(0, 300);
+    const description = post.metaDescription;
     const path = `/blogs/${post.slug}`;
     const image = post.image ?? undefined;
 

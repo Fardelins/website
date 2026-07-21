@@ -4,6 +4,9 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  /* Keep vertical scroll, but let horizontal swipes reach the wipe handler
+     instead of being cancelled as a scroll gesture on touch. */
+  touch-action: pan-y;
 }
 
 .cta__bg {

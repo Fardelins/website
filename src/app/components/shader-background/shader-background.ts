@@ -24,13 +24,12 @@ export type { ComponentConfig } from 'shaders/js';
 })
 export class ShaderBackground implements AfterViewInit, OnDestroy {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly prefersReducedMotion =
+    this.isBrowser && globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+  private readonly canAffordShader = ShaderBackground.deviceCanAffordShader();
   /** Component tree passed straight to `createShader`'s `components` array. */
   readonly preset = input.required<ComponentConfig[]>();
-  /**
-   * How far ahead of the viewport to start loading the shader, as an
-   * IntersectionObserver `rootMargin`. Larger values give the shader more time
-   * to become ready before it scrolls into view (avoiding a fallback flash).
-   */
+  /** IntersectionObserver `rootMargin` — how early to start loading, to avoid a fallback flash. */
   readonly preloadMargin = input('300px 0px');
   readonly readyChange = output<boolean>();
 
@@ -44,6 +43,7 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
   private loadObserver: IntersectionObserver | null = null;
   private viewReady = false;
   private nearViewport = false;
+  private creating = false;
   private destroyed = false;
 
   constructor() {
@@ -58,21 +58,16 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     if (!this.isBrowser || typeof globalThis.IntersectionObserver === 'undefined') return;
     this.viewReady = true;
+    // One observer lazy-creates the shader on approach and pauses/resumes on
+    // enter/leave, so off-screen shaders never all run at once (jank on weak devices).
     this.loadObserver = new globalThis.IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting || this.nearViewport) return;
-        this.nearViewport = true;
-        this.loadObserver?.disconnect();
-        void this.recreateShader();
-      },
+      ([entry]) => this.onIntersection(entry.isIntersecting),
       { rootMargin: this.preloadMargin() },
     );
     this.loadObserver.observe(this.canvasRef.nativeElement);
 
-    // The library's own auto-resize (observeElement) misses the large,
-    // abrupt aspect-ratio jumps our CSS breakpoints cause (e.g. desktop
-    // widescreen -> phone portrait), leaving the canvas rendered at the
-    // stale size. Drive resize() ourselves off a ResizeObserver instead.
+    // The library's auto-resize misses big aspect-ratio jumps at CSS breakpoints,
+    // so drive resize() ourselves off a ResizeObserver.
     if (typeof globalThis.ResizeObserver === 'undefined') return;
     this.resizeObserver = new globalThis.ResizeObserver(() => this.shader?.resize());
     this.resizeObserver.observe(this.canvasRef.nativeElement);
@@ -83,6 +78,19 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
     this.resizeObserver?.disconnect();
     this.loadObserver?.disconnect();
     this.shader?.destroy();
+  }
+
+  private onIntersection(isIntersecting: boolean): void {
+    this.nearViewport = isIntersecting;
+    if (isIntersecting) {
+      if (!this.shader && !this.creating) {
+        void this.recreateShader();
+      } else if (!this.prefersReducedMotion) {
+        this.resume();
+      }
+    } else {
+      this.pause();
+    }
   }
 
   /** Patch a live component's props in place — skips the recreate/reload the `preset` input triggers. */
@@ -100,16 +108,41 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
     this.shader?.resume();
   }
 
+  // Skip the ~360 KB WebGPU/Three.js download for a decorative background on
+  // data-saver, very slow, or low-memory devices (they get the static fallback).
+  private static deviceCanAffordShader(): boolean {
+    const nav = globalThis.navigator as
+      | (Navigator & {
+          connection?: { saveData?: boolean; effectiveType?: string };
+          deviceMemory?: number;
+        })
+      | undefined;
+    if (!nav) return true;
+
+    if (nav.connection?.saveData) return false;
+    const effectiveType = nav.connection?.effectiveType;
+    if (effectiveType === '2g' || effectiveType === 'slow-2g') return false;
+
+    // deviceMemory is GiB; under 4 is low-end and struggles with WebGPU.
+    if (typeof nav.deviceMemory === 'number' && nav.deviceMemory < 4) return false;
+
+    return true;
+  }
+
   private async recreateShader(): Promise<void> {
+    // Bail before the import on constrained devices — canvas stays at opacity 0 (fallback shows).
+    if (!this.canAffordShader) return;
+
+    this.creating = true;
     this.shader?.destroy();
     this.shader = null;
     this.ready.set(false);
     this.readyChange.emit(false);
 
-    // Loaded on demand — the `shaders` package pulls in Three.js's WebGPU
-    // renderer, so keeping it out of the initial bundle matters for first paint.
+    // Lazy import: `shaders` pulls in Three.js's WebGPU renderer — keep it out of the initial bundle.
     const { createShader } = await import('shaders/js');
     if (this.destroyed) {
+      this.creating = false;
       return;
     }
 
@@ -125,8 +158,10 @@ export class ShaderBackground implements AfterViewInit, OnDestroy {
         },
       },
     );
+    this.creating = false;
 
-    if (globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    // Don't run if reduced-motion, or if it scrolled out of view during init.
+    if (this.prefersReducedMotion || !this.nearViewport) {
       this.shader.pause();
     }
   }

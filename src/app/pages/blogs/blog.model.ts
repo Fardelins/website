@@ -8,12 +8,7 @@ export interface BlogArticle {
   excerpt: string;
   /** Featured image URL, or null when the WordPress post has none set. */
   image: string | null;
-  /**
-   * Responsive `srcset` built from WordPress's generated sizes, or null when
-   * unavailable. The display box is cropped to a fixed landscape ratio in CSS,
-   * so the template supplies static `width`/`height` for that ratio; `srcset`
-   * only governs which resolution the browser downloads.
-   */
+  /** Responsive `srcset` from WordPress's sizes (null if none); the template sets static width/height. */
   imageSrcset: string | null;
   /** Live fardelins.com/wp-admin post URL — cards link straight out to it. */
   link: string;
@@ -27,6 +22,8 @@ export interface BlogCategory {
 export interface BlogArticleDetail extends BlogArticle {
   /** Sanitized post body HTML from WordPress, rendered into the article column. */
   contentHtml: string;
+  /** SEO/meta description: the authored excerpt, or a body-derived summary when the post has none. */
+  metaDescription: string;
   /** Human-formatted publish date, e.g. "May 12, 2025". */
   date: string;
   /** Raw ISO publish date for structured data (`datePublished`). */

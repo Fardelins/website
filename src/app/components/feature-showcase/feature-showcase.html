@@ -16,14 +16,20 @@
         <app-shader-background
           class="feature-showcase__shader"
           [preset]="preset"
-          preloadMargin="200% 0px"
+          preloadMargin="300px 0px"
         />
       } @else {
         <picture>
-          <source [srcset]="avif(visual.background.src)" type="image/avif" />
+          <source
+            type="image/avif"
+            [srcset]="srcset(visual.background, 'avif') || avif(visual.background.src)"
+            [attr.sizes]="visual.background.sizes"
+          />
           <img
             class="feature-showcase__background"
             [src]="visual.background.src"
+            [attr.srcset]="srcset(visual.background, 'webp')"
+            [attr.sizes]="visual.background.sizes"
             alt=""
             [width]="visual.background.width"
             [height]="visual.background.height"
@@ -47,10 +53,16 @@
       >
         <span class="feature-showcase__layer feature-showcase__layer--mockup">
           <picture>
-            <source [srcset]="avif(visual.mockup.src)" type="image/avif" />
+            <source
+              type="image/avif"
+              [srcset]="srcset(visual.mockup, 'avif') || avif(visual.mockup.src)"
+              [attr.sizes]="visual.mockup.sizes"
+            />
             <img
               data-visual-layer
               [src]="visual.mockup.src"
+              [attr.srcset]="srcset(visual.mockup, 'webp')"
+              [attr.sizes]="visual.mockup.sizes"
               [width]="visual.mockup.width"
               [height]="visual.mockup.height"
               alt=""

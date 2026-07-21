@@ -57,8 +57,9 @@ export class HapticsService {
 
   private canTrigger(): boolean {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
+    // Gated only by the dedicated haptics preference — not Reduce Motion, which
+    // targets visual motion, not tactile feedback.
     if (localStorage.getItem(PREFERENCE_KEY) === 'off') return false;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
     return navigator.maxTouchPoints > 0 || matchMedia('(pointer: coarse)').matches;
   }
 }

@@ -1,9 +1,6 @@
-// Generates public/sitemap.xml: static routes + one entry per WordPress blog post.
-// Run at build time (`npm run generate:sitemap`). If WordPress is unreachable we
-// do NOT silently drop every blog URL — we preserve the blog entries from the
-// previous sitemap. If there is no previous sitemap to fall back to, the build
-// fails loudly so a broken sitemap never ships. Set SITEMAP_ALLOW_STATIC_ONLY=1
-// to intentionally publish static-only (e.g. the very first build, or local dev).
+// Generates public/sitemap.xml: static routes + one entry per WP blog post. If
+// WordPress is unreachable, preserves blog URLs from the previous sitemap and
+// fails loudly if there's none — SITEMAP_ALLOW_STATIC_ONLY=1 permits static-only.
 import { writeFile, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';

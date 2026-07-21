@@ -20,16 +20,21 @@ export interface SeoData {
   robots?: string;
   /** Structured data object(s) injected as a single ld+json script. */
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** LCP image preloaded into the SSR head so it fetches before app JS; supports responsive srcset/sizes. */
+  preloadImage?: {
+    href: string;
+    imagesrcset?: string;
+    imagesizes?: string;
+    /** e.g. 'image/avif' — restricts preload to browsers that support it. */
+    type?: string;
+  };
 }
 
 const JSONLD_ID = 'seo-jsonld';
+const PRELOAD_IMAGE_ID = 'seo-preload-image';
 
-/**
- * One place to set every SEO-relevant tag per route: title, description,
- * canonical, Open Graph, Twitter cards, robots, and JSON-LD structured data.
- * SSR-safe — writes through the injected DOCUMENT so tags are present in the
- * server-rendered HTML that crawlers and social scrapers read.
- */
+// Sets every per-route SEO tag (title, canonical, OG, Twitter, robots, JSON-LD)
+// through the injected DOCUMENT so they're in the SSR HTML crawlers read.
 @Injectable({ providedIn: 'root' })
 export class SeoService {
   private readonly title = inject(Title);
@@ -67,6 +72,7 @@ export class SeoService {
 
     this.setCanonical(url);
     this.setJsonLd(data.jsonLd);
+    this.setPreloadImage(data.preloadImage);
   }
 
   private absolute(pathOrUrl: string): string {
@@ -109,5 +115,33 @@ export class SeoService {
       head.appendChild(script);
     }
     script.textContent = JSON.stringify(data);
+  }
+
+  private setPreloadImage(image: SeoData['preloadImage']): void {
+    const head = this.doc.head;
+    if (!head) return;
+    let link = head.querySelector<HTMLLinkElement>(`link#${PRELOAD_IMAGE_ID}`);
+    // Client-side navigation to a route without an LCP image: drop any stale tag.
+    if (!image) {
+      link?.remove();
+      return;
+    }
+    if (!link) {
+      link = this.doc.createElement('link');
+      link.id = PRELOAD_IMAGE_ID;
+      link.setAttribute('rel', 'preload');
+      link.setAttribute('as', 'image');
+      link.setAttribute('fetchpriority', 'high');
+      head.appendChild(link);
+    }
+    link.setAttribute('href', image.href);
+    this.toggleAttr(link, 'imagesrcset', image.imagesrcset);
+    this.toggleAttr(link, 'imagesizes', image.imagesizes);
+    this.toggleAttr(link, 'type', image.type);
+  }
+
+  private toggleAttr(el: HTMLElement, name: string, value?: string): void {
+    if (value) el.setAttribute(name, value);
+    else el.removeAttribute(name);
   }
 }
