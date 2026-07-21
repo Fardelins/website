@@ -1,10 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout, type Observable } from 'rxjs';
 import { wordpressPublicUrl } from '../../config/wordpress.config';
 import { BlogArticle, BlogArticleDetail, BlogCategory } from './blog.model';
 
 const WORDS_PER_MINUTE = 200;
+
+// Cap every read so a slow CMS can't hang SSR (an open fetch stalls the whole
+// server response); on timeout the caller's catch renders the error/empty state.
+const REQUEST_TIMEOUT_MS = 8000;
 
 interface WpMediaSize {
   source_url: string;
@@ -39,13 +43,7 @@ export interface BlogPage {
   totalPages: number;
 }
 
-/**
- * Talks to the live WordPress site (fardelins.com/wp-admin) via its public REST
- * API — no auth needed for reading published posts, and the API reflects any
- * origin in its CORS headers so this can call it straight from the browser.
- * This is the seam the Blogs page depends on; it's the only file that knows
- * about WordPress's response shape.
- */
+/** Reads published posts from the live WordPress REST API (public, CORS-enabled). */
 @Injectable({ providedIn: 'root' })
 export class BlogService {
   private readonly http = inject(HttpClient);
@@ -54,8 +52,13 @@ export class BlogService {
   /** Public REST reads stay independent of the app server's reverse proxy. */
   private readonly wpBase = wordpressPublicUrl('/wp-json/wp/v2');
 
+  /** Await an HTTP read with a hard timeout so no request can hang indefinitely. */
+  private read<T>(request$: Observable<T>): Promise<T> {
+    return firstValueFrom(request$.pipe(timeout(REQUEST_TIMEOUT_MS)));
+  }
+
   async fetchCategories(): Promise<BlogCategory[]> {
-    const categories = await firstValueFrom(
+    const categories = await this.read(
       this.http.get<WpCategory[]>(`${this.wpBase}/categories`, {
         params: {
           per_page: '100',
@@ -89,7 +92,7 @@ export class BlogService {
     if (categoryId) params['categories'] = String(categoryId);
     if (search) params['search'] = search;
 
-    const response = await firstValueFrom(
+    const response = await this.read(
       this.http.get<WpPost[]>(`${this.wpBase}/posts`, { params, observe: 'response' }),
     );
     const totalPages = Number(response.headers.get('X-WP-TotalPages') ?? '1');
@@ -106,7 +109,7 @@ export class BlogService {
       await this.fetchCategories();
     }
 
-    const posts = await firstValueFrom(
+    const posts = await this.read(
       this.http.get<WpPost[]>(`${this.wpBase}/posts`, {
         params: {
           slug,
@@ -119,9 +122,13 @@ export class BlogService {
     if (!post) return null;
 
     const mapped = this.mapPost(post);
+    // Crawlers still need a description even when the post has no excerpt; fall
+    // back to the body's opening text so the meta tag is never empty.
+    const metaDescription = (mapped.excerpt || stripHtml(post.content?.rendered ?? '')).slice(0, 300);
     return {
       ...mapped,
       contentHtml: normalizeContent(post.content?.rendered ?? '', mapped.image),
+      metaDescription,
       date: formatDate(post.date),
       dateIso: post.date ? new Date(post.date).toISOString() : '',
     };
@@ -141,11 +148,11 @@ export class BlogService {
     };
     if (categoryId) params['categories'] = String(categoryId);
 
-    let posts = await firstValueFrom(this.http.get<WpPost[]>(`${this.wpBase}/posts`, { params }));
+    let posts = await this.read(this.http.get<WpPost[]>(`${this.wpBase}/posts`, { params }));
 
     // If the category didn't yield enough, top up with the latest posts overall.
     if (posts.length < limit) {
-      const fallback = await firstValueFrom(
+      const fallback = await this.read(
         this.http.get<WpPost[]>(`${this.wpBase}/posts`, {
           params: {
             per_page: String(limit + 1),
@@ -176,7 +183,7 @@ export class BlogService {
       categoryId,
       readTime: estimateReadTime(post.content?.rendered ?? ''),
       title: toTitleCase(stripHtml(post.title?.rendered ?? '')),
-      excerpt: stripHtml(post.excerpt?.rendered ?? ''),
+      excerpt: resolveExcerpt(post.excerpt?.rendered ?? '', post.content?.rendered ?? ''),
       image,
       imageSrcset,
       link: post.link,
@@ -189,14 +196,8 @@ interface MappedMedia {
   imageSrcset: string | null;
 }
 
-/**
- * Resolves the featured image to display alongside a responsive `srcset` (so the
- * browser can pick a size that fits the slot instead of always pulling the widest
- * render). WordPress exposes every generated size under `media_details.sizes`,
- * each with its own width; the display `src` stays at a mid size. The visible box
- * is cropped to a fixed landscape ratio in CSS, so intrinsic dimensions aren't
- * carried here — the templates set static width/height for that display ratio.
- */
+// Pick a mid-size `src` and build a responsive `srcset` from WordPress's
+// generated sizes. No intrinsic dims — the template crops to a fixed CSS ratio.
 function mapMedia(media?: WpFeaturedMedia): MappedMedia {
   const sizes = media?.media_details?.sizes ?? {};
   const chosen = sizes['medium_large'] ?? sizes['large'];
@@ -205,8 +206,7 @@ function mapMedia(media?: WpFeaturedMedia): MappedMedia {
     return { image: null, imageSrcset: null };
   }
 
-  // De-dupe by URL and require a width for each candidate; sort ascending so the
-  // srcset reads naturally. Fall back to null when there's only the single src.
+  // Unique URL+width candidates, ascending; null when there's only the one src.
   const candidates = new Map<string, number>();
   for (const size of Object.values(sizes)) {
     if (size.source_url && size.width) candidates.set(size.source_url, size.width);
@@ -253,6 +253,24 @@ function stripHtml(html: string): string {
   return (el.textContent ?? '').replace(/\s+/g, ' ').trim();
 }
 
+// Authored excerpts run ≤10% of the body, auto-derived ones ~80%+; 0.5 splits them.
+const AUTO_EXCERPT_BODY_RATIO = 0.5;
+
+// WP always returns an excerpt — authored, or auto-derived from the body. Drop the
+// derived one (it just repeats the article), detected by its "[…]" marker or length.
+function resolveExcerpt(excerptHtml: string, contentHtml: string): string {
+  const excerpt = stripHtml(excerptHtml);
+  if (!excerpt) return '';
+
+  // The "[…]" excerpt_more marker is appended only to auto-generated excerpts.
+  if (/\[\s*(?:…|\.\.\.|&hellip;)\s*\]\s*$/u.test(excerpt)) return '';
+
+  const content = stripHtml(contentHtml);
+  if (content.length && excerpt.length / content.length >= AUTO_EXCERPT_BODY_RATIO) return '';
+
+  return excerpt;
+}
+
 function estimateReadTime(html: string): string {
   const wordCount = stripHtml(html).split(' ').filter(Boolean).length;
   const minutes = Math.max(1, Math.round(wordCount / WORDS_PER_MINUTE));
@@ -271,22 +289,19 @@ function imageStem(url: string | null): string {
   return (url.split('/').pop() ?? '').split('?')[0].replace(/-\d+x\d+(?=\.\w+$)/, '');
 }
 
-/**
- * WordPress's block editor emits deeply broken markup for these posts: empty
- * nested `<ul>`/`<li>` scaffolding (the stray empty bullets), headings buried
- * inside list items, bare unwrapped text nodes, `<!-- wp:* -->` comments, and
- * the featured image duplicated inline. Rendering that raw looks terrible, so we
- * normalize it into clean, semantic HTML before it reaches the template.
- */
+// The WP block editor emits broken markup (empty list scaffolding, headings
+// inside <li>, bare text nodes, wp comments, a duplicated hero image). Clean it up.
 function normalizeContent(html: string, featuredImage: string | null): string {
-  // No DOM during SSR/prerender — strip the block-editor comments so the server
-  // HTML is clean enough for crawlers and reserve H1 for the article page title;
-  // the browser re-runs full normalization on hydration.
+  // No DOM during SSR: strip wp comments and demote H1s for crawlers; the browser
+  // re-runs full normalization on hydration.
   if (typeof DOMParser === 'undefined' || typeof document === 'undefined') {
     return html
       .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<(script|style|noscript|iframe)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+      .replace(/<\/?(?:figure|figcaption)\b[^>]*>/gi, '')
       .replace(/<h1(\s[^>]*)?>/gi, '<h2$1>')
       .replace(/<\/h1>/gi, '</h2>')
+      .replace(/\s(?:style|id|on[a-z]+|data-[\w-]+)=(?:"[^"]*"|'[^']*')/gi, '')
       .trim();
   }
 
@@ -333,8 +348,7 @@ function normalizeContent(html: string, featuredImage: string | null): string {
     });
   }
 
-  // 4. A list item that carries a heading is really a stacked subheading + body
-  //    (per the design), not a bullet — hoist its contents out as block elements.
+  // 4. A list item with a heading is a stacked subheading+body, not a bullet — hoist it out.
   body.querySelectorAll('li').forEach((li) => {
     if (!li.querySelector('h1, h2, h3, h4, h5, h6')) return;
     const list = li.closest('ul, ol');
@@ -367,6 +381,26 @@ function normalizeContent(html: string, featuredImage: string | null): string {
       const p = doc.createElement('p');
       p.textContent = node.textContent.trim();
       node.replaceWith(p);
+    }
+  });
+
+  // 7. Pre-apply what Angular's [innerHTML] sanitizer does anyway, so it has
+  // nothing left to strip (and stops logging "sanitizing HTML stripped some
+  // content"). The sanitizer stays on as our safety net; this just makes the
+  // output already conform to its allowlist. See the allowlist in @angular/core.
+  body.querySelectorAll('script, style, noscript, iframe').forEach((el) => el.remove());
+  // figure/figcaption aren't allowed elements; Angular unwraps them (keeping
+  // the inner img/text), so do the same rather than lose the content.
+  body.querySelectorAll('figure, figcaption').forEach((el) => {
+    el.replaceWith(...Array.from(el.childNodes));
+  });
+  // Drop attributes Angular rejects: inline style, id, data-*, and on* handlers.
+  body.querySelectorAll('*').forEach((el) => {
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase();
+      if (name === 'style' || name === 'id' || name.startsWith('data-') || name.startsWith('on')) {
+        el.removeAttribute(attr.name);
+      }
     }
   });
 

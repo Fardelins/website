@@ -47,9 +47,18 @@ const FEATURE_CARDS = [
 ];
 
 const jobs = [
-  ...FEATURE_BACKGROUNDS.flatMap((name) => featureVariants(name, 1600)),
-  ...FEATURE_PHONE_MOCKUPS.flatMap((name) => featureVariants(name, 1000, AVIF_UI)),
+  // Backgrounds and mockups get a second, smaller width so phones don't pull the
+  // full-size render (the layered cards stay single-width — they're already small).
+  ...FEATURE_BACKGROUNDS.flatMap((name) => [
+    ...featureVariants(name, 1600),
+    ...featureVariants(name, 800),
+  ]),
+  ...FEATURE_PHONE_MOCKUPS.flatMap((name) => [
+    ...featureVariants(name, 1000, AVIF_UI),
+    ...featureVariants(name, 500, AVIF_UI),
+  ]),
   ...featureVariants('courier-management-mockup', 1800, AVIF_UI), // wide desktop dashboard
+  ...featureVariants('courier-management-mockup', 900, AVIF_UI),
   ...FEATURE_CARDS.flatMap((name) => featureVariants(name, 760, AVIF_UI)),
   ...featureVariants('features-hero-courier', 1600),
   ...[
@@ -115,7 +124,9 @@ const jobs = [
     width: 960,
     format: 'webp',
   },
-  ...[360, 600].flatMap((width) => [
+  // Rendered up to a 400px CSS slot (hero) — emit 2x/3x widths so it stays
+  // crisp on retina/tablet displays instead of upscaling a 600px source.
+  ...[480, 800, 1200].flatMap((width) => [
     {
       input: 'image-sources/home/phone-image.png',
       output: `public/home/phone-image-${width}.webp`,

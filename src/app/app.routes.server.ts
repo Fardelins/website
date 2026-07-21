@@ -1,12 +1,7 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 
-/**
- * Static marketing/legal routes are prerendered to static HTML at build time.
- * The blog routes fetch live WordPress data per request, so they render on the
- * server on demand (SSR) — that's what puts real content + per-article OG tags
- * in the initial HTML for crawlers and social scrapers (and avoids baking a
- * stale/empty listing at build time).
- */
+// Marketing/legal routes prerender at build time; blog routes use SSR so live
+// WordPress content and per-article OG tags land in the initial HTML for crawlers.
 export const serverRoutes: ServerRoute[] = [
   { path: '', renderMode: RenderMode.Prerender },
   { path: 'contact', renderMode: RenderMode.Prerender },

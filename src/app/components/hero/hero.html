@@ -17,18 +17,26 @@
       <picture class="hero__phone">
         <source
           type="image/avif"
-          srcset="/home/phone-image-360.avif 360w, /home/phone-image-600.avif 600w"
+          srcset="
+            /home/phone-image-480.avif   480w,
+            /home/phone-image-800.avif   800w,
+            /home/phone-image-1200.avif 1200w
+          "
           sizes="(max-width: 640px) 82vw, 400px"
         />
         <source
           type="image/webp"
-          srcset="/home/phone-image-360.webp 360w, /home/phone-image-600.webp 600w"
+          srcset="
+            /home/phone-image-480.webp   480w,
+            /home/phone-image-800.webp   800w,
+            /home/phone-image-1200.webp 1200w
+          "
           sizes="(max-width: 640px) 82vw, 400px"
         />
         <img
           [appTilt]="16"
           appTiltSurface="parent"
-          src="/home/phone-image-600.webp"
+          src="/home/phone-image-800.webp"
           alt="Fardelins app screen"
           width="600"
           height="1224"

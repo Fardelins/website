@@ -9,6 +9,13 @@ import { FaqAccordion } from '../../components/faq-accordion/faq-accordion';
 import { SITE_NAME, SeoService } from '../../services/seo.service';
 import { FEATURES_FAQS } from './features-faq.data';
 
+// `sizes` for the responsive visual slots, derived from the CSS: the scene is
+// `min(1280px, 100%)`; the background fills it, phone mockups sit at ~31% of it,
+// and the courier desktop dashboard at ~78%.
+const BG_SIZES = '(min-width: 1360px) 1280px, 100vw';
+const PHONE_MOCKUP_SIZES = '(min-width: 1360px) 400px, 31vw';
+const DESKTOP_MOCKUP_SIZES = '(min-width: 1360px) 1000px, 78vw';
+
 @Component({
   selector: 'app-features-page',
   standalone: true,
@@ -19,11 +26,7 @@ import { FEATURES_FAQS } from './features-faq.data';
 export class FeaturesPage {
   protected readonly faqs = FEATURES_FAQS;
 
-  /**
-   * Ambient flowing gradient tuned to the realtime-bg palette (deep indigo →
-   * violet → lilac → periwinkle) so it reads as a continuation of the still
-   * image behind it. Slow speed keeps it calm behind the tilting mockups.
-   */
+  // Tracking: flowing gradient tuned to the realtime-bg palette, calm behind the mockups.
   protected readonly trackingShaderPreset: ComponentConfig[] = [
     {
       type: 'FlowingGradient',
@@ -39,10 +42,7 @@ export class FeaturesPage {
     },
   ];
 
-  /**
-   * Dispatcher: periwinkle / indigo silk with a lilac highlight and a faint
-   * warm-peach accent, echoing dispatcher-operations-bg.
-   */
+  // Dispatcher: periwinkle/indigo silk echoing dispatcher-operations-bg.
   protected readonly dispatcherShaderPreset: ComponentConfig[] = [
     {
       type: 'FlowingGradient',
@@ -58,10 +58,7 @@ export class FeaturesPage {
     },
   ];
 
-  /**
-   * Courier: pastel iridescent — dusty mauve, peach/gold, soft blue, lavender —
-   * matching the lighter, multi-hue courier-management-bg.
-   */
+  // Courier: pastel iridescent matching the lighter courier-management-bg.
   protected readonly courierShaderPreset: ComponentConfig[] = [
     {
       type: 'FlowingGradient',
@@ -77,10 +74,7 @@ export class FeaturesPage {
     },
   ];
 
-  /**
-   * Merchant: muted grey-lavender base with a soft teal and a warm tan streak,
-   * matching the desaturated merchant-storefront-bg.
-   */
+  // Merchant: muted grey-lavender matching the desaturated merchant-storefront-bg.
   protected readonly merchantShaderPreset: ComponentConfig[] = [
     {
       type: 'FlowingGradient',
@@ -96,11 +90,7 @@ export class FeaturesPage {
     },
   ];
 
-  /**
-   * Delivery: the lightest, airiest of the set to match the pale delivery-bg.
-   * A soft flowing gradient in the light end of the brand ramp (lilac →
-   * primary-300 → near-white → primary-200) so it reads bright but on-brand.
-   */
+  // Delivery: lightest of the set, light-end brand ramp to match the pale delivery-bg.
   protected readonly deliveryShaderPreset: ComponentConfig[] = [
     {
       type: 'FlowingGradient',
@@ -118,8 +108,8 @@ export class FeaturesPage {
 
   protected readonly trackingVisual: FeatureShowcaseLayeredVisual = {
     variant: 'tracking',
-    background: { src: '/features/realtime-bg-1600.webp', width: 1600, height: 900 },
-    mockup: { src: '/features/realtime-mockup-1000.webp', width: 1000, height: 2040 },
+    background: { src: '/features/realtime-bg-1600.webp', width: 1600, height: 900, smallWidth: 800, sizes: BG_SIZES },
+    mockup: { src: '/features/realtime-mockup-1000.webp', width: 1000, height: 2040, smallWidth: 500, sizes: PHONE_MOCKUP_SIZES },
     firstLayer: { src: '/features/realtime-accepted-760.webp', width: 760, height: 335 },
     secondLayer: { src: '/features/realtime-details-760.webp', width: 760, height: 390 },
     thirdLayer: { src: '/features/realtime-in_transit-760.webp', width: 760, height: 335 },
@@ -128,8 +118,8 @@ export class FeaturesPage {
 
   protected readonly dispatcherVisual: FeatureShowcaseLayeredVisual = {
     variant: 'dispatcher',
-    background: { src: '/features/dispatcher-operations-bg-1600.webp', width: 1600, height: 900 },
-    mockup: { src: '/features/dispatcher-operations-mockup-1000.webp', width: 1000, height: 2039 },
+    background: { src: '/features/dispatcher-operations-bg-1600.webp', width: 1600, height: 900, smallWidth: 800, sizes: BG_SIZES },
+    mockup: { src: '/features/dispatcher-operations-mockup-1000.webp', width: 1000, height: 2039, smallWidth: 500, sizes: PHONE_MOCKUP_SIZES },
     firstLayer: { src: '/features/dispatcher-operations-order-760.webp', width: 760, height: 274 },
     secondLayer: {
       src: '/features/dispatcher-operations-delivery-760.webp',
@@ -146,8 +136,8 @@ export class FeaturesPage {
 
   protected readonly courierVisual: FeatureShowcaseLayeredVisual = {
     variant: 'courier',
-    background: { src: '/features/courier-management-bg-1600.webp', width: 1600, height: 900 },
-    mockup: { src: '/features/courier-management-mockup-1800.webp', width: 1800, height: 1013 },
+    background: { src: '/features/courier-management-bg-1600.webp', width: 1600, height: 900, smallWidth: 800, sizes: BG_SIZES },
+    mockup: { src: '/features/courier-management-mockup-1800.webp', width: 1800, height: 1013, smallWidth: 900, sizes: DESKTOP_MOCKUP_SIZES },
     firstLayer: { src: '/features/courier-management-admin-760.webp', width: 760, height: 325 },
     secondLayer: {
       src: '/features/courier-management-dispatcher-760.webp',
@@ -159,8 +149,8 @@ export class FeaturesPage {
 
   protected readonly merchantVisual: FeatureShowcaseLayeredVisual = {
     variant: 'merchant',
-    background: { src: '/features/merchant-storefront-bg-1600.webp', width: 1600, height: 900 },
-    mockup: { src: '/features/merchant-storefront-mockup-1000.webp', width: 1000, height: 2040 },
+    background: { src: '/features/merchant-storefront-bg-1600.webp', width: 1600, height: 900, smallWidth: 800, sizes: BG_SIZES },
+    mockup: { src: '/features/merchant-storefront-mockup-1000.webp', width: 1000, height: 2040, smallWidth: 500, sizes: PHONE_MOCKUP_SIZES },
     firstLayer: { src: '/features/merchant-storefront-default-760.webp', width: 760, height: 293 },
     secondLayer: { src: '/features/merchant-storefront-setup-760.webp', width: 760, height: 317 },
     alt: 'Fardelins storefront integration showing default courier assignment and store setup',
@@ -168,8 +158,8 @@ export class FeaturesPage {
 
   protected readonly deliveryVisual: FeatureShowcaseLayeredVisual = {
     variant: 'delivery',
-    background: { src: '/features/delivery-bg-1600.webp', width: 1600, height: 900 },
-    mockup: { src: '/features/delivery-mockup-1000.webp', width: 1000, height: 2039 },
+    background: { src: '/features/delivery-bg-1600.webp', width: 1600, height: 900, smallWidth: 800, sizes: BG_SIZES },
+    mockup: { src: '/features/delivery-mockup-1000.webp', width: 1000, height: 2039, smallWidth: 500, sizes: PHONE_MOCKUP_SIZES },
     firstLayer: { src: '/features/delivery-proof-760.webp', width: 760, height: 1059 },
     alt: 'Fardelins proof-of-delivery confirmation with a delivery photo and confirm action',
   };

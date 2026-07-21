@@ -4,20 +4,23 @@ import { wordpressUrl } from '../config/wordpress.config';
 /** WordPress Mailchimp list the site subscribes into (via the WP Rocket / CleanTalk plugin). */
 const MAILCHIMP_LIST_ID = '793896f881';
 
-/**
- * Single place that talks to WordPress's newsletter endpoint. Both the site
- * footer and the blog newsletter card subscribe through here, so there's one
- * backend integration to maintain. Posts to the same-origin `admin-ajax.php`
- * the WordPress site already exposes.
- */
+/** Pragmatic shape check to weed out typos before a doomed POST; not RFC-exhaustive. */
+export function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+/** Newsletter subscriptions for the footer and blog card, via WordPress admin-ajax.php. */
 @Injectable({ providedIn: 'root' })
 export class NewsletterService {
   private readonly platformId = inject(PLATFORM_ID);
 
-  /** Resolves true on a confirmed subscription; throws on network/HTTP/rejection errors. */
+  /** Resolves true on a confirmed subscription; throws on invalid input or request failure. */
   async subscribe(email: string): Promise<boolean> {
     const normalizedEmail = email.trim();
     if (!normalizedEmail) return false;
+
+    // Fail fast on a typo instead of waiting for admin-ajax.php to reject it.
+    if (!isValidEmail(normalizedEmail)) throw new Error('Please enter a valid email address.');
 
     const fields = new URLSearchParams({
       wpr_mailchimp_email: normalizedEmail,

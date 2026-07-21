@@ -13,18 +13,10 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-// Gzip/deflate every response the app serves (HTML, JSON proxied from
-// WordPress, and any static asset not already precompressed).
 app.use(compression());
 
-/**
- * Baseline security headers applied to every response. These are conservative
- * defaults that don't depend on a CDN/reverse proxy being in front of the app;
- * if one exists, it can still override or extend them. A Content-Security-Policy
- * is intentionally omitted here — the app uses inline WebGL shaders and injected
- * WordPress markup, so a CSP needs to be authored deliberately rather than
- * guessed at.
- */
+// Baseline security headers. CSP is intentionally omitted — inline WebGL shaders
+// and injected WordPress markup mean it must be authored deliberately, not guessed.
 app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
@@ -34,15 +26,8 @@ app.use((_req, res, next) => {
   next();
 });
 
-/**
- * Reverse-proxy WordPress paths to the headless WordPress origin.
- *
- * The app calls WordPress with same-origin relative paths (`/wp-json`,
- * `/wp-admin`, `/contact-form-config`) so there's no CORS to manage. When the
- * Angular app owns fardelins.com and WordPress lives elsewhere, set
- * `WORDPRESS_ORIGIN` to that origin (e.g. https://cms.fardelins.com) and this
- * proxy forwards those requests transparently — mirroring dev's proxy.conf.json.
- */
+// Reverse-proxy WordPress paths so the app can call them same-origin (no CORS).
+// Set WORDPRESS_ORIGIN when WordPress lives off fardelins.com; mirrors proxy.conf.json.
 const WORDPRESS_ORIGIN = process.env['WORDPRESS_ORIGIN'] ?? 'https://fardelins.com';
 const WP_PROXY_PREFIXES = ['/wp-json', '/wp-admin', '/contact-form-config'];
 const WORDPRESS_JS_GATE_COOKIE = 'hc_js_gate=1';
@@ -66,9 +51,8 @@ app.use((req, res, next) => {
       headers.set(key, Array.isArray(value) ? value.join(', ') : value);
     }
 
-    // The WordPress host protects wp-admin with a JavaScript cookie gate. A
-    // proxied fetch cannot execute that challenge page, so identify this
-    // trusted server-to-server request up front and let admin-ajax return JSON.
+    // wp-admin is behind a JS cookie gate a proxied fetch can't solve; set the
+    // gate cookie up front so admin-ajax returns JSON instead of the challenge page.
     if (prefix === '/wp-admin') {
       const cookies = headers.get('cookie') ?? '';
       if (!/(?:^|;\s*)hc_js_gate=/.test(cookies)) {
@@ -101,20 +85,8 @@ app.use((req, res, next) => {
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 const ONE_DAY_SECONDS = 60 * 60 * 24;
 
-/**
- * Serve static files from /browser with cache lifetimes matched to how each
- * asset is versioned:
- *
- * - Hashed JS/CSS bundles (and Angular's hashed `media/` assets) carry a
- *   content hash in the filename, so a new deploy always yields a new URL.
- *   These can be cached forever and served `immutable`.
- * - Unversioned metadata that must reflect the latest deploy immediately
- *   (sitemap, robots, HTML, and the service-worker manifest/scripts) is served
- *   `no-cache` so clients always revalidate before reuse.
- * - Everything else copied from /public is unversioned but replaceable — the
- *   favicon, social image, and section imagery. These get a short lifetime so a
- *   redeploy propagates within a day while still avoiding a fetch per request.
- */
+// Cache hashed bundles forever (immutable), revalidate unversioned metadata
+// (no-cache for sitemap/robots/HTML/service-worker), short TTL for the rest.
 function setStaticCacheHeaders(res: express.Response, filePath: string): void {
   const file = basename(filePath);
   const ext = extname(filePath).toLowerCase();
@@ -139,9 +111,6 @@ function setStaticCacheHeaders(res: express.Response, filePath: string): void {
   }
 }
 
-/**
- * Serve static files from /browser
- */
 app.use(
   express.static(browserDistFolder, {
     index: false,
@@ -150,9 +119,7 @@ app.use(
   }),
 );
 
-/**
- * Handle all other requests by rendering the Angular application.
- */
+// Everything else is server-rendered by Angular.
 app.use((req, res, next) => {
   angularApp
     .handle(req)
@@ -160,10 +127,7 @@ app.use((req, res, next) => {
     .catch(next);
 });
 
-/**
- * Start the server if this module is the main entry point, or it is ran via PM2.
- * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
- */
+// Listen when run directly or under PM2 (pm_id).
 if (isMainModule(import.meta.url) || process.env['pm_id']) {
   const port = process.env['PORT'] || 4000;
   app.listen(port, (error) => {
@@ -175,7 +139,5 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
   });
 }
 
-/**
- * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
- */
+/** Request handler for the Angular CLI dev-server/build and serverless hosts. */
 export const reqHandler = createNodeRequestHandler(app);

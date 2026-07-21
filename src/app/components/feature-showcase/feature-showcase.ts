@@ -22,9 +22,13 @@ export interface FeatureShowcaseItem {
 }
 
 export interface FeatureShowcaseVisualAsset {
+  /** Largest generated variant, e.g. `/features/realtime-bg-1600.webp`. */
   src: string;
   width: number;
   height: number;
+  /** When set, the `<picture>` emits a responsive `srcset` (smallWidth + width) so phones skip the full render. */
+  smallWidth?: number;
+  sizes?: string;
 }
 
 export interface FeatureShowcaseLayeredVisual {
@@ -52,11 +56,7 @@ export class FeatureShowcase implements OnInit, AfterViewInit, OnDestroy {
   readonly imageSrc = input('');
   readonly imageAlt = input('');
   readonly layeredVisual = input<FeatureShowcaseLayeredVisual | null>(null);
-  /**
-   * Optional live shader that renders over the layered visual's background
-   * image. The `background` PNG stays as the SSR / reduced-motion / no-WebGPU
-   * fallback; the shader canvas fades in on top once ready.
-   */
+  /** Optional live shader over the background; the image stays as the SSR/fallback. */
   readonly shaderPreset = input<ComponentConfig[] | null>(null);
   readonly items = input.required<readonly FeatureShowcaseItem[]>();
   readonly activeIndex = input(0);
@@ -98,6 +98,18 @@ export class FeatureShowcase implements OnInit, AfterViewInit, OnDestroy {
   /** Derive the AVIF sibling of a generated `.webp` asset for the <picture> source. */
   protected avif(webpSrc: string): string {
     return webpSrc.replace(/\.webp$/i, '.avif');
+  }
+
+  /** Swap the width token in a generated filename, e.g. `-1600.webp` -> `-800.webp`. */
+  private atWidth(asset: FeatureShowcaseVisualAsset, width: number): string {
+    return asset.src.replace(`-${asset.width}.`, `-${width}.`);
+  }
+
+  /** Responsive `srcset` for the asset, or null when it has no smaller variant. */
+  protected srcset(asset: FeatureShowcaseVisualAsset, format: 'webp' | 'avif'): string | null {
+    if (!asset.smallWidth) return null;
+    const url = (w: number) => (format === 'avif' ? this.avif(this.atWidth(asset, w)) : this.atWidth(asset, w));
+    return `${url(asset.smallWidth)} ${asset.smallWidth}w, ${url(asset.width)} ${asset.width}w`;
   }
 
   private startTimer(): void {

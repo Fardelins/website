@@ -1,0 +1,5 @@
+# Large image originals live under image-sources/ (regeneration source for
+# scripts/optimize-images.mjs). They are never shipped — only public/ is served
+# — so keep the binaries out of the main packfile via Git LFS.
+image-sources/**/*.png filter=lfs diff=lfs merge=lfs -text
+image-sources/**/*.jpg filter=lfs diff=lfs merge=lfs -text

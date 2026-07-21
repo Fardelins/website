@@ -24,6 +24,15 @@ export class Home {
       description,
       path: '/',
       type: 'website',
+      // LCP element — mirror the hero's AVIF <source> so the browser can start
+      // the fetch from the prerendered HTML before Angular hydrates.
+      preloadImage: {
+        href: '/home/phone-image-800.avif',
+        imagesrcset:
+          '/home/phone-image-480.avif 480w, /home/phone-image-800.avif 800w, /home/phone-image-1200.avif 1200w',
+        imagesizes: '(max-width: 640px) 82vw, 400px',
+        type: 'image/avif',
+      },
       jsonLd: [
         {
           '@context': 'https://schema.org',

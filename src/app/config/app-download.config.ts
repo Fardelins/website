@@ -8,10 +8,7 @@ export interface AppStoreLink {
   icon: string;
 }
 
-/**
- * Update the two URLs here when the store listings are live. Every app badge,
- * device-aware CTA, and the sticky install prompt reads from this config.
- */
+// Store badges, device CTAs, and the install prompt all read from this. Set the URLs when live.
 export const APP_DOWNLOAD_CONFIG = {
   route: '/download',
   appName: 'Fardelins',

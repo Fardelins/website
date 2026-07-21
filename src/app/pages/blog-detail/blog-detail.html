@@ -21,7 +21,9 @@
         <div class="article-hero__text">
           <div class="article-hero__heading">
             <h1>{{ post.title }}</h1>
-            <p class="article-hero__supporting">{{ post.excerpt }}</p>
+            @if (post.excerpt) {
+              <p class="article-hero__supporting">{{ post.excerpt }}</p>
+            }
           </div>
           <p class="article-hero__meta">Written on {{ post.date }} • {{ post.readTime }}</p>
         </div>
