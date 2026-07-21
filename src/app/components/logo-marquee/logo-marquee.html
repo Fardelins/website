@@ -1,9 +1,9 @@
 <section class="marquee">
   <div class="marquee__viewport">
     <ul class="marquee__track">
-      @for (logo of logos; track $index) {
-        <li class="marquee__item">
-          <img src="/home/logo.svg" alt="Fardelins" width="236" height="64" />
+      @for (logo of logos; track $index; let first = $first) {
+        <li class="marquee__item" [attr.aria-hidden]="first ? null : 'true'">
+          <img src="/home/logo.svg" [alt]="first ? 'Fardelins' : ''" width="236" height="64" />
         </li>
       }
       @for (logo of logos; track $index) {

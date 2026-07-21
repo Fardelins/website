@@ -17,7 +17,14 @@
       "
       (click)="storeClicked(store.url)"
     >
-      <img class="store-badge__icon" [src]="store.icon" alt="" width="20" height="22" />
+      <img
+        class="store-badge__icon"
+        [src]="store.icon"
+        alt=""
+        aria-hidden="true"
+        width="20"
+        height="22"
+      />
       <span class="store-badge__text">
         <span class="store-badge__eyebrow">
           {{

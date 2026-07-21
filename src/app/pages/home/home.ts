@@ -20,7 +20,7 @@ export class Home {
     const description =
       'Fardelins connects customers, businesses, dispatchers, and couriers with real-time tracking, smart dispatch, and reliable last-mile delivery.';
     this.seo.update({
-      title: `${SITE_NAME} | Smarter Delivery Management`,
+      title: `${SITE_NAME} | Delivery Management and Tracking in Nigeria`,
       description,
       path: '/',
       type: 'website',

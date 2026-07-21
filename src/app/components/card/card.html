@@ -23,7 +23,11 @@
   <div class="card__gradient"></div>
 
   <div class="card__content">
-    <h3 class="card__title">{{ title() }}</h3>
+    @if (heading()) {
+      <h3 class="card__title">{{ title() }}</h3>
+    } @else {
+      <p class="card__title" aria-hidden="true">{{ title() }}</p>
+    }
     @if (description()) {
       <p class="card__description">{{ description() }}</p>
     }

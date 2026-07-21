@@ -13,6 +13,7 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
+app.disable('x-powered-by');
 app.use(compression());
 
 // Baseline security headers. CSP is intentionally omitted — inline WebGL shaders

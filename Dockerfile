@@ -8,6 +8,10 @@ WORKDIR /app
 COPY package*.json .npmrc ./
 RUN npm ci --legacy-peer-deps
 
+# Railway passes service variables as build args; prerender + sitemap read this at build time.
+ARG PUBLIC_SITE_URL
+ENV PUBLIC_SITE_URL=$PUBLIC_SITE_URL
+
 COPY . .
 RUN npm run build
 

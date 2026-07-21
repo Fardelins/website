@@ -1,12 +1,19 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { Injectable, InjectionToken, PLATFORM_ID, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 
-/** Canonical production origin. Keep in sync with the deployed domain. */
+/** Compile-time default origin (production intent). Overridden at SSR by PUBLIC_SITE_URL. */
 export const SITE_URL = 'https://fardelins.com';
 export const SITE_NAME = 'Fardelins';
 /** 1200×630 social share image served from /public. */
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
+
+// Runtime public origin. Defaults to SITE_URL on the browser; the server config
+// overrides it from process.env['PUBLIC_SITE_URL'] so SSR emits the live host.
+export const SITE_URL_TOKEN = new InjectionToken<string>('PUBLIC_SITE_URL', {
+  providedIn: 'root',
+  factory: () => SITE_URL,
+});
 
 export interface SeoData {
   title: string;
@@ -40,11 +47,13 @@ export class SeoService {
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);
   private readonly doc = inject(DOCUMENT);
+  private readonly siteUrl = inject(SITE_URL_TOKEN);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   update(data: SeoData): void {
     const url = this.absolute(data.path);
-    const image = data.image ? this.absolute(data.image) : DEFAULT_OG_IMAGE;
+    const isDefaultImage = !data.image;
+    const image = data.image ? this.absolute(data.image) : `${this.siteUrl}/og-image.png`;
     const type = data.type ?? 'website';
     const fullTitle = data.title.includes(SITE_NAME) ? data.title : `${data.title} | ${SITE_NAME}`;
 
@@ -58,6 +67,17 @@ export class SeoService {
     this.setProperty('og:description', data.description);
     this.setProperty('og:url', url);
     this.setProperty('og:image', image);
+    this.setProperty('og:image:secure_url', image);
+    this.setProperty('og:image:type', this.imageMime(image));
+    this.setProperty('og:image:alt', `${fullTitle} social preview`);
+    // Only the bundled og-image.png has known dimensions; skip for per-route images.
+    if (isDefaultImage) {
+      this.setProperty('og:image:width', '1200');
+      this.setProperty('og:image:height', '630');
+    } else {
+      this.meta.removeTag("property='og:image:width'");
+      this.meta.removeTag("property='og:image:height'");
+    }
 
     this.setName('twitter:card', 'summary_large_image');
     this.setName('twitter:title', fullTitle);
@@ -77,7 +97,15 @@ export class SeoService {
 
   private absolute(pathOrUrl: string): string {
     if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
-    return SITE_URL + (pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`);
+    return this.siteUrl + (pathOrUrl.startsWith('/') ? pathOrUrl : `/${pathOrUrl}`);
+  }
+
+  private imageMime(url: string): string {
+    const ext = url.split('?')[0].split('.').pop()?.toLowerCase();
+    if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+    if (ext === 'webp') return 'image/webp';
+    if (ext === 'gif') return 'image/gif';
+    return 'image/png';
   }
 
   private setName(name: string, content: string): void {

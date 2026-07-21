@@ -23,7 +23,7 @@
         aria-label="Previous"
         (click)="scrollByAmount(-1)"
       >
-        <img src="/home/Arrow.svg" alt="" />
+        <img src="/home/Arrow.svg" alt="" aria-hidden="true" />
       </button>
       <button
         class="audience__nav-btn audience__nav-btn--next"
@@ -31,7 +31,7 @@
         aria-label="Next"
         (click)="scrollByAmount(1)"
       >
-        <img src="/home/Arrow.svg" alt="" />
+        <img src="/home/Arrow.svg" alt="" aria-hidden="true" />
       </button>
     </div>
   </div>
@@ -49,7 +49,12 @@
         class="audience__item"
         [attr.aria-hidden]="$index < items.length || $index >= items.length * 2 ? 'true' : null"
       >
-        <app-card [image]="item.image" [title]="item.title" [description]="item.description" />
+        <app-card
+          [image]="item.image"
+          [title]="item.title"
+          [description]="item.description"
+          [heading]="$index >= items.length && $index < items.length * 2"
+        />
       </div>
     }
   </div>

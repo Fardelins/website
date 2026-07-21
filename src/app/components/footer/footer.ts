@@ -223,6 +223,9 @@ export class Footer implements AfterViewInit, OnDestroy {
   ];
 
   protected readonly companyLinks = [
+    { label: 'Features', href: '/features' },
+    { label: 'Blogs', href: '/blogs' },
+    { label: 'Download the App', href: '/download' },
     { label: 'Contact Us', href: '/contact' },
     { label: 'Terms', href: '/terms' },
     { label: 'Privacy Policy', href: '/privacy' },
