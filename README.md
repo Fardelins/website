@@ -26,10 +26,11 @@ categories, featured images, and article bodies are fetched and normalized at ru
 ## Tech stack
 
 - Angular 22 (standalone components, signals) with **Angular SSR** (`@angular/ssr`, Express)
-- TypeScript, RxJS
+- TypeScript, RxJS; gzip/brotli response `compression` on the SSR server
 - Headless WordPress REST API (blog + contact form) and Mailchimp via admin-ajax (newsletter)
 - PWA: service worker (`@angular/service-worker`, `ngsw-config.json`)
-- WebGL hero background and `shaders`-powered effects; 3D tilt + `web-haptics` micro-interactions
+- WebGPU hero background (Three.js via `shaders`, lazy-loaded); 3D tilt + `web-haptics` micro-interactions
+- Self-hosted `woff2` fonts (`public/fonts`, `@font-face` in `src/styles.css`)
 - `sharp` build-time image optimization (WebP), Vitest for unit tests
 
 ## Project structure
@@ -41,7 +42,7 @@ categories, featured images, and article bodies are fetched and normalized at ru
 - `src/app/directives` — custom directives (e.g. 3D tilt)
 - `public` — static assets: images, icons, `robots.txt`, `sitemap.xml`, `og-image.png`
 - `src/server.ts` — Express SSR entry (also reverse-proxies WordPress paths)
-- `scripts` — build helpers: `generate-sitemap.mjs`, `optimize-images.mjs`
+- `scripts` — build helpers: `generate-sitemap.mjs`, `optimize-images.mjs`, `selfhost-fonts.mjs`
 - `railway.json` + `Dockerfile` — Railway deploy config (`npm run build` → SSR server)
 
 ## Getting started
@@ -85,6 +86,8 @@ The server listens on `$PORT` (default 4000).
   (articles), ContactPage + FAQPage (contact).
 - `public/robots.txt` and `public/sitemap.xml` (regenerate anytime with `npm run generate:sitemap`).
 - `prefers-reduced-motion` is respected across shader, tilt, marquee, and carousel animations.
+- The WebGPU shader background (~360 KB) is skipped on data-saver, slow (2G), and low-memory
+  (<4 GiB) devices; a static gradient fallback renders instead.
 
 ## Deployment (Railway)
 
