@@ -488,8 +488,8 @@
    (Card widths are kept so that left% + width% stays within the frame.) */
 @media (max-width: 640px) {
   .feature-showcase__visual {
-    width: calc(100% + 48px);
-    margin-inline: -24px;
+    width: calc(100% + 16px);
+    margin-inline: -8px;
     border-radius: var(--radius-xl);
   }
 

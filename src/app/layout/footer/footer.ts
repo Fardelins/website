@@ -10,9 +10,9 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { NewsletterService } from '../../services/newsletter.service';
-import { HapticsService } from '../../services/haptics.service';
-import { ComponentConfig, ShaderBackground } from '../shader-background/shader-background';
+import { NewsletterService } from '@core/services/newsletter.service';
+import { HapticsService } from '@core/services/haptics.service';
+import { ComponentConfig, ShaderBackground } from '@shared/components/shader-background/shader-background';
 
 // Fog scratch-off: a haze (blur + mist) over the scene. Swiping thins it, and past
 // ~ACTIVATION_SWIPES it latches and melts for good; give up early and it re-fogs.
@@ -223,9 +223,6 @@ export class Footer implements AfterViewInit, OnDestroy {
   ];
 
   protected readonly companyLinks = [
-    { label: 'Features', href: '/features' },
-    { label: 'Blogs', href: '/blogs' },
-    { label: 'Download the App', href: '/download' },
     { label: 'Contact Us', href: '/contact' },
     { label: 'Terms', href: '/terms' },
     { label: 'Privacy Policy', href: '/privacy' },

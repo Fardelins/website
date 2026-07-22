@@ -1,6 +1,6 @@
 import { Component, ElementRef, HostListener, ViewChild, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { HapticsService } from '../../services/haptics.service';
+import { HapticsService } from '@core/services/haptics.service';
 
 @Component({
   selector: 'app-navbar',
