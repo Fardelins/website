@@ -14,6 +14,7 @@ social scrapers receive real content and per-article metadata in the initial HTM
 Routes:
 
 - Home
+- Features (`/features`)
 - Blog listing (`/blogs`) and articles (`/blogs/:slug`)
 - Contact
 - Download
@@ -35,15 +36,24 @@ categories, featured images, and article bodies are fetched and normalized at ru
 
 ## Project structure
 
-- `src/app/components` — reusable UI sections (hero, features, navbar, footer, blog cards, shaders)
-- `src/app/pages` — page-level components (home, blogs, blog-detail, contact, download, terms, privacy)
-- `src/app/services` — data + cross-cutting services (blog, newsletter, SEO, haptics, contact form)
-- `src/app/config` — configuration constants (WordPress origin, app-download links)
-- `src/app/directives` — custom directives (e.g. 3D tilt)
+The app follows a **feature-based** layout: each domain owns its pages, components, and any
+feature-local data layer, while cross-cutting code lives in dedicated buckets.
+
+- `src/app/core` — app-wide singletons: `core/services` (blog, newsletter, SEO, haptics, contact
+  form, platform) and `core/config` (WordPress origin, app-download links)
+- `src/app/shared` — cross-feature reusables: `shared/components` (card, faq-accordion,
+  shader-background, store-badges, hero-liquid-background) and `shared/directives` (3D tilt)
+- `src/app/layout` — app-shell chrome rendered around every route (navbar, footer, download-prompt)
+- `src/app/features` — one folder per domain (`home`, `blog`, `legal`, `contact`, `download`,
+  `features-page`, `not-found`); a feature holds its own `pages`/`components` plus any feature-local
+  model + service (e.g. `features/blog/blog.service.ts`)
 - `public` — static assets: images, icons, `robots.txt`, `sitemap.xml`, `og-image.png`
 - `src/server.ts` — Express SSR entry (also reverse-proxies WordPress paths)
 - `scripts` — build helpers: `generate-sitemap.mjs`, `optimize-images.mjs`, `selfhost-fonts.mjs`
 - `railway.json` + `Dockerfile` — Railway deploy config (`npm run build` → SSR server)
+
+**Path aliases** (`tsconfig.json`): cross-bucket imports use `@core/*`, `@shared/*`, and
+`@features/*` instead of deep relative paths; imports within a feature stay relative.
 
 ## Getting started
 
@@ -108,7 +118,7 @@ Set these environment variables in Railway:
 Newsletter and contact form requests use same-origin relative paths and the SSR server
 reverse-proxies them to `WORDPRESS_ORIGIN`, avoiding browser CORS issues for POST requests. If
 WordPress later moves to a dedicated origin, update both the public origin in
-`wordpress.config.ts` and the Railway `WORDPRESS_ORIGIN` variable.
+`core/config/wordpress.config.ts` and the Railway `WORDPRESS_ORIGIN` variable.
 
 ## Run tests
 
