@@ -3,9 +3,9 @@ import { Component, DestroyRef, PLATFORM_ID, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
-import { Navbar } from './components/navbar/navbar';
-import { Footer } from './components/footer/footer';
-import { DownloadPrompt } from './components/download-prompt/download-prompt';
+import { Navbar } from './layout/navbar/navbar';
+import { Footer } from './layout/footer/footer';
+import { DownloadPrompt } from './layout/download-prompt/download-prompt';
 
 @Component({
   selector: 'app-root',

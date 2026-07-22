@@ -2,7 +2,7 @@ import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
 import { provideServerRendering, withRoutes } from '@angular/ssr';
 import { appConfig } from './app.config';
 import { serverRoutes } from './app.routes.server';
-import { SITE_URL, SITE_URL_TOKEN } from './services/seo.service';
+import { SITE_URL, SITE_URL_TOKEN } from '@core/services/seo.service';
 
 const serverConfig: ApplicationConfig = {
   providers: [
