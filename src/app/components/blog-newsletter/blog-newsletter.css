@@ -74,17 +74,17 @@
   min-height: 500px;
   overflow: hidden;
 }
+/* Anchored from the top so the phone's full height overflows the visual's
+   bottom edge and is cropped by overflow:hidden — matching the home page. */
 .blogs-newsletter__visual img {
   position: absolute;
   right: clamp(12px, 5vw, 80px);
-  bottom: 0;
+  top: clamp(32px, 8%, 72px);
+  bottom: auto;
   display: block;
-  width: auto;
+  width: min(calc(100% - 24px), 340px);
   height: auto;
-  max-width: calc(100% - 24px);
-  max-height: calc(100% - 24px);
   object-fit: contain;
-  object-position: center bottom;
 }
 
 @media (max-width: 1200px) {
