@@ -10,6 +10,8 @@ export interface BlogArticle {
   image: string | null;
   /** Responsive `srcset` from WordPress's sizes (null if none); the template sets static width/height. */
   imageSrcset: string | null;
+  /** WordPress author id; resolved to a display profile via the local author registry. */
+  authorId: number | null;
 }
 
 export interface BlogCategory {

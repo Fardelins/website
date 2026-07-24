@@ -23,6 +23,7 @@ interface WpFeaturedMedia {
 interface WpPost {
   id: number;
   slug: string;
+  author: number;
   date: string;
   title: { rendered: string };
   excerpt: { rendered: string };
@@ -86,7 +87,7 @@ export class BlogService {
       page: String(page),
       per_page: String(perPage),
       _embed: 'wp:featuredmedia',
-      _fields: 'id,slug,title,excerpt,content,categories,_links,_embedded',
+      _fields: 'id,slug,author,title,excerpt,content,categories,_links,_embedded',
     };
     if (categoryId) params['categories'] = String(categoryId);
     if (search) params['search'] = search;
@@ -113,7 +114,7 @@ export class BlogService {
         params: {
           slug,
           _embed: 'wp:featuredmedia',
-          _fields: 'id,slug,date,title,excerpt,content,categories,_links,_embedded',
+          _fields: 'id,slug,author,date,title,excerpt,content,categories,_links,_embedded',
         },
       }),
     );
@@ -143,7 +144,7 @@ export class BlogService {
       per_page: String(limit),
       exclude: String(excludeId),
       _embed: 'wp:featuredmedia',
-      _fields: 'id,slug,title,excerpt,content,categories,_links,_embedded',
+      _fields: 'id,slug,author,title,excerpt,content,categories,_links,_embedded',
     };
     if (categoryId) params['categories'] = String(categoryId);
 
@@ -185,6 +186,7 @@ export class BlogService {
       excerpt: resolveExcerpt(post.excerpt?.rendered ?? '', post.content?.rendered ?? ''),
       image,
       imageSrcset,
+      authorId: post.author ?? null,
     };
   }
 }

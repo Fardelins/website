@@ -184,6 +184,12 @@ const jobs = [
     format: 'webp',
   },
   {
+    input: 'image-sources/blogs/authors/flora.jpg',
+    output: 'public/blogs/authors/flora-200.webp',
+    width: 200,
+    format: 'webp',
+  },
+  {
     input: 'image-sources/home/logo-white.png',
     output: 'public/home/logo-white-512.webp',
     width: 512,

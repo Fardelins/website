@@ -25,7 +25,21 @@
               <p class="article-hero__supporting">{{ post.excerpt }}</p>
             }
           </div>
-          <p class="article-hero__meta">Written on {{ post.date }} • {{ post.readTime }}</p>
+          <div class="article-hero__byline">
+            <img
+              class="article-hero__avatar"
+              [src]="author().avatar"
+              [alt]="author().avatarAlt"
+              width="44"
+              height="44"
+              loading="lazy"
+              decoding="async"
+            />
+            <div class="article-hero__byline-text">
+              <p class="article-hero__author">{{ author().name }}</p>
+              <p class="article-hero__meta">{{ post.date }} • {{ post.readTime }}</p>
+            </div>
+          </div>
         </div>
         <div class="article-hero__media" [appTilt]="9">
           @if (post.image) {

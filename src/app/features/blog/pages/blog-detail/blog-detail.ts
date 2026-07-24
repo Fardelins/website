@@ -18,6 +18,7 @@ import { HapticsService } from '@core/services/haptics.service';
 import { SITE_NAME, SITE_URL, SeoService } from '@core/services/seo.service';
 import { BlogArticle, BlogArticleDetail } from '../../blog.model';
 import { BlogService } from '../../blog.service';
+import { resolveAuthor } from '../../authors';
 
 const RELATED_COUNT = 3;
 
@@ -46,6 +47,8 @@ export class BlogDetail implements OnDestroy {
   protected readonly notFound = signal(false);
   protected readonly article = signal<BlogArticleDetail | null>(null);
   protected readonly related = signal<BlogArticle[]>([]);
+
+  protected readonly author = computed(() => resolveAuthor(this.article()?.authorId ?? null));
 
   protected readonly copied = signal(false);
   // Share the public site permalink, not the WordPress (CMS) origin the post is fetched from.

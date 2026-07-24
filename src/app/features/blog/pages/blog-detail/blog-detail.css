@@ -79,7 +79,34 @@
   line-height: 1.55;
   white-space: pre-line;
 }
+.article-hero__byline {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+.article-hero__avatar {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-styles-off-white);
+  border: 1px solid var(--color-styles-stroke);
+}
+.article-hero__byline-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.article-hero__author {
+  margin: 0;
+  color: var(--color-styles-title);
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+}
 .article-hero__meta {
+  margin: 0;
   color: var(--color-accent-blue);
   font-size: 16px;
   font-weight: 400;
