@@ -1,0 +1,74 @@
+@if (isBrowser && visible()) {
+  <section
+    class="cookie"
+    role="region"
+    aria-label="Cookie consent"
+    [class.cookie--customizing]="customizing()"
+  >
+    <div class="cookie__inner">
+      <div class="cookie__intro">
+        <h2 class="cookie__title">We value your privacy</h2>
+        <p class="cookie__text">
+          We use cookies to keep the site working and, with your consent, to understand how it's
+          used. You can accept all, reject non-essential, or choose per category.
+          <a class="cookie__link" routerLink="/privacy" fragment="cookies">Learn more</a>.
+        </p>
+      </div>
+
+      @if (customizing()) {
+        <ul class="cookie__categories">
+          <li class="cookie__category">
+            <div class="cookie__category-head">
+              <span class="cookie__category-name">Strictly necessary</span>
+              <span class="cookie__badge">Always on</span>
+            </div>
+            <p class="cookie__category-desc">
+              Required for the site to function — security, page navigation, and remembering this
+              choice. These can't be switched off.
+            </p>
+          </li>
+          <li class="cookie__category">
+            <div class="cookie__category-head">
+              <label class="cookie__category-name" for="cookie-analytics">Analytics</label>
+              <button
+                id="cookie-analytics"
+                class="cookie__switch"
+                type="button"
+                role="switch"
+                [attr.aria-checked]="analyticsChoice()"
+                (click)="analyticsChoice.set(!analyticsChoice())"
+              >
+                <span class="cookie__switch-track" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="cookie__category-desc">
+              Helps us measure visits and improve the site. No advertising, and nothing that
+              identifies you personally.
+            </p>
+          </li>
+        </ul>
+      }
+
+      <div class="cookie__actions">
+        @if (customizing()) {
+          <button class="cookie__btn cookie__btn--solid" type="button" (click)="savePreferences()">
+            Save preferences
+          </button>
+          <button class="cookie__btn cookie__btn--ghost" type="button" (click)="acceptAll()">
+            Accept all
+          </button>
+        } @else {
+          <button class="cookie__btn cookie__btn--ghost" type="button" (click)="toggleCustomize()">
+            Customize
+          </button>
+          <button class="cookie__btn cookie__btn--ghost" type="button" (click)="rejectAll()">
+            Reject all
+          </button>
+          <button class="cookie__btn cookie__btn--solid" type="button" (click)="acceptAll()">
+            Accept all
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+}

@@ -1,10 +1,19 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, Component, OnDestroy, PLATFORM_ID, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnDestroy,
+  PLATFORM_ID,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { APP_DOWNLOAD_CONFIG } from '@core/config/app-download.config';
 import { AppPlatformService } from '@core/services/app-platform.service';
 import { HapticsService } from '@core/services/haptics.service';
+import { ConsentService } from '@core/services/consent.service';
 
 @Component({
   selector: 'app-download-prompt',
@@ -17,6 +26,7 @@ export class DownloadPrompt implements AfterViewInit, OnDestroy {
   private readonly haptics = inject(HapticsService);
   private readonly document = inject(DOCUMENT);
   private readonly router = inject(Router);
+  private readonly consent = inject(ConsentService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private observer: IntersectionObserver | null = null;
   private routeSubscription: Subscription | null = null;
@@ -34,6 +44,15 @@ export class DownloadPrompt implements AfterViewInit, OnDestroy {
       ? 'Available on App Store and Google Play'
       : 'Coming soon on App Store and Google Play';
   protected readonly ctaLabel = this.external ? 'Download' : 'Learn more';
+
+  constructor() {
+    // Consent first: keep the download nudge suppressed while the cookie banner is up,
+    // and re-evaluate once it's dismissed. Reads the signal to track it reactively.
+    effect(() => {
+      this.consent.bannerVisible();
+      this.updateVisibility();
+    });
+  }
 
   ngAfterViewInit(): void {
     if (!this.isBrowser || typeof globalThis.IntersectionObserver === 'undefined') return;
@@ -90,7 +109,7 @@ export class DownloadPrompt implements AfterViewInit, OnDestroy {
   }
 
   private updateVisibility(): void {
-    this.visible.set(this.heroPassed && !this.footerVisible);
+    this.visible.set(this.heroPassed && !this.footerVisible && !this.consent.bannerVisible());
   }
 
   ngOnDestroy(): void {

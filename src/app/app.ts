@@ -6,10 +6,11 @@ import { filter } from 'rxjs';
 import { Navbar } from './layout/navbar/navbar';
 import { Footer } from './layout/footer/footer';
 import { DownloadPrompt } from './layout/download-prompt/download-prompt';
+import { CookieConsent } from './layout/cookie-consent/cookie-consent';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, Footer, DownloadPrompt],
+  imports: [RouterOutlet, Navbar, Footer, DownloadPrompt, CookieConsent],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

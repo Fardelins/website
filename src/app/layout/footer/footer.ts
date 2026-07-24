@@ -12,6 +12,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NewsletterService } from '@core/services/newsletter.service';
 import { HapticsService } from '@core/services/haptics.service';
+import { ConsentService } from '@core/services/consent.service';
 import { ComponentConfig, ShaderBackground } from '@shared/components/shader-background/shader-background';
 
 // Fog scratch-off: a haze (blur + mist) over the scene. Swiping thins it, and past
@@ -151,6 +152,7 @@ const LOGO_PRESET: ComponentConfig[] = [
 export class Footer implements AfterViewInit, OnDestroy {
   private readonly newsletter = inject(NewsletterService);
   private readonly haptics = inject(HapticsService);
+  private readonly consent = inject(ConsentService);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   protected readonly year = new Date().getFullYear();
@@ -227,6 +229,11 @@ export class Footer implements AfterViewInit, OnDestroy {
     { label: 'Terms', href: '/terms' },
     { label: 'Privacy Policy', href: '/privacy' },
   ];
+
+  protected openCookiePreferences(): void {
+    this.haptics.selection();
+    this.consent.reopen();
+  }
 
   protected async subscribe(event: SubmitEvent, email: string): Promise<void> {
     event.preventDefault();

@@ -285,6 +285,18 @@
   text-decoration: none;
 }
 
+.footer__nav-link--button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.footer__nav-link--button:hover {
+  text-decoration: underline;
+}
+
 .footer__subscribe {
   display: flex;
   flex-direction: column;

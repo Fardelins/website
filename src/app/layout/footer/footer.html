@@ -134,6 +134,13 @@
             @for (link of companyLinks; track link.label) {
               <a class="footer__nav-link" [routerLink]="link.href">{{ link.label }}</a>
             }
+            <button
+              type="button"
+              class="footer__nav-link footer__nav-link--button"
+              (click)="openCookiePreferences()"
+            >
+              Cookie Preferences
+            </button>
           </nav>
 
           <form class="footer__subscribe" (submit)="subscribe($event, newsletterEmail.value)">
