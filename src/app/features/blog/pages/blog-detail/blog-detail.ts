@@ -48,7 +48,11 @@ export class BlogDetail implements OnDestroy {
   protected readonly related = signal<BlogArticle[]>([]);
 
   protected readonly copied = signal(false);
-  protected readonly shareUrl = computed(() => this.article()?.link ?? '');
+  // Share the public site permalink, not the WordPress (CMS) origin the post is fetched from.
+  protected readonly shareUrl = computed(() => {
+    const slug = this.article()?.slug;
+    return slug ? `${SITE_URL}/blogs/${slug}` : '';
+  });
 
   /** Catchy, contextual message pre-filled into share intents (not just the bare title). */
   protected readonly shareText = computed(() => {

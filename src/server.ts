@@ -28,8 +28,8 @@ app.use((_req, res, next) => {
 });
 
 // Reverse-proxy WordPress paths so the app can call them same-origin (no CORS).
-// Set WORDPRESS_ORIGIN when WordPress lives off fardelins.com; mirrors proxy.conf.json.
-const WORDPRESS_ORIGIN = process.env['WORDPRESS_ORIGIN'] ?? 'https://fardelins.com';
+// Override with the WORDPRESS_ORIGIN env var if the CMS moves; mirrors proxy.conf.json.
+const WORDPRESS_ORIGIN = process.env['WORDPRESS_ORIGIN'] ?? 'https://cms.fardelins.com';
 const WP_PROXY_PREFIXES = ['/wp-json', '/wp-admin', '/contact-form-config'];
 const WORDPRESS_JS_GATE_COOKIE = 'hc_js_gate=1';
 

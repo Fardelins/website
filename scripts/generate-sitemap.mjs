@@ -8,7 +8,7 @@ import { dirname, join } from 'node:path';
 // Public origin drives the <loc> URLs; WordPress origin is where posts are fetched
 // from (kept separate so PUBLIC_SITE_URL can point at a host that isn't WordPress).
 const SITE_URL = process.env.PUBLIC_SITE_URL || 'https://fardelins.com';
-const WORDPRESS_ORIGIN = process.env.WORDPRESS_ORIGIN || 'https://fardelins.com';
+const WORDPRESS_ORIGIN = process.env.WORDPRESS_ORIGIN || 'https://cms.fardelins.com';
 const WP_POSTS = `${WORDPRESS_ORIGIN}/wp-json/wp/v2/posts?per_page=100&_fields=slug,modified`;
 const OUT_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'sitemap.xml');
 const ALLOW_STATIC_ONLY = process.env.SITEMAP_ALLOW_STATIC_ONLY === '1';

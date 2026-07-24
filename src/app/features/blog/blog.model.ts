@@ -10,8 +10,6 @@ export interface BlogArticle {
   image: string | null;
   /** Responsive `srcset` from WordPress's sizes (null if none); the template sets static width/height. */
   imageSrcset: string | null;
-  /** Live fardelins.com/wp-admin post URL — cards link straight out to it. */
-  link: string;
 }
 
 export interface BlogCategory {

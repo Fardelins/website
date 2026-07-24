@@ -112,13 +112,15 @@ Set these environment variables in Railway:
 | Variable | Example | Purpose |
 | --- | --- | --- |
 | `NG_ALLOWED_HOSTS` | `fardelins.com,www.fardelins.com` | Allow-list for the SSR host-header check (`*` for local testing only). |
-| `WORDPRESS_ORIGIN` | `https://cms.fardelins.com` | Origin of the headless WordPress backend. Defaults to `https://fardelins.com`. |
+| `WORDPRESS_ORIGIN` | `https://cms.fardelins.com` | Origin of the headless WordPress backend. Defaults to `https://cms.fardelins.com`. |
+| `PUBLIC_SITE_URL` | `https://fardelins.com` | Optional — public origin for canonical/OG URLs and sitemap `<loc>`s. Defaults to `https://fardelins.com`; only set it if the public host differs. |
 
-**WordPress domain:** public blog reads currently call `https://fardelins.com/wp-json` directly.
-Newsletter and contact form requests use same-origin relative paths and the SSR server
-reverse-proxies them to `WORDPRESS_ORIGIN`, avoiding browser CORS issues for POST requests. If
-WordPress later moves to a dedicated origin, update both the public origin in
-`core/config/wordpress.config.ts` and the Railway `WORDPRESS_ORIGIN` variable.
+**Domains:** the public site is `https://fardelins.com`; the headless WordPress CMS lives at
+`https://cms.fardelins.com`. Public blog reads call `https://cms.fardelins.com/wp-json` directly
+(so the CMS must send CORS headers). Newsletter and contact-form requests use same-origin relative
+paths and the SSR server reverse-proxies them to `WORDPRESS_ORIGIN`, avoiding browser CORS issues
+for POST requests. If the CMS origin changes again, update the public origin in
+`core/config/wordpress.config.ts` (browser bundle) **and** the Railway `WORDPRESS_ORIGIN` variable.
 
 ## Run tests
 

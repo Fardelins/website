@@ -13,7 +13,6 @@ const article = {
   title: 'A Delivery Story',
   excerpt: 'How a parcel made it home.',
   image: null,
-  link: 'https://fardelins.com/delivery-story',
   contentHtml: '<p>The full article body.</p>',
   date: 'June 12, 2026',
 };

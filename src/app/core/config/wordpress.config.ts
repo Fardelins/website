@@ -1,9 +1,9 @@
 import { PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
-// Origin of the WordPress backend. If it moves off fardelins.com, change this
-// one value and the reverse-proxy rules in server.ts.
-export const WORDPRESS_ORIGIN = 'https://fardelins.com';
+// Origin of the headless WordPress backend (CMS). This is the browser-bundle
+// constant; keep it in sync with WORDPRESS_ORIGIN in server.ts and proxy.conf.json.
+export const WORDPRESS_ORIGIN = 'https://cms.fardelins.com';
 
 /** Absolute URL for public, CORS-enabled WordPress REST reads. */
 export function wordpressPublicUrl(path: string): string {

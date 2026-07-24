@@ -1,19 +1,19 @@
 {
   "/contact-form-config": {
-    "target": "https://fardelins.com",
+    "target": "https://cms.fardelins.com",
     "secure": true,
     "changeOrigin": true,
     "pathRewrite": { "^/contact-form-config": "/contact/" },
     "logLevel": "warn"
   },
   "/wp-json": {
-    "target": "https://fardelins.com",
+    "target": "https://cms.fardelins.com",
     "secure": true,
     "changeOrigin": true,
     "logLevel": "warn"
   },
   "/wp-admin": {
-    "target": "https://fardelins.com",
+    "target": "https://cms.fardelins.com",
     "secure": true,
     "changeOrigin": true,
     "headers": { "Cookie": "hc_js_gate=1" },
