@@ -90,28 +90,34 @@
   .navbar__nav-link:last-child::after {
   background: var(--color-neutral-white);
 }
-.navbar--features:not(.navbar--scrolled):not(.navbar--menu-open)
+:is(.navbar--features, .navbar--track):not(.navbar--scrolled):not(.navbar--menu-open)
   :is(.navbar__nav-link, .navbar__login) {
   color: var(--color-styles-off-white);
 }
-.navbar--features:not(.navbar--scrolled):not(.navbar--menu-open) .navbar__nav-link::after {
+:is(.navbar--features, .navbar--track):not(.navbar--scrolled):not(.navbar--menu-open)
+  .navbar__nav-link::after {
   background: var(--color-styles-off-white);
 }
-.navbar--features:not(.navbar--scrolled):not(.navbar--menu-open) .navbar__login {
+:is(.navbar--features, .navbar--track):not(.navbar--scrolled):not(.navbar--menu-open)
+  .navbar__login {
   border-color: var(--color-primary-100);
 }
-.navbar--features:not(.navbar--scrolled):not(.navbar--menu-open) .navbar__login:hover {
+:is(.navbar--features, .navbar--track):not(.navbar--scrolled):not(.navbar--menu-open)
+  .navbar__login:hover {
   background: rgb(255 255 255 / 12%);
 }
-.navbar--features:not(.navbar--scrolled):not(.navbar--menu-open) .navbar__btn--solid {
+:is(.navbar--features, .navbar--track):not(.navbar--scrolled):not(.navbar--menu-open)
+  .navbar__btn--solid {
   border-color: var(--color-primary-50);
   color: var(--color-primary-500);
   background: var(--color-primary-50);
 }
-.navbar--features:not(.navbar--scrolled):not(.navbar--menu-open) .navbar__logo {
+:is(.navbar--features, .navbar--track):not(.navbar--scrolled):not(.navbar--menu-open)
+  .navbar__logo {
   width: 192px;
 }
-.navbar--features:not(.navbar--scrolled):not(.navbar--menu-open) .navbar__actions {
+:is(.navbar--features, .navbar--track):not(.navbar--scrolled):not(.navbar--menu-open)
+  .navbar__actions {
   gap: var(--spacing-xl);
 }
 .navbar__actions {
@@ -251,10 +257,12 @@
   .navbar__logo {
     width: clamp(122px, 36vw, 158px);
   }
-  .navbar--features:not(.navbar--scrolled):not(.navbar--menu-open) .navbar__logo {
+  :is(.navbar--features, .navbar--track):not(.navbar--scrolled):not(.navbar--menu-open)
+    .navbar__logo {
     width: clamp(122px, 36vw, 158px);
   }
-  .navbar--features:not(.navbar--scrolled):not(.navbar--menu-open) .navbar__actions {
+  :is(.navbar--features, .navbar--track):not(.navbar--scrolled):not(.navbar--menu-open)
+    .navbar__actions {
     gap: 4px;
   }
   .navbar__actions {

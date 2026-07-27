@@ -23,13 +23,18 @@ export class Navbar {
   protected get isFeaturesPage(): boolean {
     return this.router.url.split(/[?#]/, 1)[0] === '/features';
   }
+  protected get isTrackPage(): boolean {
+    const path = this.router.url.split(/[?#]/, 1)[0];
+    return path === '/track' || path.startsWith('/track/');
+  }
   protected get useLightNavigation(): boolean {
-    return this.isFeaturesPage && !this.isScrolled && !this.isMenuOpen;
+    return (this.isFeaturesPage || this.isTrackPage) && !this.isScrolled && !this.isMenuOpen;
   }
 
   protected readonly navLinks = [
     { label: 'Features', path: '/features', fragment: undefined },
     { label: 'Blogs', path: '/blogs', fragment: undefined },
+    { label: 'Track Order', path: '/track', fragment: undefined },
     { label: 'Contact Us', path: '/contact', fragment: undefined },
   ];
 
