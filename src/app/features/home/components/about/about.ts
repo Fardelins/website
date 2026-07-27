@@ -7,7 +7,10 @@ import {
   HostListener,
   inject,
 } from '@angular/core';
-import { ComponentConfig, ShaderBackground } from '@shared/components/shader-background/shader-background';
+import {
+  ComponentConfig,
+  ShaderBackground,
+} from '@shared/components/shader-background/shader-background';
 import { TiltDirective } from '@shared/directives/tilt.directive';
 import { HapticsService } from '@core/services/haptics.service';
 
@@ -42,7 +45,7 @@ const ASCII_PRESET: ComponentConfig[] = [
   {
     type: 'Ascii',
     props: {
-      characters: 'FARDELINSBAMI.: ',
+      characters: 'BAMI ',
       cellSize: 10,
       fontFamily: 'IBM',
       spacing: 0.72,

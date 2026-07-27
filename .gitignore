@@ -45,6 +45,7 @@ __screenshots__/
 /DEPLOY.md
 /.agents/
 /.claude/
+/skills-lock.json
 
 # System files
 .DS_Store
