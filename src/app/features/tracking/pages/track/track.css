@@ -1,0 +1,881 @@
+:host {
+  display: block;
+}
+
+.track {
+  --done: var(--color-accent-green);
+  --current: var(--color-primary-500);
+
+  color: var(--color-styles-body);
+  background: var(--color-neutral-white);
+}
+
+/* ng-icon: size via font-size, color via currentColor (Lucide strokes). */
+.track ng-icon {
+  display: inline-flex;
+  line-height: 0;
+}
+.track ng-icon svg {
+  width: 1em;
+  height: 1em;
+}
+
+/* ── Hero / search ─────────────────────────────────────────────── */
+.track-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 120px var(--spacing-80) 64px;
+  background: var(--color-neutral-black);
+  overflow: hidden;
+}
+.track-hero__trail {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+/* Darkens the middle so the white headline and search card stay legible when the
+   smoke drifts under them; the trail keeps its full intensity out at the edges. */
+.track-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0.74) 0%,
+    rgba(0, 0, 0, 0.45) 45%,
+    transparent 76%
+  );
+  pointer-events: none;
+}
+/* Same ASCII texture as the home page's About section (FARDELINS-lettered), faded out
+   radially from the centre — our content sits centered rather than scroll-revealed, so
+   the edges carry the texture while the search card stays clean. */
+.track-hero__ascii {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.18;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 25%,
+    rgba(0, 0, 0, 0.6) 55%,
+    #000 85%
+  );
+  mask-image: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 25%,
+    rgba(0, 0, 0, 0.6) 55%,
+    #000 85%
+  );
+}
+.track-hero__inner {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 820px);
+  margin-inline: auto;
+  text-align: center;
+}
+.track-hero h1 {
+  color: var(--color-neutral-white);
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 600;
+  line-height: 1.15;
+}
+.track-hero__subtitle {
+  margin: 18px auto 0;
+  max-width: 46ch;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(17px, 1.8vw, 21px);
+  line-height: 1.5;
+}
+
+.track-search {
+  display: flex;
+  gap: var(--spacing-md);
+  margin: 40px auto 0;
+  max-width: 620px;
+}
+.track-search__field {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+.track-search__icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  pointer-events: none;
+}
+.track-search input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: 16px 44px 16px 48px;
+  color: var(--color-styles-body);
+  background: var(--color-neutral-white);
+  font: 400 16px/1.4 var(--font-body);
+  letter-spacing: 0.01em;
+  outline: none;
+  box-shadow: 0 18px 40px -12px rgba(26, 6, 51, 0.45);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+.track-search input:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+.track-search__clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  color: var(--color-styles-label);
+  background: transparent;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 160ms ease;
+}
+.track-search__clear:hover {
+  color: var(--color-primary-500);
+}
+.track-search__submit {
+  flex: 0 0 auto;
+  padding: 0 28px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  color: var(--color-neutral-white);
+  background: var(--color-primary-500);
+  font: 600 15px/1 var(--font-body);
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+.track-search__submit:hover:not(:disabled) {
+  background: var(--color-primary-600);
+}
+.track-search__submit:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+/* ── Body ──────────────────────────────────────────────────────── */
+.track-body {
+  padding: 40px var(--spacing-80) 96px;
+}
+.track-body__inner {
+  width: min(100%, 1120px);
+  margin-inline: auto;
+}
+
+.result {
+  max-width: 720px;
+  margin-inline: auto;
+}
+.panel {
+  border: 1px solid var(--color-styles-stroke);
+  border-radius: var(--radius-2xl);
+  background: var(--color-neutral-white);
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0;
+  transition: opacity 200ms ease;
+}
+.stack.is-busy {
+  opacity: 0.7;
+}
+.panel--head,
+.panel--meta,
+.panel--status,
+.panel--timeline {
+  padding: clamp(16px, 2.2vw, 24px);
+}
+.panel--head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.rhead__id {
+  min-width: 0;
+}
+.rhead__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-styles-label);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.rhead__code {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.ship-code {
+  color: var(--color-styles-title);
+  font-size: clamp(17px, 1.8vw, 22px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+}
+
+.copy {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-styles-label);
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    background 180ms ease;
+}
+.copy:hover {
+  color: var(--current);
+  background: var(--color-primary-50);
+}
+.copy--active {
+  color: var(--done);
+}
+.copy--active:hover {
+  color: var(--done);
+  background: #e7faf0;
+}
+/* Two icons stacked in place; toggling --active crossfades copy → check. */
+.copy__icons {
+  position: relative;
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+.copy__icon {
+  position: absolute;
+  inset: 0;
+  font-size: 18px;
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.copy__icon--check {
+  opacity: 0;
+  transform: scale(0.5);
+}
+.copy--active .copy__icon--copy {
+  opacity: 0;
+  transform: scale(0.5);
+}
+.copy--active .copy__icon--check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.refresh {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-100);
+  background: var(--color-neutral-white);
+  color: var(--color-styles-title);
+  font: 600 13px/1 var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease;
+}
+.refresh:hover:not(:disabled) {
+  border-color: var(--current);
+  color: var(--current);
+}
+.refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.refresh__icon {
+  font-size: 15px;
+}
+
+.sec-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.sec-head__title {
+  color: var(--color-styles-title);
+  font-size: 15px;
+  font-weight: 600;
+}
+.route {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-styles-body);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.route ng-icon {
+  font-size: 15px;
+  color: var(--color-primary-500);
+}
+.route__arrow {
+  color: var(--color-styles-label);
+}
+
+.panel--meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-md);
+}
+.glance__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+/* Background/shape already baked into the icon artwork — just size it. */
+.glance__icon {
+  display: block;
+  flex: none;
+  font-size: 36px;
+}
+.glance__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.glance__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-styles-label);
+  font-size: 12px;
+}
+.glance__value {
+  color: var(--color-styles-title);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headline {
+  margin: 20px 0 0;
+  color: var(--color-styles-title);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+/* Phase stepper */
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.step {
+  min-width: 0;
+}
+.step__bar {
+  display: block;
+  height: 6px;
+  border-radius: var(--radius-100);
+  background: var(--color-styles-stroke);
+  overflow: hidden;
+}
+.step__fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-100);
+  background: var(--current);
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: background-color 400ms ease;
+}
+.step--done .step__fill {
+  background: var(--done);
+}
+.step__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.step__icon {
+  font-size: 18px;
+  flex: none;
+  color: var(--color-4);
+}
+.step--done .step__icon {
+  color: var(--done);
+}
+.step--current .step__icon {
+  color: var(--current);
+}
+.step__label {
+  color: var(--color-styles-label);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  min-width: 0;
+}
+.step--done .step__label {
+  color: var(--color-styles-title);
+}
+.step--current .step__label {
+  color: var(--current);
+  font-weight: 600;
+}
+
+.spin {
+  animation: track-spin 0.9s linear infinite;
+}
+@keyframes track-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Timeline accordion */
+.timeline-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-styles-title);
+  font: 600 15px/1.2 var(--font-body);
+  cursor: pointer;
+}
+.timeline-title__chev {
+  font-size: 18px;
+  color: var(--color-styles-label);
+  transition: transform 260ms ease;
+}
+.timeline-title__chev.open {
+  transform: rotate(180deg);
+}
+/* grid-rows 0fr→1fr gives a height animation without a fixed max-height. */
+.timeline-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms ease;
+}
+.timeline-wrap.open {
+  grid-template-rows: 1fr;
+}
+.timeline-clip {
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Timeline. Inline padding gives the node's pulse halo room inside the accordion clip. */
+.timeline {
+  margin: 0;
+  padding: 18px 12px 2px;
+  list-style: none;
+}
+.event {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 14px;
+  padding-bottom: 22px;
+}
+.event:last-child {
+  padding-bottom: 0;
+}
+.event::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 18px;
+  bottom: -4px;
+  width: 2px;
+  background: var(--done);
+}
+.event:last-child::before {
+  display: none;
+}
+.event__node {
+  width: 12px;
+  height: 12px;
+  margin-top: 3px;
+  justify-self: center; /* center the 12px dot in the 18px column so it sits on the 9px line */
+  border-radius: 50%;
+  border: 2px solid var(--done);
+  background: var(--done);
+  z-index: 1;
+}
+/* Current (mid-journey) node: purple, flashing halo. */
+.event--current .event__node {
+  border-color: var(--current);
+  background: var(--current);
+  animation: node-pulse-current 1.6s ease-out infinite;
+}
+@keyframes node-pulse-current {
+  0% {
+    box-shadow: 0 0 0 0 rgba(82, 28, 153, 0.45); /* --color-primary-500 */
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 9px rgba(82, 28, 153, 0);
+  }
+}
+.event__desc {
+  color: var(--color-styles-title);
+  font-size: 15px;
+  font-weight: 600;
+}
+.event__tag {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: var(--radius-100);
+  color: var(--current);
+  background: rgba(82, 28, 153, 0.1); /* --color-primary-500 @ 10% */
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  animation: badge-pop 480ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.event__status {
+  margin-top: 2px;
+  color: var(--color-styles-label);
+  font-size: 13px;
+}
+.event__time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  color: var(--color-styles-label);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ── Help CTA ──────────────────────────────────────────────────── */
+.help {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-xl);
+  padding: 24px clamp(20px, 3vw, 32px);
+  border-radius: var(--radius-2xl);
+  background: var(--color-primary-50);
+}
+.help__text h3 {
+  color: var(--color-styles-title);
+  font-size: 18px;
+  font-weight: 600;
+}
+.help__text p {
+  margin-top: 4px;
+  color: var(--color-styles-body);
+  font-size: 14px;
+}
+.help__btn {
+  flex: none;
+  padding: 13px 26px;
+  border-radius: var(--radius-100);
+  color: var(--color-neutral-white);
+  background: var(--color-primary-500);
+  font: 600 14px/1 var(--font-body);
+  text-decoration: none;
+  transition: background 180ms ease;
+}
+.help__btn:hover {
+  background: var(--color-primary-600);
+}
+
+/* ── Toast ─────────────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: var(--radius-100);
+  color: var(--color-neutral-white);
+  background: var(--color-accent-charcoal);
+  font: 600 14px/1 var(--font-body);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.4);
+  z-index: 60;
+  animation: toast-in 280ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.toast ng-icon {
+  font-size: 17px;
+  color: var(--color-accent-green);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translate(-50%, 12px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+@keyframes badge-pop {
+  from {
+    opacity: 0;
+    transform: translate(-6px, 4px) scale(0.4) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotate(0);
+  }
+}
+@keyframes state-shake {
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-4px);
+  }
+  40%,
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+/* ── States ────────────────────────────────────────────────────── */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 80px 24px;
+  text-align: center;
+}
+.state--shake {
+  animation: state-shake 500ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+.state h2 {
+  color: var(--color-styles-title);
+  font-size: 22px;
+  font-weight: 600;
+}
+.state p {
+  max-width: 42ch;
+  color: var(--color-styles-label);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.state strong {
+  color: var(--color-styles-title);
+  font-variant-numeric: tabular-nums;
+}
+.state__btn {
+  margin-top: 10px;
+  padding: 12px 28px;
+  border: 0;
+  border-radius: var(--radius-100);
+  color: var(--color-neutral-white);
+  background: var(--color-primary-500);
+  font: 600 14px/1 var(--font-body);
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+.state__btn:hover {
+  background: var(--color-primary-600);
+}
+.state__btn--ghost {
+  color: var(--color-primary-500);
+  background: transparent;
+  border: 1px solid var(--color-border-input);
+}
+.state__btn--ghost:hover {
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+/* ── Loading skeleton ──────────────────────────────────────────── */
+.skeleton {
+  border: 1px solid var(--color-styles-stroke);
+  border-radius: var(--radius-2xl);
+  padding: clamp(20px, 3vw, 32px);
+}
+.skeleton__head {
+  width: 240px;
+  max-width: 70%;
+  height: 30px;
+  border-radius: var(--radius-md);
+}
+.skeleton__bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 28px;
+}
+.skeleton__bars span {
+  height: 6px;
+  border-radius: var(--radius-100);
+}
+.skeleton__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 36px;
+}
+.skeleton__rows span {
+  height: 40px;
+  border-radius: var(--radius-md);
+}
+.skeleton__head,
+.skeleton__bars span,
+.skeleton__rows span {
+  background: linear-gradient(
+    100deg,
+    var(--color-styles-off-white) 30%,
+    #eef0f2 50%,
+    var(--color-styles-off-white) 70%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .track-hero,
+  .track-body {
+    padding-inline: var(--spacing-60);
+  }
+}
+@media (max-width: 900px) {
+  .track-hero,
+  .track-body {
+    padding-inline: 24px;
+  }
+  .help {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+@media (max-width: 640px) {
+  .track-hero {
+    padding: 132px 16px 72px;
+  }
+  .track-body {
+    padding: 28px 16px 64px;
+  }
+  .track-search {
+    flex-direction: column;
+  }
+  .track-search__submit {
+    padding: 15px;
+  }
+  .refresh {
+    padding: 8px 12px;
+  }
+  .panel--meta {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .route {
+    flex-wrap: wrap;
+  }
+  .step__label {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track-search input,
+  .track-search__submit,
+  .track-search__clear,
+  .help__btn,
+  .state__btn,
+  .refresh,
+  .copy,
+  .copy__icon,
+  .panel--live,
+  .step__fill,
+  .timeline-title__chev,
+  .timeline-wrap {
+    transition: none;
+  }
+  .spin,
+  .toast,
+  .event--current .event__node,
+  .event__tag,
+  .state--shake {
+    animation: none;
+  }
+  .skeleton__head,
+  .skeleton__bars span,
+  .skeleton__rows span {
+    animation: none;
+  }
+}

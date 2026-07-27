@@ -1,0 +1,262 @@
+<div class="track">
+  <section class="track-hero hero">
+    <app-shader-background class="track-hero__trail" [preset]="heroTrailPreset" />
+    <app-shader-background class="track-hero__ascii" [preset]="heroAsciiPreset" />
+    <div class="track-hero__inner">
+      <h1>Where's my parcel?</h1>
+      <p class="track-hero__subtitle">
+        Enter your tracking number for a live view of your delivery.
+      </p>
+
+      <form class="track-search" role="search" (submit)="$event.preventDefault(); submit()">
+        <div class="track-search__field">
+          <ng-icon class="track-search__icon" name="trackPackage" aria-hidden="true" />
+          <input
+            #idInput
+            type="text"
+            inputmode="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="e.g. FDL-1428746982311"
+            aria-label="Tracking number"
+            [value]="query()"
+            (input)="query.set(idInput.value)"
+          />
+          @if (query()) {
+            <button
+              type="button"
+              class="track-search__clear"
+              aria-label="Clear tracking number"
+              (click)="clear(); idInput.value = ''"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M18 6 6 18M6 6l12 12"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          }
+        </div>
+        <button type="submit" class="track-search__submit" [disabled]="loading()">
+          {{ loading() ? 'Tracking…' : 'Track order' }}
+        </button>
+      </form>
+    </div>
+  </section>
+
+  @if (hasContent()) {
+    <section class="track-body" #resultsTop>
+      <div class="track-body__inner">
+        @if (loading() && !result()) {
+          <div class="skeleton" aria-hidden="true">
+            <div class="skeleton__head"></div>
+            <div class="skeleton__bars"><span></span><span></span><span></span><span></span></div>
+            <div class="skeleton__rows"><span></span><span></span><span></span><span></span></div>
+          </div>
+        } @else if (error()) {
+          <div class="state state--shake" role="alert">
+            <h2>Something went wrong</h2>
+            <p>We couldn’t reach the tracking service. Check your connection and try again.</p>
+            <button type="button" class="state__btn" (click)="retry()">Try again</button>
+          </div>
+        } @else if (notFound()) {
+          <div class="state">
+            <h2>No parcel found</h2>
+            <p>
+              We couldn’t find a shipment for <strong>{{ query() }}</strong
+              >. Take another look at the number (capital letters matter) and give it another go.
+            </p>
+            <button type="button" class="state__btn state__btn--ghost" (click)="clear()">
+              Try another number
+            </button>
+          </div>
+        } @else if (result(); as r) {
+          <div class="result">
+            <div class="stack" [class.is-busy]="loading()">
+              <section class="panel panel--head">
+                <div class="rhead__id">
+                  <span class="rhead__eyebrow">Results for</span>
+                  <div class="rhead__code">
+                    <span class="ship-code">{{ r.trackingId }}</span>
+                    <button
+                      type="button"
+                      class="copy"
+                      [class.copy--active]="copied()"
+                      (click)="copy()"
+                      [attr.aria-label]="
+                        copied() ? 'Tracking number copied' : 'Copy tracking number'
+                      "
+                    >
+                      <span class="copy__icons">
+                        <ng-icon
+                          class="copy__icon copy__icon--copy"
+                          name="lucideCopy"
+                          aria-hidden="true"
+                        />
+                        <ng-icon
+                          class="copy__icon copy__icon--check"
+                          name="lucideCheck"
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                <button type="button" class="refresh" (click)="refresh()" [disabled]="loading()">
+                  <ng-icon
+                    class="refresh__icon"
+                    [class.spin]="loading()"
+                    name="lucideRefreshCw"
+                    aria-hidden="true"
+                  />
+                  Refresh
+                </button>
+              </section>
+
+              <section class="panel panel--meta">
+                <div class="glance__item">
+                  <ng-icon class="glance__icon" name="trackDate" aria-hidden="true" />
+                  <div class="glance__text">
+                    <span class="glance__label">Estimated delivery</span>
+                    <span class="glance__value">Tomorrow, by 8:00 PM</span>
+                  </div>
+                </div>
+                <div class="glance__item">
+                  <ng-icon class="glance__icon" name="trackItems" aria-hidden="true" />
+                  <div class="glance__text">
+                    <span class="glance__label">Shipment items</span>
+                    <span class="glance__value">3 items</span>
+                  </div>
+                </div>
+                @if (fetchedLabel()) {
+                  <div class="glance__item">
+                    <ng-icon class="glance__icon" name="trackTime" aria-hidden="true" />
+                    <div class="glance__text">
+                      <span class="glance__label">Last updated</span>
+                      <span class="glance__value">{{ fetchedLabel() }}</span>
+                    </div>
+                  </div>
+                }
+              </section>
+
+              <section class="panel panel--status">
+                <header class="sec-head">
+                  <h3 class="sec-head__title">Delivery status</h3>
+                  <div class="route">
+                    <ng-icon name="lucideMapPin" aria-hidden="true" />
+                    <span>Lekki, LG</span>
+                    <span class="route__arrow" aria-hidden="true">→</span>
+                    <span>Moniya, IB</span>
+                  </div>
+                </header>
+
+                <h2 class="headline" #headlineEl aria-live="polite">{{ headlineText() }}</h2>
+
+                <ol class="stepper" aria-label="Delivery progress">
+                  @for (phase of phases; track phase.key; let i = $index) {
+                    <li
+                      class="step"
+                      [class.step--done]="stepDone(i, r)"
+                      [class.step--current]="stepCurrent(i, r)"
+                    >
+                      <span class="step__bar">
+                        <span
+                          #fillEl
+                          class="step__fill"
+                          [style.transform]="'scaleX(' + barScales()[i] + ')'"
+                        ></span>
+                      </span>
+                      <span class="step__row">
+                        @if (stepDone(i, r)) {
+                          <ng-icon class="step__icon" name="lucideCircleCheck" aria-hidden="true" />
+                        } @else if (stepCurrent(i, r)) {
+                          <ng-icon
+                            class="step__icon spin"
+                            name="lucideLoaderCircle"
+                            aria-hidden="true"
+                          />
+                        } @else {
+                          <ng-icon
+                            class="step__icon"
+                            name="lucideCircleDashed"
+                            aria-hidden="true"
+                          />
+                        }
+                        <span class="step__label">{{ phase.label }}</span>
+                      </span>
+                    </li>
+                  }
+                </ol>
+              </section>
+
+              <section class="panel panel--timeline">
+                <button
+                  type="button"
+                  class="timeline-title"
+                  [attr.aria-expanded]="timelineOpen()"
+                  aria-controls="shipment-timeline"
+                  (click)="toggleTimeline()"
+                >
+                  <span>Tracking timeline</span>
+                  <ng-icon
+                    class="timeline-title__chev"
+                    [class.open]="timelineOpen()"
+                    name="lucideChevronDown"
+                    aria-hidden="true"
+                  />
+                </button>
+                <div class="timeline-wrap" [class.open]="timelineOpen()">
+                  <div class="timeline-clip">
+                    <ol id="shipment-timeline" class="timeline">
+                      @for (event of r.events; track event.id; let first = $first) {
+                        <li class="event" [class.event--current]="first && !r.delivered">
+                          <span class="event__node"></span>
+                          <div class="event__body">
+                            <p class="event__desc">
+                              {{ event.description }}
+                              @if (first && !r.delivered) {
+                                <span class="event__tag">Current</span>
+                              }
+                            </p>
+                            <p class="event__status">
+                              {{ event.statusLabel }}
+                              @if (event.location) {
+                                · {{ event.location }}
+                              }
+                            </p>
+                          </div>
+                          <time class="event__time">
+                            <span>{{ event.dateLabel }}</span>
+                            <span>{{ event.timeLabel }}</span>
+                          </time>
+                        </li>
+                      }
+                    </ol>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <div class="help">
+            <div class="help__text">
+              <h3>Need help with your delivery?</h3>
+              <p>If something looks off or your parcel is delayed, our support team can help.</p>
+            </div>
+            <a class="help__btn" routerLink="/contact">Contact support</a>
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  @if (toast()) {
+    <div class="toast" role="status">
+      <ng-icon name="lucideCircleCheck" aria-hidden="true" />
+      {{ toast() }}
+    </div>
+  }
+</div>

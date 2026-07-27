@@ -12,6 +12,12 @@
     "changeOrigin": true,
     "logLevel": "warn"
   },
+  "/v1": {
+    "target": "https://staging.fardelins.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "warn"
+  },
   "/wp-admin": {
     "target": "https://cms.fardelins.com",
     "secure": true,

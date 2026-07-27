@@ -83,6 +83,45 @@ app.use((req, res, next) => {
   req.on('error', next);
 });
 
+// Reverse-proxy the logistics API so the browser calls tracking reads same-origin
+// (no CORS). Override with TRACKING_API_ORIGIN if the API host moves; mirrors
+// TRACKING_API_ORIGIN in tracking.config.ts and the /v1 entry in proxy.conf.json.
+const TRACKING_API_ORIGIN = process.env['TRACKING_API_ORIGIN'] ?? 'https://staging.fardelins.com';
+
+app.use((req, res, next) => {
+  if (req.path !== '/v1' && !req.path.startsWith('/v1/')) return next();
+
+  const chunks: Buffer[] = [];
+  req.on('data', (chunk) => chunks.push(chunk as Buffer));
+  req.on('end', () => {
+    const headers = new Headers();
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (value === undefined || ['host', 'connection', 'content-length'].includes(key)) continue;
+      headers.set(key, Array.isArray(value) ? value.join(', ') : value);
+    }
+
+    const hasBody = !['GET', 'HEAD'].includes(req.method);
+    fetch(`${TRACKING_API_ORIGIN}${req.originalUrl}`, {
+      method: req.method,
+      headers,
+      body: hasBody && chunks.length ? Buffer.concat(chunks) : undefined,
+    })
+      .then(async (upstream) => {
+        res.status(upstream.status);
+        upstream.headers.forEach((value, key) => {
+          if (
+            !['content-encoding', 'transfer-encoding', 'connection', 'content-length'].includes(key)
+          ) {
+            res.setHeader(key, value);
+          }
+        });
+        res.send(Buffer.from(await upstream.arrayBuffer()));
+      })
+      .catch(next);
+  });
+  req.on('error', next);
+});
+
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 const ONE_DAY_SECONDS = 60 * 60 * 24;
 

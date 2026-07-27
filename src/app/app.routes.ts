@@ -37,6 +37,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/download/download').then(({ Download }) => Download),
   },
   {
+    path: 'track',
+    loadComponent: () => import('./features/tracking/pages/track/track').then(({ Track }) => Track),
+  },
+  {
+    path: 'track/:trackingId',
+    loadComponent: () => import('./features/tracking/pages/track/track').then(({ Track }) => Track),
+  },
+  {
     path: '404',
     loadComponent: () => import('./features/not-found/not-found').then(({ NotFound }) => NotFound),
   },
