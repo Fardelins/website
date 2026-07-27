@@ -1,4 +1,4 @@
-<div class="track">
+<div class="track" [class.track--results]="hasContent()">
   <section class="track-hero hero">
     <app-shader-background class="track-hero__trail" [preset]="heroTrailPreset" />
     <app-shader-background class="track-hero__ascii" [preset]="heroAsciiPreset" />
@@ -121,7 +121,7 @@
                   <ng-icon class="glance__icon" name="trackDate" aria-hidden="true" />
                   <div class="glance__text">
                     <span class="glance__label">Estimated delivery</span>
-                    <span class="glance__value">Tomorrow, by 8:00 PM</span>
+                    <span class="glance__value">N/A</span>
                   </div>
                 </div>
                 <div class="glance__item">
@@ -145,12 +145,6 @@
               <section class="panel panel--status">
                 <header class="sec-head">
                   <h3 class="sec-head__title">Delivery status</h3>
-                  <div class="route">
-                    <ng-icon name="lucideMapPin" aria-hidden="true" />
-                    <span>Lekki, LG</span>
-                    <span class="route__arrow" aria-hidden="true">→</span>
-                    <span>Moniya, IB</span>
-                  </div>
                 </header>
 
                 <h2 class="headline" #headlineEl aria-live="polite">{{ headlineText() }}</h2>

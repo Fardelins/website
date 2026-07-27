@@ -20,7 +20,6 @@ import {
   lucideCircleDashed,
   lucideCopy,
   lucideLoaderCircle,
-  lucideMapPin,
   lucideRefreshCw,
 } from '@ng-icons/lucide';
 import { TextMorph } from 'torph';
@@ -98,7 +97,6 @@ const HERO_ASCII_PRESET: ComponentConfig[] = [
       lucideCheck,
       lucideRefreshCw,
       lucideChevronDown,
-      lucideMapPin,
       trackPackage,
       trackDate,
       trackItems,
@@ -151,6 +149,11 @@ export class Track {
     () => this.loading() || this.error() || this.notFound() || this.result() !== null,
   );
 
+  /** Excludes the (much shorter) loading skeleton — scrolling against it overshoots. */
+  protected readonly hasSettledContent = computed(
+    () => this.error() || this.notFound() || this.result() !== null,
+  );
+
   private readonly fetchedAt = signal<Date | null>(null);
   protected readonly fetchedLabel = computed(() => {
     const date = this.fetchedAt();
@@ -178,7 +181,7 @@ export class Track {
     // The hero fills the viewport, so a fresh search needs a nudge to reveal
     // what just loaded underneath it.
     effect(() => {
-      const showing = this.hasContent();
+      const showing = this.hasSettledContent();
       if (showing && !this.wasShowingResults && this.isBrowser) {
         requestAnimationFrame(() => {
           const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
