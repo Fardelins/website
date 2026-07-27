@@ -1,134 +1,215 @@
 # Fardelins
 
-Fardelins is a modern Angular application for the brand at <https://fardelins.com/>. The site
-showcases the company’s logistics-focused offering through a polished marketing experience —
-hero, audience, features, company story, delivery journey, contact, a WordPress-backed blog,
-an app-download page, and legal pages.
+The production website for [Fardelins](https://fardelins.com), a logistics platform built for
+customers, merchants, couriers, and dispatch teams.
 
-## Overview
+This repository contains the public marketing experience, live shipment tracking, a
+WordPress-powered blog, contact and newsletter integrations, app-download pages, and legal
+content. It is built as an Angular server-rendered application and deployed to Railway as a
+Dockerized Node service.
 
-The app is **server-side rendered (Angular SSR)**. Marketing and legal routes are prerendered
-to static HTML at build time; the blog is rendered on the server per request so crawlers and
-social scrapers receive real content and per-article metadata in the initial HTML.
+## Highlights
 
-Routes:
+- Public shipment tracking with a real-time status timeline
+- Marketing pages for Fardelins products and audiences
+- Headless WordPress blog with article metadata and social previews
+- Contact and newsletter forms routed through the SSR server
+- Server-rendered SEO metadata, canonical URLs, Open Graph tags, and JSON-LD
+- Progressive Web App support with an Angular service worker
+- Responsive motion, haptics, 3D tilt, and a lazy-loaded WebGPU background
+- Self-hosted fonts and optimized WebP/AVIF assets
 
-- Home
-- Features (`/features`)
-- Blog listing (`/blogs`) and articles (`/blogs/:slug`)
-- Contact
-- Download
-- Terms of service
-- Privacy policy
+## Routes
 
-The blog content is pulled live from a **headless WordPress** backend via its REST API — posts,
-categories, featured images, and article bodies are fetched and normalized at runtime.
+| Route                | Purpose                                |
+| -------------------- | -------------------------------------- |
+| `/`                  | Marketing home page                    |
+| `/features`          | Product and logistics feature overview |
+| `/track`             | Shipment tracking form                 |
+| `/track/:trackingId` | Direct link to a shipment timeline     |
+| `/blogs`             | Published article listing              |
+| `/blogs/:slug`       | Server-rendered blog article           |
+| `/contact`           | Contact form and support information   |
+| `/download`          | Mobile app download page               |
+| `/terms`             | Terms of service                       |
+| `/privacy`           | Privacy policy                         |
 
-## Tech stack
+Unknown routes render the custom not-found page.
 
-- Angular 22 (standalone components, signals) with **Angular SSR** (`@angular/ssr`, Express)
-- TypeScript, RxJS; gzip/brotli response `compression` on the SSR server
-- Headless WordPress REST API (blog + contact form) and Mailchimp via admin-ajax (newsletter)
-- PWA: service worker (`@angular/service-worker`, `ngsw-config.json`)
-- WebGPU hero background (Three.js via `shaders`, lazy-loaded); 3D tilt + `web-haptics` micro-interactions
-- Self-hosted `woff2` fonts (`public/fonts`, `@font-face` in `src/styles.css`)
-- `sharp` build-time image optimization (WebP), Vitest for unit tests
+## How the application works
+
+The application uses Angular SSR with an Express server:
+
+- The home, marketing, legal, contact, download, and tracking experiences are delivered through
+  the Angular application.
+- Static routes are prerendered during the production build.
+- Blog pages are rendered on demand so crawlers and link previews receive article content and
+  metadata in the initial HTML.
+- Express serves the built application, applies security and cache headers, and proxies requests
+  that should remain same-origin in the browser.
+
+### External request flow
+
+```text
+Public blog reads
+Browser ──> cms.fardelins.com/wp-json/*
+
+Contact and newsletter requests
+Browser ──> fardelins.com/wp-admin/* or form path
+        └──> Express SSR proxy ──> WORDPRESS_ORIGIN
+
+Public shipment tracking
+Browser ──> fardelins.com/v1/*
+        └──> Express SSR proxy ──> TRACKING_API_ORIGIN
+```
+
+The same-origin proxies avoid browser CORS failures. Before calling another Cloudflare-backed
+origin, the Express server removes Cloudflare, Railway, and forwarded routing headers. Relaying
+headers such as `CF-Connecting-IP` from an intermediary can cause Cloudflare Error 1000.
+
+## Technology
+
+- Angular 22 with standalone components, signals, lazy routes, and Angular SSR
+- TypeScript 6 and RxJS
+- Express 5 with response compression and reverse proxies
+- Headless WordPress REST API
+- Angular service worker for PWA behavior
+- Vitest through Angular's unit-test builder
+- `sharp` for build-time image optimization
+- `shaders`, Motion, and `web-haptics` for interactive presentation
+- Docker and Railway for production deployment
 
 ## Project structure
 
-The app follows a **feature-based** layout: each domain owns its pages, components, and any
-feature-local data layer, while cross-cutting code lives in dedicated buckets.
+```text
+src/
+├── app/
+│   ├── core/       App-wide configuration and singleton services
+│   ├── features/   Home, features, tracking, blog, contact, download, and legal domains
+│   ├── layout/     Navbar, footer, consent banner, and app-download prompt
+│   └── shared/     Reusable components and directives
+├── server.ts       Express SSR server, static delivery, headers, and upstream proxies
+└── styles.css      Global styles, tokens, and self-hosted font declarations
 
-- `src/app/core` — app-wide singletons: `core/services` (blog, newsletter, SEO, haptics, contact
-  form, platform) and `core/config` (WordPress origin, app-download links)
-- `src/app/shared` — cross-feature reusables: `shared/components` (card, faq-accordion,
-  shader-background, store-badges, hero-liquid-background) and `shared/directives` (3D tilt)
-- `src/app/layout` — app-shell chrome rendered around every route (navbar, footer, download-prompt)
-- `src/app/features` — one folder per domain (`home`, `blog`, `legal`, `contact`, `download`,
-  `features-page`, `not-found`); a feature holds its own `pages`/`components` plus any feature-local
-  model + service (e.g. `features/blog/blog.service.ts`)
-- `public` — static assets: images, icons, `robots.txt`, `sitemap.xml`, `og-image.png`
-- `src/server.ts` — Express SSR entry (also reverse-proxies WordPress paths)
-- `scripts` — build helpers: `generate-sitemap.mjs`, `optimize-images.mjs`, `selfhost-fonts.mjs`
-- `railway.json` + `Dockerfile` — Railway deploy config (`npm run build` → SSR server)
+public/             Static images, fonts, icons, manifest, robots.txt, and sitemap.xml
+scripts/            Sitemap, font, and image build utilities
+Dockerfile          Multi-stage production image
+railway.json        Railway build and runtime configuration
+proxy.conf.json     Local-development proxy configuration
+```
 
-**Path aliases** (`tsconfig.json`): cross-bucket imports use `@core/*`, `@shared/*`, and
-`@features/*` instead of deep relative paths; imports within a feature stay relative.
+Cross-domain imports use the aliases `@core/*`, `@features/*`, and `@shared/*`. Imports within a
+feature generally remain relative.
 
-## Getting started
+## Local development
 
-1. Install dependencies (a repo `.npmrc` sets `legacy-peer-deps`):
+### Prerequisites
 
-   ```bash
-   npm install
-   ```
+- Node.js `>=22.22.3 <23`
+- npm 10
 
-2. Start the dev server (proxies `/wp-json` and `/wp-admin` to WordPress):
+The repository's `.npmrc` enables legacy peer-dependency resolution.
 
-   ```bash
-   npm start
-   ```
+### Install and start
 
-3. Open <http://localhost:4200/>. The app reloads on change.
+```bash
+npm install
+npm start
+```
 
-## Build for production
+Open <http://localhost:4200>. The development server reloads when source files change and uses
+`proxy.conf.json` for WordPress, form, newsletter, and tracking API requests.
+
+## Available commands
+
+| Command                           | Purpose                                                                         |
+| --------------------------------- | ------------------------------------------------------------------------------- |
+| `npm start`                       | Start the Angular development server with local proxies                         |
+| `npm run build`                   | Generate the sitemap, build browser/server bundles, and prerender static routes |
+| `npm run serve:ssr:fardelins-app` | Run the built Express SSR server                                                |
+| `npm run test`                    | Run unit tests in watch mode                                                    |
+| `npm run test:ci`                 | Run unit tests once                                                             |
+| `npm run lint`                    | Check TypeScript, HTML, CSS, and scripts with Prettier                          |
+| `npm run format`                  | Format TypeScript, HTML, CSS, and scripts                                       |
+| `npm run generate:sitemap`        | Regenerate `public/sitemap.xml` from WordPress posts                            |
+| `npm run optimize:images`         | Generate optimized image assets                                                 |
+| `npm run generate:fonts`          | Generate local font assets                                                      |
+
+## Production build
 
 ```bash
 npm run build
+npm run serve:ssr:fardelins-app
 ```
 
-This runs a prebuild step that regenerates `public/sitemap.xml` from WordPress, then produces
-the browser bundle, the server bundle, and prerenders the static routes into `dist/`.
+The build produces browser and server bundles under `dist/fardelins-app`. The SSR server listens
+on `PORT`, defaulting to `4000` when the variable is absent.
 
-## Run the SSR server
+## Deploying to Railway
 
-```bash
-npm run serve:ssr:fardelins-app   # node dist/fardelins-app/server/server.mjs
-```
+Railway builds the multi-stage `Dockerfile` and starts the Angular SSR server. Deploy this
+repository as a Node service, not as a static site.
 
-The server listens on `$PORT` (default 4000).
+### Environment variables
 
-## Server-side rendering & SEO
+| Variable              | Requirement | Recommended value                 | Purpose                                                                   |
+| --------------------- | ----------- | --------------------------------- | ------------------------------------------------------------------------- |
+| `NG_ALLOWED_HOSTS`    | Required    | `fardelins.com,www.fardelins.com` | Allows Angular SSR to accept requests for the production domains          |
+| `WORDPRESS_ORIGIN`    | Recommended | `https://cms.fardelins.com`       | Overrides the WordPress origin used by the runtime SSR proxy              |
+| `TRACKING_API_ORIGIN` | Recommended | `https://staging.fardelins.com`   | Overrides the logistics API origin used by the `/v1` SSR proxy            |
+| `PUBLIC_SITE_URL`     | Optional    | `https://fardelins.com`           | Sets canonical, Open Graph, and sitemap URLs when the public host differs |
 
-- Per-route `<title>`, meta description, canonical, Open Graph, Twitter cards, and JSON-LD are
-  set by `SeoService` and rendered server-side.
-- Structured data: Organization + WebSite (home), Blog (listing), BlogPosting + BreadcrumbList
-  (articles), ContactPage + FAQPage (contact).
-- `public/robots.txt` and `public/sitemap.xml` (regenerate anytime with `npm run generate:sitemap`).
-- `prefers-reduced-motion` is respected across shader, tilt, marquee, and carousel animations.
-- The WebGPU shader background (~360 KB) is skipped on data-saver, slow (2G), and low-memory
-  (<4 GiB) devices; a static gradient fallback renders instead.
+`WORDPRESS_ORIGIN`, `TRACKING_API_ORIGIN`, and `PUBLIC_SITE_URL` should be origins without a
+trailing slash. Do not add an API key for public shipment tracking; the endpoint is intentionally
+public.
 
-## Deployment (Railway)
+The application has safe default origins, but explicitly setting the upstream values in Railway
+makes the active production configuration visible and easier to change.
 
-`railway.json` is configured to build the Docker image and run the **SSR server** — deploy as
-a Node service, not a static site:
+### Domain responsibilities
 
-- Build: `npm run build`
-- Start: `npm run serve:ssr:fardelins-app`
+- `fardelins.com` serves the Angular SSR application.
+- `cms.fardelins.com` serves headless WordPress.
+- `staging.fardelins.com` currently serves the logistics tracking API.
 
-Set these environment variables in Railway:
+If an upstream domain moves, update all environments that reference it:
 
-| Variable | Example | Purpose |
-| --- | --- | --- |
-| `NG_ALLOWED_HOSTS` | `fardelins.com,www.fardelins.com` | Allow-list for the SSR host-header check (`*` for local testing only). |
-| `WORDPRESS_ORIGIN` | `https://cms.fardelins.com` | Origin of the headless WordPress backend. Defaults to `https://cms.fardelins.com`. |
-| `PUBLIC_SITE_URL` | `https://fardelins.com` | Optional — public origin for canonical/OG URLs and sitemap `<loc>`s. Defaults to `https://fardelins.com`; only set it if the public host differs. |
+- WordPress: `WORDPRESS_ORIGIN` in Railway, `src/app/core/config/wordpress.config.ts`, and
+  `proxy.conf.json`.
+- Tracking: `TRACKING_API_ORIGIN` in Railway, `src/app/features/tracking/tracking.config.ts`, and
+  `proxy.conf.json`.
 
-**Domains:** the public site is `https://fardelins.com`; the headless WordPress CMS lives at
-`https://cms.fardelins.com`. Public blog reads call `https://cms.fardelins.com/wp-json` directly
-(so the CMS must send CORS headers). Newsletter and contact-form requests use same-origin relative
-paths and the SSR server reverse-proxies them to `WORDPRESS_ORIGIN`, avoiding browser CORS issues
-for POST requests. If the CMS origin changes again, update the public origin in
-`core/config/wordpress.config.ts` (browser bundle) **and** the Railway `WORDPRESS_ORIGIN` variable.
+## SEO and performance
 
-## Run tests
+- Route-specific titles, descriptions, canonical URLs, Open Graph tags, Twitter cards, and
+  structured data are rendered by `SeoService`.
+- Structured data covers the organization, website, blog, articles, breadcrumbs, contact page,
+  and FAQs.
+- `public/robots.txt` and `public/sitemap.xml` provide crawler discovery.
+- Hashed bundles and media receive long-lived cache headers; HTML and service-worker metadata are
+  revalidated.
+- Reduced-motion, data-saver, slow-network, and low-memory preferences disable expensive visual
+  effects when appropriate.
 
-```bash
-npm test
-```
+## Troubleshooting shipment tracking
+
+The browser calling a URL such as
+`https://fardelins.com/v1/public/track-shipment/FDL-1428746982311` is expected. `/v1` is a
+same-origin route handled by the Express proxy, not the final logistics API host.
+
+If production tracking returns `403 Forbidden`:
+
+1. Inspect the response body, not only the status code.
+2. Confirm Railway has the intended `TRACKING_API_ORIGIN` without a trailing slash.
+3. Call the corresponding upstream URL directly and confirm it returns shipment data.
+4. Check that the deployed `src/server.ts` removes `cf-*`, `x-forwarded-*`, `x-railway-*`,
+   `Forwarded`, and `CDN-Loop` headers before contacting the upstream.
+5. Redeploy Railway after changing server code or environment variables.
+
+A Cloudflare page containing `Error 1000` or “DNS points to prohibited IP” indicates an edge
+routing/proxy-header problem. It does not mean the shipment needs an API key or that the tracking
+number is unauthorized.
 
 ## Contact
 
-For questions or updates related to the project, contact the Fardelins team through the website
-contact page at <https://fardelins.com/contact>.
+For product or support enquiries, use the [Fardelins contact page](https://fardelins.com/contact).

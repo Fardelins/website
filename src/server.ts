@@ -27,6 +27,34 @@ app.use((_req, res, next) => {
   next();
 });
 
+// Never relay edge/proxy routing metadata to another proxied origin. In
+// particular, Cloudflare rejects a CF-Connecting-IP header received from an
+// untrusted intermediary with Error 1000 ("DNS points to prohibited IP").
+function upstreamHeaders(req: express.Request): Headers {
+  const headers = new Headers();
+
+  for (const [key, value] of Object.entries(req.headers)) {
+    const isRoutingHeader =
+      key === 'forwarded' ||
+      key === 'true-client-ip' ||
+      key.startsWith('cf-') ||
+      key.startsWith('x-forwarded-') ||
+      key.startsWith('x-railway-');
+
+    if (
+      value === undefined ||
+      isRoutingHeader ||
+      ['host', 'connection', 'content-length', 'cdn-loop'].includes(key)
+    ) {
+      continue;
+    }
+
+    headers.set(key, Array.isArray(value) ? value.join(', ') : value);
+  }
+
+  return headers;
+}
+
 // Reverse-proxy WordPress paths so the app can call them same-origin (no CORS).
 // Override with the WORDPRESS_ORIGIN env var if the CMS moves; mirrors proxy.conf.json.
 const WORDPRESS_ORIGIN = process.env['WORDPRESS_ORIGIN'] ?? 'https://cms.fardelins.com';
@@ -46,11 +74,7 @@ app.use((req, res, next) => {
   const chunks: Buffer[] = [];
   req.on('data', (chunk) => chunks.push(chunk as Buffer));
   req.on('end', () => {
-    const headers = new Headers();
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (value === undefined || ['host', 'connection', 'content-length'].includes(key)) continue;
-      headers.set(key, Array.isArray(value) ? value.join(', ') : value);
-    }
+    const headers = upstreamHeaders(req);
 
     // wp-admin is behind a JS cookie gate a proxied fetch can't solve; set the
     // gate cookie up front so admin-ajax returns JSON instead of the challenge page.
@@ -94,11 +118,7 @@ app.use((req, res, next) => {
   const chunks: Buffer[] = [];
   req.on('data', (chunk) => chunks.push(chunk as Buffer));
   req.on('end', () => {
-    const headers = new Headers();
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (value === undefined || ['host', 'connection', 'content-length'].includes(key)) continue;
-      headers.set(key, Array.isArray(value) ? value.join(', ') : value);
-    }
+    const headers = upstreamHeaders(req);
 
     const hasBody = !['GET', 'HEAD'].includes(req.method);
     fetch(`${TRACKING_API_ORIGIN}${req.originalUrl}`, {
