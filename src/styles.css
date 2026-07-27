@@ -165,6 +165,12 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Set by the tracking page while empty — see track.ts — so the footer's rounded top
+   corners (which reveal body's own background) show black instead of a white patch. */
+body.track-page--empty {
+  background: var(--color-neutral-black);
+}
+
 /* iOS zooms the viewport when a focused form control renders below 16px. */
 @media (hover: none) and (pointer: coarse) {
   input,

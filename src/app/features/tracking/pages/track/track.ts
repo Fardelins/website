@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   PLATFORM_ID,
   computed,
@@ -9,7 +10,7 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -112,6 +113,7 @@ export class Track {
   private readonly router = inject(Router);
   private readonly seo = inject(SeoService);
   private readonly haptics = inject(HapticsService);
+  private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   private readonly headlineRef = viewChild<ElementRef<HTMLElement>>('headlineEl');
@@ -177,6 +179,18 @@ export class Track {
         void this.load(id);
       }
     });
+
+    // The shared footer's rounded top corners reveal <body>'s own background, which
+    // otherwise stays the site's default white — flip it to match the black hero
+    // while there's no result, so that corner doesn't read as a stray white patch.
+    if (this.isBrowser) {
+      effect(() => {
+        this.document.body.classList.toggle('track-page--empty', !this.hasContent());
+      });
+      inject(DestroyRef).onDestroy(() => {
+        this.document.body.classList.remove('track-page--empty');
+      });
+    }
 
     // The hero fills the viewport, so a fresh search needs a nudge to reveal
     // what just loaded underneath it.
