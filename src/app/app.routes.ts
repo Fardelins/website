@@ -45,6 +45,19 @@ export const routes: Routes = [
     loadComponent: () => import('./features/tracking/pages/track/track').then(({ Track }) => Track),
   },
   {
+    path: 'email-verified',
+    loadComponent: () =>
+      import('./features/email-verified/email-verified').then(
+        ({ EmailVerified }) => EmailVerified,
+      ),
+  },
+  {
+    path: 'email-already-verified',
+    redirectTo: () =>
+      '/email-verified?status=error&message=Email%20already%20verified',
+    pathMatch: 'full',
+  },
+  {
     path: '404',
     loadComponent: () => import('./features/not-found/not-found').then(({ NotFound }) => NotFound),
   },
