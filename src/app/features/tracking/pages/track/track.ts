@@ -180,9 +180,13 @@ export class Track {
       }
     });
 
-    // The shared footer's rounded top corners reveal <body>'s own background, which
-    // otherwise stays the site's default white — flip it to match the black hero
-    // while there's no result, so that corner doesn't read as a stray white patch.
+    // Invoice QR codes link to /track?tracking_id=... — fold into the path form above.
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      const id = params.get('tracking_id');
+      if (id) void this.router.navigate(['/track', id], { replaceUrl: true });
+    });
+
+    // The footer's rounded corners reveal <body>'s bg — keep it black until there's a result.
     if (this.isBrowser) {
       effect(() => {
         this.document.body.classList.toggle('track-page--empty', !this.hasContent());
