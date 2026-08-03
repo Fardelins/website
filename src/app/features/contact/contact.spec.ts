@@ -26,7 +26,7 @@ describe('Contact form', () => {
       company: 'Fardelins',
       email: 'bami@example.com',
       subject: 'Partnership',
-      message: 'Hello team',
+      message: 'Hello team, we would love to talk.',
     };
     Object.entries(values).forEach(([name, value]) => {
       (form.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement).value = value;
@@ -56,9 +56,43 @@ describe('Contact form', () => {
       company: 'Fardelins',
       email: 'bami@example.com',
       subject: 'Partnership',
-      message: 'Hello team',
+      message: 'Hello team, we would love to talk.',
     });
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('message has been sent');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Message sent');
+  });
+
+  // jsdom doesn't implement the minlength/tooShort constraint, so this exercises the
+  // custom-message handler directly rather than through a real too-short form submission.
+  it('sets a custom message for a too-short value', () => {
+    const calls: string[] = [];
+    const el = {
+      validity: { tooShort: true },
+      minLength: 20,
+      value: 'too short',
+      setCustomValidity: (msg: string) => calls.push(msg),
+    } as unknown as HTMLTextAreaElement;
+
+    (
+      fixture.componentInstance as unknown as { setMessageValidity: (el: unknown) => void }
+    ).setMessageValidity(el);
+
+    expect(calls).toEqual(['You need at least 20 characters. Character count: 9.']);
+  });
+
+  it('leaves the message alone once it is long enough', () => {
+    const calls: string[] = [];
+    const el = {
+      validity: { tooShort: false },
+      minLength: 20,
+      value: 'a message that is long enough now',
+      setCustomValidity: (msg: string) => calls.push(msg),
+    } as unknown as HTMLTextAreaElement;
+
+    (
+      fixture.componentInstance as unknown as { setMessageValidity: (el: unknown) => void }
+    ).setMessageValidity(el);
+
+    expect(calls).toEqual([]);
   });
 
   it('preserves entered values and allows retry after failure', async () => {
@@ -68,7 +102,7 @@ describe('Contact form', () => {
     await new Promise((done) => setTimeout(done, 0));
     fixture.detectChanges();
 
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain("couldn't send");
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Message not sent');
     expect((form.elements.namedItem('email') as HTMLInputElement).value).toBe('bami@example.com');
     expect(form.querySelector('button')?.disabled).toBe(false);
   });

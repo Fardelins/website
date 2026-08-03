@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { ContactFormService } from './contact-form.service';
+import { ContactFormService, ContactFormValidationError } from './contact-form.service';
 
 const message = {
   firstName: 'Testboss',
@@ -54,12 +54,25 @@ describe('ContactFormService', () => {
     await pending;
   });
 
-  it('rejects when the API request fails', async () => {
+  it('surfaces a 400 field validation failure as a ContactFormValidationError', async () => {
     const pending = service.send(message);
 
     const req = httpMock.expectOne('/v1/public/contact-us');
-    req.flush({ message: 'Invalid' }, { status: 400, statusText: 'Bad Request' });
+    req.flush(
+      { message: ['email must be an email'], error: 'Bad Request', statusCode: 400 },
+      { status: 400, statusText: 'Bad Request' },
+    );
 
-    await expect(pending).rejects.toBeTruthy();
+    await expect(pending).rejects.toBeInstanceOf(ContactFormValidationError);
+    await expect(pending).rejects.toMatchObject({ issues: ['email must be an email'] });
+  });
+
+  it('rejects a real server failure without treating it as a validation error', async () => {
+    const pending = service.send(message);
+
+    const req = httpMock.expectOne('/v1/public/contact-us');
+    req.flush({ message: 'Internal error' }, { status: 500, statusText: 'Server Error' });
+
+    await expect(pending).rejects.not.toBeInstanceOf(ContactFormValidationError);
   });
 });

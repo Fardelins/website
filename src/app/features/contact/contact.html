@@ -64,24 +64,54 @@
           </div>
           <label
             >Message<textarea
+              #messageInput
               name="message"
               rows="7"
+              minlength="20"
               maxlength="5000"
               placeholder="Tell us how we can help you..."
               required
+              (input)="messageInput.setCustomValidity('')"
+              (invalid)="setMessageValidity(messageInput)"
             ></textarea>
           </label>
           <button type="submit" [disabled]="submissionState() === 'submitting'">
-            {{ submissionState() === 'submitting' ? 'Sending…' : 'Send Message' }}
+            @if (submissionState() !== 'submitting') {
+              Send Message
+            } @else if (hintStage() >= 1) {
+              Still sending…
+            } @else {
+              Sending…
+            }
           </button>
+          @if (hintStage() === 1) {
+            <p class="contact-form__hint">This can take a moment, hang tight.</p>
+          } @else if (hintStage() === 2) {
+            <p class="contact-form__hint">Almost there, finalizing any minute now.</p>
+          }
           <div class="contact-form__status" aria-live="polite">
             @if (submissionState() === 'success') {
-              <p class="contact-form__success">Thanks, your message has been sent to our team.</p>
+              <div class="result result--success">
+                <ng-icon class="result__icon" name="lucideCircleCheck" aria-hidden="true" />
+                <div class="result__text">
+                  <p class="result__title">Message sent</p>
+                  <p class="result__copy">Thanks for reaching out, we'll get back to you soon.</p>
+                </div>
+              </div>
             }
             @if (submissionState() === 'error') {
-              <p class="contact-form__error" role="alert">
-                We couldn't send your message. Please try again.
-              </p>
+              <div class="result result--error" role="alert">
+                <ng-icon class="result__icon" name="lucideCircleAlert" aria-hidden="true" />
+                <div class="result__text">
+                  @if (validationIssues(); as issues) {
+                    <p class="result__title">Check your details</p>
+                    <p class="result__copy">{{ formatIssues(issues) }}</p>
+                  } @else {
+                    <p class="result__title">Message not sent</p>
+                    <p class="result__copy">Something went wrong on our end. Please try again.</p>
+                  }
+                </div>
+              </div>
             }
           </div>
         </form>
