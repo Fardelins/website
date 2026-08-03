@@ -1,28 +1,66 @@
 <main class="email-verified-page" role="main">
-  <div class="email-verified-page__content">
-    <p
-      class="email-verified-page__eyebrow"
-      [class.email-verified-page__eyebrow--error]="!isSuccess()"
-    >
-      {{ isSuccess() ? 'Success' : 'Error' }}
-    </p>
+  @if (isSuccess()) {
+    <div class="email-verified-page__confetti" aria-hidden="true">
+      @for (piece of fallingConfetti; track $index) {
+        <i
+          class="email-verified-page__confetti-piece"
+          [style.left.%]="piece.left"
+          [style.--delay.ms]="piece.delay"
+          [style.--duration.ms]="piece.duration"
+          [style.--drift.px]="piece.drift"
+          [style.--rotation.deg]="piece.rotation"
+          [style.background]="piece.color"
+        ></i>
+      }
+    </div>
+  }
+
+  <div
+    class="email-verified-page__content"
+    [class.email-verified-page__content--shake]="!isSuccess()"
+  >
+    <div class="email-verified-page__badge">
+      @if (isSuccess()) {
+        <span class="email-verified-page__burst" aria-hidden="true">
+          @for (piece of burstConfetti; track $index) {
+            <i
+              class="email-verified-page__burst-piece"
+              [style.--dx.px]="piece.dx"
+              [style.--dy.px]="piece.dy"
+              [style.--rotation.deg]="piece.rotation"
+              [style.--burst-delay.ms]="burstDelayMs"
+              [style.background]="piece.color"
+            ></i>
+          }
+        </span>
+      }
+      <ng-icon
+        class="email-verified-page__icon"
+        [class.email-verified-page__icon--error]="!isSuccess()"
+        [name]="isSuccess() ? 'lucideCircleCheck' : 'lucideCircleAlert'"
+        aria-hidden="true"
+      />
+    </div>
+
     <h1>{{ headline() }}</h1>
     <p class="email-verified-page__description">{{ description() }}</p>
     <div class="email-verified-page__actions">
       @if (isSuccess()) {
         <a
           href="https://courier.fardelins.com/#/auth/login"
-          class="email-verified-page__link"
+          class="email-verified-page__link email-verified-page__link--solid"
           >Sign in</a
         >
-        <a routerLink="/" class="email-verified-page__link email-verified-page__link--secondary"
+        <a routerLink="/" class="email-verified-page__link email-verified-page__link--outline"
           >Go to homepage</a
         >
       } @else {
-        <a routerLink="/" class="email-verified-page__link">Go to homepage</a>
+        <a routerLink="/" class="email-verified-page__link email-verified-page__link--solid"
+          >Go to homepage</a
+        >
         <a
           routerLink="/contact"
-          class="email-verified-page__link email-verified-page__link--secondary"
+          class="email-verified-page__link email-verified-page__link--outline"
           >Contact us</a
         >
       }
