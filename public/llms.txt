@@ -1,0 +1,21 @@
+# Fardelins
+
+> Fardelins connects customers, businesses, dispatchers, and couriers with real-time tracking, smart dispatch, and reliable last-mile delivery.
+
+Fardelins gives businesses a way to request deliveries, dispatchers a live operational view of couriers and orders, and customers real-time visibility into where their delivery is. The product is available on the web and as iOS/Android apps.
+
+## Product
+
+- [Home](https://fardelins.com/): Overview of the Fardelins platform — delivery management and real-time tracking for customers, businesses, dispatchers, and couriers.
+- [Features](https://fardelins.com/features): Live delivery tracking, dispatch operations, courier management, and order fulfillment tools.
+- [Download](https://fardelins.com/download): Get the Fardelins app for iPhone and Android.
+
+## Company
+
+- [Blog](https://fardelins.com/blogs): Guides, industry updates, and insights on delivery, logistics, and courier operations.
+- [Contact](https://fardelins.com/contact): Support, partnerships, and account questions. Typically responds within 24 hours.
+
+## Legal
+
+- [Terms and Conditions](https://fardelins.com/terms): The terms governing access to and use of the Fardelins platform and services.
+- [Privacy Policy](https://fardelins.com/privacy): How Fardelins collects, uses, stores, and protects personal information.
