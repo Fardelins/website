@@ -1,0 +1,31 @@
+<main class="email-verified-page" role="main">
+  <div class="email-verified-page__content">
+    <p
+      class="email-verified-page__eyebrow"
+      [class.email-verified-page__eyebrow--error]="!isSuccess()"
+    >
+      {{ isSuccess() ? 'Success' : 'Error' }}
+    </p>
+    <h1>{{ headline() }}</h1>
+    <p class="email-verified-page__description">{{ description() }}</p>
+    <div class="email-verified-page__actions">
+      @if (isSuccess()) {
+        <a
+          href="https://courier.fardelins.com/#/auth/login"
+          class="email-verified-page__link"
+          >Sign in</a
+        >
+        <a routerLink="/" class="email-verified-page__link email-verified-page__link--secondary"
+          >Go to homepage</a
+        >
+      } @else {
+        <a routerLink="/" class="email-verified-page__link">Go to homepage</a>
+        <a
+          routerLink="/contact"
+          class="email-verified-page__link email-verified-page__link--secondary"
+          >Contact us</a
+        >
+      }
+    </div>
+  </div>
+</main>
