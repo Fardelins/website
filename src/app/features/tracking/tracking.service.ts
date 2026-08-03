@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { firstValueFrom, timeout, type Observable } from 'rxjs';
-import { trackingApiUrl } from './tracking.config';
+import { logisticsApiUrl } from '@core/services/logistics-api.config';
 import {
   TRACKING_PHASES,
   TrackingApiResponse,
@@ -30,7 +30,7 @@ export class TrackingService {
     try {
       response = await this.read(
         this.http.get<TrackingApiResponse>(
-          trackingApiUrl(`/public/track-shipment/${encodeURIComponent(id)}`, this.platformId),
+          logisticsApiUrl(`/public/track-shipment/${encodeURIComponent(id)}`, this.platformId),
         ),
       );
     } catch (error) {
