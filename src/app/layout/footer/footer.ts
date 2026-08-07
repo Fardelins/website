@@ -213,9 +213,10 @@ export class Footer implements AfterViewInit, OnDestroy {
   }
   private logoSpeedCurrent = 1;
   private logoSpeedRafId: number | null = null;
-  protected readonly subscriptionState = signal<'idle' | 'submitting' | 'success' | 'error'>(
-    'idle',
-  );
+  protected readonly subscriptionState = signal<
+    'idle' | 'submitting' | 'success' | 'already_subscribed' | 'error'
+  >('idle');
+  protected readonly subscriptionError = signal('');
 
   protected readonly socialLinks = [
     { label: 'Facebook', href: 'https://web.facebook.com/fardelinsng', icon: 'facebook' },
@@ -245,11 +246,12 @@ export class Footer implements AfterViewInit, OnDestroy {
 
     this.subscriptionState.set('submitting');
     try {
-      await this.newsletter.subscribe(email);
-      this.subscriptionState.set('success');
+      const result = await this.newsletter.subscribe(email);
+      this.subscriptionState.set(result === 'already_subscribed' ? 'already_subscribed' : 'success');
       form.reset();
       this.haptics.success();
-    } catch {
+    } catch (error) {
+      this.subscriptionError.set(error instanceof Error ? error.message : 'Please try again.');
       this.subscriptionState.set('error');
       this.haptics.error();
     }

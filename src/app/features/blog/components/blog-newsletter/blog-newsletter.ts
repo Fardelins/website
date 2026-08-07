@@ -10,7 +10,10 @@ import { HapticsService } from '@core/services/haptics.service';
 export class BlogNewsletter {
   private readonly newsletter = inject(NewsletterService);
   private readonly haptics = inject(HapticsService);
-  protected readonly state = signal<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  protected readonly state = signal<
+    'idle' | 'submitting' | 'success' | 'already_subscribed' | 'error'
+  >('idle');
+  protected readonly errorMessage = signal('');
 
   protected async submit(event: SubmitEvent, email: string): Promise<void> {
     event.preventDefault();
@@ -21,11 +24,12 @@ export class BlogNewsletter {
     this.haptics.light();
     this.state.set('submitting');
     try {
-      await this.newsletter.subscribe(email);
-      this.state.set('success');
+      const result = await this.newsletter.subscribe(email);
+      this.state.set(result === 'already_subscribed' ? 'already_subscribed' : 'success');
       form.reset();
       this.haptics.success();
-    } catch {
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Please try again.');
       this.state.set('error');
       this.haptics.error();
     }

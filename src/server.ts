@@ -182,17 +182,18 @@ app.post('/api/newsletter/subscribe', express.json(), async (req, res) => {
       title?: string;
       detail?: string;
     } | null;
-    // Already on the list — treat as success rather than surfacing an error.
+    // Already on the list — tell the user rather than pretending it's a fresh signup.
     if (upstream.status === 400 && body?.title === 'Member Exists') {
-      res.status(200).json({ status: 'subscribed' });
+      res.status(200).json({ status: 'already_subscribed' });
       return;
     }
 
     console.error('Mailchimp subscribe rejected:', upstream.status, body?.title, body?.detail);
-    res.status(400).json({ message: body?.detail || 'Newsletter subscription was rejected.' });
+    // Mailchimp's `detail` is written to be shown to the end user (e.g. "looks fake or invalid").
+    res.status(400).json({ message: body?.detail || 'That email address was rejected.' });
   } catch (error) {
     console.error('Mailchimp subscribe request failed:', error);
-    res.status(502).json({ message: 'Newsletter request failed.' });
+    res.status(502).json({ message: "Couldn't reach the newsletter service. Please try again." });
   }
 });
 

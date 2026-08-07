@@ -103,7 +103,7 @@ describe('Footer', () => {
     fixture.detectChanges();
 
     expect(element.querySelector('.footer__subscribe-status')?.textContent).toContain(
-      'Please try again',
+      "Couldn't reach the newsletter service",
     );
     expect(form.querySelector('button')?.disabled).toBe(false);
   });

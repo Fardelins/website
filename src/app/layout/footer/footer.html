@@ -168,8 +168,11 @@
             @if (subscriptionState() === 'success') {
               You have been successfully subscribed!
             }
+            @if (subscriptionState() === 'already_subscribed') {
+              You're already subscribed, thanks for sticking around!
+            }
             @if (subscriptionState() === 'error') {
-              Something went wrong. Please try again.
+              {{ subscriptionError() }}
             }
           </p>
         </div>

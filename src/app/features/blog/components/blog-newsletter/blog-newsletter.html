@@ -23,8 +23,11 @@
           @case ('success') {
             You have been successfully subscribed!
           }
+          @case ('already_subscribed') {
+            You're already subscribed, thanks for sticking around!
+          }
           @case ('error') {
-            Something went wrong. Please try again.
+            {{ errorMessage() }}
           }
           @default {
             No spam. Unsubscribe anytime.
