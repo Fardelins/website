@@ -178,15 +178,20 @@ app.post('/api/newsletter/subscribe', express.json(), async (req, res) => {
       return;
     }
 
-    const body = (await upstream.json().catch(() => null)) as { title?: string } | null;
+    const body = (await upstream.json().catch(() => null)) as {
+      title?: string;
+      detail?: string;
+    } | null;
     // Already on the list — treat as success rather than surfacing an error.
     if (upstream.status === 400 && body?.title === 'Member Exists') {
       res.status(200).json({ status: 'subscribed' });
       return;
     }
 
-    res.status(400).json({ message: 'Newsletter subscription was rejected.' });
-  } catch {
+    console.error('Mailchimp subscribe rejected:', upstream.status, body?.title, body?.detail);
+    res.status(400).json({ message: body?.detail || 'Newsletter subscription was rejected.' });
+  } catch (error) {
+    console.error('Mailchimp subscribe request failed:', error);
     res.status(502).json({ message: 'Newsletter request failed.' });
   }
 });
