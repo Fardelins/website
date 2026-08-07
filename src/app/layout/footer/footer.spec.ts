@@ -84,7 +84,8 @@ describe('Footer', () => {
     fixture.detectChanges();
 
     expect(fetchMock).toHaveBeenCalledOnce();
-    expect(fetchMock.mock.calls[0][1]?.body).toContain('reader%2540example.com');
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/newsletter/subscribe');
+    expect(fetchMock.mock.calls[0][1]?.body).toBe('{"email":"reader@example.com"}');
     expect(element.querySelector('.footer__subscribe-status')?.textContent).toContain(
       'successfully subscribed',
     );

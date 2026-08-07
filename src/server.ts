@@ -142,6 +142,55 @@ app.use((req, res, next) => {
   req.on('error', next);
 });
 
+// Mailchimp subscribe, proxied server-side since the API key can't reach the browser.
+// MAILCHIMP_AUDIENCE_ID is swappable independently of the key (different list, same key).
+const MAILCHIMP_API_KEY = process.env['MAILCHIMP_API_KEY'];
+const MAILCHIMP_AUDIENCE_ID = process.env['MAILCHIMP_AUDIENCE_ID'];
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+app.post('/api/newsletter/subscribe', express.json(), async (req, res) => {
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
+  if (!EMAIL_RE.test(email)) {
+    res.status(400).json({ message: 'Please enter a valid email address.' });
+    return;
+  }
+  if (!MAILCHIMP_API_KEY || !MAILCHIMP_AUDIENCE_ID) {
+    res.status(500).json({ message: 'Newsletter signup is not configured.' });
+    return;
+  }
+
+  // The API key's datacenter suffix (after the dash) picks the request host.
+  const datacenter = MAILCHIMP_API_KEY.split('-').pop();
+  const url = `https://${datacenter}.api.mailchimp.com/3.0/lists/${MAILCHIMP_AUDIENCE_ID}/members`;
+
+  try {
+    const upstream = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Basic ${Buffer.from(`anystring:${MAILCHIMP_API_KEY}`).toString('base64')}`,
+      },
+      body: JSON.stringify({ email_address: email, status: 'subscribed' }),
+    });
+
+    if (upstream.ok) {
+      res.status(200).json({ status: 'subscribed' });
+      return;
+    }
+
+    const body = (await upstream.json().catch(() => null)) as { title?: string } | null;
+    // Already on the list — treat as success rather than surfacing an error.
+    if (upstream.status === 400 && body?.title === 'Member Exists') {
+      res.status(200).json({ status: 'subscribed' });
+      return;
+    }
+
+    res.status(400).json({ message: 'Newsletter subscription was rejected.' });
+  } catch {
+    res.status(502).json({ message: 'Newsletter request failed.' });
+  }
+});
+
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 const ONE_DAY_SECONDS = 60 * 60 * 24;
 
