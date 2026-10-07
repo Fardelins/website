@@ -1,0 +1,826 @@
+:host {
+  display: block;
+  color: var(--dashboard-text);
+}
+
+.storefront {
+  min-height: 430px;
+}
+
+/* app-empty-state's own 48px/24px padding reads cramped here, so it gets .storefront-state's roomier proportions. */
+.storefront > app-empty-state {
+  display: flex;
+  min-height: 460px;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-body);
+}
+
+.storefront-state {
+  display: flex;
+  min-height: 460px;
+  padding: 58px 28px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.storefront-state__icon {
+  position: relative;
+  display: grid;
+  width: 66px;
+  height: 66px;
+  margin-bottom: 18px;
+  place-items: center;
+  border-radius: 22px;
+  color: var(--color-primary-600);
+  background: var(--color-primary-100);
+  font-size: 30px;
+  transform: rotate(-3deg);
+}
+
+.storefront-state--error .storefront-state__icon {
+  color: var(--color-feedback-error);
+  background: color-mix(in srgb, var(--color-feedback-error) 11%, var(--dashboard-card));
+}
+
+.storefront-state h3 {
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 680;
+  letter-spacing: -0.035em;
+}
+
+.storefront-state > p {
+  max-width: 46ch;
+  margin-top: 9px;
+  color: var(--dashboard-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.storefront-state > .btn {
+  min-height: 44px;
+  margin-top: 24px;
+  padding: 11px 17px;
+}
+
+.storefront-workspace {
+  display: grid;
+  min-height: 560px;
+  grid-template-columns: minmax(210px, 260px) minmax(0, 1fr);
+}
+
+.storefront-content {
+  min-width: 0;
+}
+
+.store-form,
+.store-overview {
+  animation: store-content-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.store-form__header,
+.store-overview__header {
+  display: flex;
+  padding: 24px 28px;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--dashboard-border);
+}
+
+.store-form__back {
+  display: inline-flex;
+  min-height: 36px;
+  padding: 7px 10px;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 10px;
+  color: var(--dashboard-text);
+  background: var(--dashboard-control);
+  font-size: 10px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.store-form__header > div {
+  display: grid;
+  gap: 4px;
+}
+
+.store-form__header h3,
+.store-overview__identity h3 {
+  font-size: 20px;
+  font-weight: 680;
+  letter-spacing: -0.025em;
+}
+
+.store-form__header p {
+  color: var(--dashboard-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Create-form header: two "connected" icon tiles (app + store) in the style of an integration connect screen. */
+.connect-header {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 32px 28px 6px;
+  text-align: center;
+}
+
+.connect-header__icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.connect-header__icon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 16px;
+  box-shadow: var(--dashboard-shadow);
+}
+
+.connect-header__icon--brand {
+  background: var(--dashboard-card);
+}
+
+.connect-header__icon--brand app-logo {
+  height: 26px;
+}
+
+.connect-header__icon--store {
+  color: var(--color-primary-600);
+  background: var(--color-primary-100);
+  font-size: 26px;
+}
+
+.connect-header__link {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 50%;
+  color: var(--dashboard-muted);
+  background: var(--dashboard-card);
+  font-size: 12px;
+}
+
+.connect-header__dots {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  background-image: radial-gradient(var(--dashboard-border) 1.2px, transparent 1.2px);
+  background-size: 9px 9px;
+  mask-image: radial-gradient(circle, #000 55%, transparent 90%);
+  opacity: 0.7;
+}
+
+.connect-header h3 {
+  font-size: 19px;
+  font-weight: 680;
+  letter-spacing: -0.02em;
+}
+
+.connect-header p {
+  max-width: 38ch;
+  margin-top: 2px;
+  color: var(--dashboard-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.store-form__steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 0 18px;
+}
+
+.store-form__steps span {
+  width: 20px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--dashboard-border);
+  transition: background-color 180ms ease;
+}
+
+.store-form__steps span.is-active {
+  background: var(--color-primary-500);
+}
+
+.store-form__consent {
+  margin: 4px 28px 0;
+  color: var(--dashboard-muted);
+  font-size: 11px;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.store-form__consent a {
+  color: var(--color-primary-600);
+}
+
+.store-form__section {
+  display: grid;
+  margin: 0;
+  padding: 30px 28px;
+  gap: 20px;
+  border: 0;
+  border-bottom: 1px solid var(--dashboard-border);
+}
+
+.store-form__section-heading {
+  display: grid;
+  gap: 7px;
+}
+
+.store-form__section-heading h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 680;
+  line-height: 1.3;
+}
+
+.store-form__section-heading p {
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.store-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
+}
+
+.store-form .field {
+  position: relative;
+  color: var(--dashboard-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.field__label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.field__optional {
+  color: var(--dashboard-muted);
+  font-size: 10px;
+  font-weight: 450;
+}
+
+.store-form .field :is(input, select, textarea) {
+  border-color: color-mix(in srgb, var(--color-primary-500) 13%, var(--dashboard-border));
+  color: var(--dashboard-text);
+  background: color-mix(in srgb, var(--color-primary-500) 2.5%, var(--dashboard-card));
+}
+
+.store-form .field :is(input, select, textarea):hover {
+  border-color: color-mix(in srgb, var(--color-primary-500) 48%, var(--dashboard-border));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-primary-700) 7%, transparent);
+}
+
+.store-form .field :is(input, select, textarea):focus {
+  border-color: var(--color-primary-500);
+  background: var(--dashboard-card);
+}
+
+.store-form .field .field-control--invalid {
+  border-color: var(--color-feedback-error);
+}
+
+.field__affix--leading > ng-icon {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  z-index: 1;
+  color: var(--dashboard-muted);
+  font-size: 17px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.field__affix--leading input {
+  padding-left: 40px;
+}
+
+/* One control for pickup address: a trigger opening a label + full-address list, whose last option is the only thing that reveals the free-text input. */
+.address-picker {
+  position: relative;
+}
+
+.address-picker__trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  padding: 13px 14px;
+  color: var(--color-styles-body);
+  background: var(--color-neutral-white);
+  font: 400 14px/1.4 var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.address-picker__trigger:hover {
+  border-color: color-mix(in srgb, var(--color-primary-500) 48%, var(--dashboard-border));
+}
+
+.address-picker__trigger > ng-icon:first-child {
+  flex: none;
+  color: var(--dashboard-muted);
+  font-size: 17px;
+}
+
+.address-picker__value {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+
+.address-picker__value strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.address-picker__value small {
+  overflow: hidden;
+  color: var(--dashboard-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.address-picker__placeholder {
+  flex: 1;
+  color: var(--color-styles-placeholder);
+}
+
+.address-picker__chevron {
+  flex: none;
+  color: var(--dashboard-muted);
+  font-size: 14px;
+  transition: transform 180ms ease;
+}
+
+.address-picker__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.address-picker__list {
+  position: absolute;
+  z-index: 4;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: grid;
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 14px;
+  background: var(--dashboard-card);
+  box-shadow: 0 18px 45px -20px rgba(22, 8, 40, 0.35);
+}
+
+.address-picker__list button {
+  display: grid;
+  width: 100%;
+  gap: 2px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--dashboard-text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.address-picker__list button:hover,
+.address-picker__list button[aria-selected='true'] {
+  background: var(--dashboard-control);
+}
+
+.address-picker__list strong {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.address-picker__list small {
+  color: var(--dashboard-muted);
+  font-size: 10px;
+}
+
+.address-picker__custom {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+  margin-top: 2px;
+  border-top: 1px solid var(--dashboard-border) !important;
+  border-radius: 0 !important;
+  color: var(--color-primary-600) !important;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.address-picker__custom ng-icon {
+  font-size: 15px;
+}
+
+.courier-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-white);
+}
+
+.courier-search ng-icon {
+  flex: none;
+  color: var(--dashboard-muted);
+  font-size: 15px;
+}
+
+.courier-search input {
+  flex: 1;
+  border: 0;
+  padding: 11px 0;
+  color: var(--color-styles-body);
+  background: transparent;
+  font: 400 13px/1.4 var(--font-body);
+  outline: none;
+}
+
+.courier-search:focus-within {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-500) 12%, transparent);
+}
+
+.courier-search button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: var(--dashboard-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.courier-search button:hover {
+  color: var(--color-primary-600);
+  background: var(--color-primary-100);
+}
+
+.courier-search button ng-icon {
+  font-size: 17px;
+}
+
+.courier-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.courier-row {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.courier-row:hover {
+  border-color: var(--color-primary-400);
+  box-shadow: var(--dashboard-shadow-hover);
+}
+
+.courier-row--selected {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-500) 13%, transparent);
+}
+
+.courier-row__logo {
+  display: grid;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--color-primary-600);
+  background: var(--color-primary-100);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.courier-row__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.courier-row__copy {
+  display: grid;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+  gap: 3px;
+}
+
+.courier-row__name {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.courier-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 8px;
+  color: var(--dashboard-muted);
+  font-size: 10px;
+}
+
+.courier-row__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--dashboard-text);
+  font-weight: 650;
+}
+
+.courier-row__rating ng-icon {
+  color: #f5a623;
+  font-size: 12px;
+}
+
+.courier-row__check {
+  flex: none;
+  color: var(--dashboard-border);
+  font-size: 19px;
+}
+
+.courier-row--selected .courier-row__check {
+  color: var(--color-primary-500);
+}
+
+.courier-options__empty {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  border: 1px dashed var(--dashboard-border);
+  border-radius: 12px;
+  color: var(--dashboard-muted);
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.courier-options__empty strong {
+  color: var(--dashboard-text);
+  font-size: 11px;
+}
+
+.courier-options__empty span {
+  color: var(--dashboard-muted);
+}
+
+.courier-load-more {
+  display: flex;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px dashed var(--dashboard-border);
+  border-radius: 12px;
+  color: var(--color-primary-600);
+  background: transparent;
+  font: 650 11px/1 var(--font-body);
+  cursor: pointer;
+}
+
+.courier-load-more ng-icon {
+  font-size: 15px;
+}
+
+.courier-load-more:hover:not(:disabled) {
+  border-color: var(--color-primary-500);
+  background: color-mix(in srgb, var(--color-primary-500) 5%, transparent);
+}
+
+.courier-load-more:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.courier-load-more__spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid color-mix(in srgb, var(--color-primary-500) 24%, transparent);
+  border-top-color: var(--color-primary-600);
+  border-radius: 50%;
+  animation: courier-spinner 700ms linear infinite;
+}
+
+@keyframes courier-spinner {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.courier-list--loading {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.courier-list--loading span {
+  height: 58px;
+  border-radius: 12px;
+  background: linear-gradient(
+    100deg,
+    var(--dashboard-control) 20%,
+    color-mix(in srgb, var(--color-primary-400) 10%, var(--dashboard-control)) 50%,
+    var(--dashboard-control) 80%
+  );
+  background-size: 220% 100%;
+  animation: store-skeleton 2s ease-in-out infinite;
+}
+
+.store-form__actions {
+  display: flex;
+  padding: 20px 28px;
+  gap: 12px;
+}
+
+.store-form__actions .btn {
+  flex: 1;
+}
+
+.store-alert {
+  display: flex;
+  margin: 18px 28px 0;
+  padding: 11px 12px;
+  align-items: flex-start;
+  gap: 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.store-alert--error {
+  color: var(--color-feedback-error);
+  background: color-mix(in srgb, var(--color-feedback-error) 8%, var(--dashboard-card));
+}
+
+.store-alert ng-icon {
+  flex: none;
+  margin-top: 1px;
+  font-size: 16px;
+}
+
+.store-overview__identity p {
+  overflow: hidden;
+  color: var(--dashboard-muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-overview__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.store-overview__actions .btn {
+  min-height: 42px;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+.store-overview__identity {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 3px;
+}
+
+.store-overview__identity h3 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ov-bar {
+  display: flex;
+  padding: 20px 28px 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ov-tabs {
+  display: inline-flex;
+  padding: 4px;
+  gap: 2px;
+  overflow-x: auto;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 999px;
+  background: var(--dashboard-control);
+  scrollbar-width: none;
+}
+
+.ov-tabs button {
+  min-height: 36px;
+  padding: 0 16px;
+  flex: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--dashboard-muted);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 620;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.ov-tabs button:hover:not(.is-active) {
+  color: var(--dashboard-text);
+}
+
+.ov-tabs button.is-active {
+  border-color: color-mix(in srgb, var(--color-primary-500) 22%, var(--dashboard-border));
+  color: var(--color-primary-700);
+  background: var(--dashboard-card);
+  box-shadow: var(--dashboard-shadow);
+}
+
+.ov-panel {
+  display: grid;
+  padding: 20px 28px 28px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.ov-bar + .store-alert {
+  margin-top: 14px;
+}

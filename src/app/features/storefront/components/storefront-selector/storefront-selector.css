@@ -1,0 +1,138 @@
+:host {
+  display: block;
+  min-width: 0;
+  border-right: 1px solid var(--dashboard-border);
+}
+
+.store-list {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  padding: 16px 14px;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--color-primary-500) 2%, var(--dashboard-card));
+}
+
+.store-list__items {
+  display: grid;
+  gap: 6px;
+}
+
+.store-list__item {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: var(--dashboard-muted);
+  background: transparent;
+  font-family: var(--font-body);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.store-list__item:hover:not(.store-list__item--active) {
+  border-color: var(--dashboard-border);
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+}
+
+.store-list__item--active {
+  border-color: color-mix(in srgb, var(--color-primary-500) 34%, var(--dashboard-border));
+  color: var(--dashboard-text);
+  background: color-mix(in srgb, var(--color-primary-500) 9%, var(--dashboard-card));
+  box-shadow: var(--dashboard-shadow);
+}
+
+.store-list__item--active::before {
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: -15px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--color-primary-500);
+  content: '';
+}
+
+.store-list__mark {
+  width: 42px;
+  height: 42px;
+  opacity: 0.72;
+  transition: opacity 180ms ease;
+}
+
+.store-list__item:hover .store-list__mark,
+.store-list__item--active .store-list__mark {
+  opacity: 1;
+}
+
+.store-list__copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.store-list__copy :is(strong, small) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-list__copy strong {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.store-list__copy small {
+  color: var(--dashboard-muted);
+  font-size: 12px;
+}
+
+.store-list__item--active .store-list__copy strong {
+  color: var(--color-primary-700);
+}
+
+:is(button):focus-visible {
+  outline: 3px solid var(--dashboard-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  :host {
+    border-right: 0;
+    border-bottom: 1px solid var(--dashboard-border);
+  }
+  .store-list {
+    padding: 14px;
+  }
+  .store-list__items {
+    display: flex;
+    padding-bottom: 3px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .store-list__item {
+    width: min(260px, 78vw);
+    flex: 0 0 auto;
+  }
+  .store-list__item--active::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .store-list__item,
+  .store-list__mark {
+    transition: none;
+  }
+}

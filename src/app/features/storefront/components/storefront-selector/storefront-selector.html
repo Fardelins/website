@@ -1,0 +1,20 @@
+<aside class="store-list" aria-label="Your storefronts">
+  <div class="store-list__items" role="list">
+    @for (storefront of storefronts(); track storefront.id) {
+      <button
+        type="button"
+        class="store-list__item"
+        role="listitem"
+        [class.store-list__item--active]="selectedId() === storefront.id"
+        [attr.aria-current]="selectedId() === storefront.id ? 'true' : null"
+        (click)="selected.emit(storefront.id)"
+      >
+        <app-store-avatar class="store-list__mark" [name]="storefront.name" />
+        <span class="store-list__copy">
+          <strong>{{ storefront.name }}</strong>
+          <small>{{ storefront.website || storefront.email || 'Storefront' }}</small>
+        </span>
+      </button>
+    }
+  </div>
+</aside>

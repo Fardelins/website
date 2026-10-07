@@ -1,0 +1,714 @@
+<div class="storefront">
+  @if (loading()) {
+    <div class="storefront-loading" aria-label="Loading storefronts">
+      <div class="storefront-loading__rail">
+        @for (item of [1, 2, 3]; track item) {
+          <span></span>
+        }
+      </div>
+      <div class="storefront-loading__content">
+        <span class="storefront-loading__title"></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  } @else if (error() && !storefronts().length) {
+    <div class="storefront-state storefront-state--error">
+      <span class="storefront-state__icon">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />
+      </span>
+      <h3>Storefronts Could Not Load</h3>
+      <p>{{ error() }}</p>
+      <button type="button" class="btn btn--primary" (click)="load()">
+        <ng-icon name="solarRefreshBoldDuotone" aria-hidden="true" />
+        Try Again
+      </button>
+    </div>
+  } @else if (!storefronts().length) {
+    <app-empty-state
+      icon="solarShop2BoldDuotone"
+      title="No Storefronts Yet"
+      copy="Connect your online store to turn its orders into deliveries you can manage right here."
+    >
+      <button type="button" class="btn btn--primary" (click)="openCreate()">
+        <ng-icon name="solarAddCircleBoldDuotone" aria-hidden="true" />
+        Add Storefront
+      </button>
+    </app-empty-state>
+  } @else {
+    <div class="storefront-workspace">
+      <app-storefront-selector
+        [storefronts]="storefronts()"
+        [selectedId]="selectedStorefront()?.id ?? null"
+        (selected)="selectStorefront($event)"
+      />
+
+      <div class="storefront-content">
+        @if (formOpen() && editing()) {
+          <ng-container [ngTemplateOutlet]="storeForm" />
+        } @else if (selectedStorefront(); as store) {
+          <article class="store-overview">
+            <header class="store-overview__header">
+              <div class="store-overview__identity">
+                <h3>{{ store.name }}</h3>
+                @if (store.email) {
+                  <p>{{ store.email }}</p>
+                }
+              </div>
+              <div class="store-overview__actions">
+                <button type="button" class="btn btn--ghost" (click)="openEdit()">
+                  <ng-icon name="solarPenBoldDuotone" aria-hidden="true" />
+                  Edit Store
+                </button>
+                <button type="button" class="btn btn--ghost" (click)="requestRegeneration()">
+                  <ng-icon name="solarRefreshBoldDuotone" aria-hidden="true" />
+                  Generate New Key
+                </button>
+              </div>
+            </header>
+
+            @if (error()) {
+              <p class="store-alert store-alert--error" role="alert">
+                <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />
+                {{ error() }}
+              </p>
+            }
+
+            <div class="ov-bar">
+              <div class="ov-tabs" role="tablist" aria-label="Storefront sections">
+                @for (tab of overviewTabs; track tab.id) {
+                  <button
+                    type="button"
+                    role="tab"
+                    [attr.aria-selected]="overviewTab() === tab.id"
+                    [class.is-active]="overviewTab() === tab.id"
+                    (click)="overviewTab.set(tab.id)"
+                  >
+                    {{ tab.label }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            @switch (overviewTab()) {
+              @case ('integration') {
+                <section class="ov-panel" aria-label="Integration">
+                  <div class="quick">
+                    <div class="quick__bar">
+                      <span>.env</span>
+                      <button type="button" (click)="copyText(envSnippet(), 'env')">
+                        <ng-icon
+                          [name]="
+                            copied() === 'env'
+                              ? 'solarCheckCircleBoldDuotone'
+                              : 'solarCopyBoldDuotone'
+                          "
+                          aria-hidden="true"
+                        />
+                        {{ copied() === 'env' ? 'Copied' : 'Copy' }}
+                      </button>
+                    </div>
+                    <pre
+                      class="quick__code"
+                    ><code><span class="line"><span class="tk-key">FARDELINS_API_URL</span><span class="tk-op">=</span><span class="tk-val">{{ apiBaseUrl }}</span></span><span class="line"><span class="tk-key">FARDELINS_PROPERTY_ID</span><span class="tk-op">=</span><span class="tk-val">{{ store.id }}</span></span><span class="line"><span class="tk-key">FARDELINS_API_KEY</span><span class="tk-op">=</span><span class="tk-hint">YOUR_API_KEY</span></span></code></pre>
+                    <div class="quick__bar quick__bar--split">
+                      <span>Test your connection</span>
+                      <button type="button" (click)="copyText(integrationSnippet(), 'snippet')">
+                        <ng-icon
+                          [name]="
+                            copied() === 'snippet'
+                              ? 'solarCheckCircleBoldDuotone'
+                              : 'solarCopyBoldDuotone'
+                          "
+                          aria-hidden="true"
+                        />
+                        {{ copied() === 'snippet' ? 'Copied' : 'Copy' }}
+                      </button>
+                    </div>
+                    <pre
+                      class="quick__code"
+                    ><code><span class="line"><span class="tk-cmd">curl</span> <span class="tk-val">{{ apiBaseUrl }}/customer-property/test</span> <span class="tk-op">\</span></span><span class="line">  <span class="tk-flag">-H</span> <span class="tk-str">"x-customer-prop-Id: {{ store.id }}"</span> <span class="tk-op">\</span></span><span class="line">  <span class="tk-flag">-H</span> <span class="tk-str">"x-customer-prop-key: </span><span class="tk-hint">YOUR_API_KEY</span><span class="tk-str">"</span></span></code></pre>
+                  </div>
+
+                  <div class="key-card">
+                    <div class="key-row">
+                      <h4>API Key</h4>
+                      <div class="key-field">
+                        <code [class.is-visible]="apiKey()">
+                          {{ apiKey() || '••••••••••••••••••••••••••••••••' }}
+                        </code>
+                        <button
+                          type="button"
+                          class="key-field__eye"
+                          [attr.aria-label]="apiKey() ? 'Hide API key' : 'Reveal API key'"
+                          [disabled]="revealingKey()"
+                          (click)="toggleKey()"
+                        >
+                          <ng-icon
+                            [name]="apiKey() ? 'solarEyeClosedBoldDuotone' : 'solarEyeBoldDuotone'"
+                            aria-hidden="true"
+                          />
+                        </button>
+                        <button
+                          type="button"
+                          class="key-field__copy"
+                          aria-label="Copy API key"
+                          [disabled]="!apiKey()"
+                          (click)="copyText(apiKey()!, 'api-key')"
+                        >
+                          <ng-icon
+                            [name]="
+                              copied() === 'api-key'
+                                ? 'solarCheckCircleBoldDuotone'
+                                : 'solarCopyBoldDuotone'
+                            "
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="key-card">
+                    <div class="key-row">
+                      <h4>Property ID</h4>
+                      <div class="key-field">
+                        <code class="is-visible">{{ store.id }}</code>
+                        <button
+                          type="button"
+                          class="key-field__copy"
+                          aria-label="Copy property ID"
+                          (click)="copyText(store.id, 'property-id')"
+                        >
+                          <ng-icon
+                            [name]="
+                              copied() === 'property-id'
+                                ? 'solarCheckCircleBoldDuotone'
+                                : 'solarCopyBoldDuotone'
+                            "
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <div class="key-row">
+                      <h4>Base URL</h4>
+                      <div class="key-field">
+                        <code class="is-visible">{{ apiBaseUrl }}</code>
+                        <button
+                          type="button"
+                          class="key-field__copy"
+                          aria-label="Copy base URL"
+                          (click)="copyText(apiBaseUrl, 'base-url')"
+                        >
+                          <ng-icon
+                            [name]="
+                              copied() === 'base-url'
+                                ? 'solarCheckCircleBoldDuotone'
+                                : 'solarCopyBoldDuotone'
+                            "
+                            aria-hidden="true"
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <aside class="key-tips" aria-labelledby="key-tips-title">
+                    <h4 id="key-tips-title">
+                      <ng-icon name="solarShieldCheckBoldDuotone" aria-hidden="true" />
+                      Keep Your Key Safe
+                    </h4>
+                    <ul>
+                      <li>Keep the API key on your server, never in public website code.</li>
+                      <li>Don't store it in the browser or send it to analytics.</li>
+                      <li>Generate a new key only if the current one may be compromised.</li>
+                    </ul>
+                  </aside>
+                </section>
+              }
+
+              @case ('details') {
+                <section class="ov-panel" aria-label="Store details">
+                  <dl class="detail-grid">
+                    <div>
+                      <dt>Dispatch Address</dt>
+                      <dd>{{ store.location?.address || 'No dispatch address yet' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Preferred Couriers</dt>
+                      <dd>
+                        {{
+                          selectedCourierNames().length
+                            ? selectedCourierNames().join(', ')
+                            : 'All available couriers'
+                        }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Email Address</dt>
+                      <dd>{{ store.email || 'Not added' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Phone Number</dt>
+                      <dd>{{ store.phone || 'Not added' }}</dd>
+                    </div>
+                  </dl>
+                  @if (store.description) {
+                    <p class="detail-note">{{ store.description }}</p>
+                  }
+                  <div class="store-danger">
+                    <div>
+                      <h4>Remove Storefront</h4>
+                      <p>Disconnect this store from your Fardelins account.</p>
+                    </div>
+                    <button type="button" (click)="requestDelete()">
+                      <ng-icon name="solarTrashBinTrashBoldDuotone" aria-hidden="true" />
+                      Remove Store
+                    </button>
+                  </div>
+                </section>
+              }
+            }
+          </article>
+        }
+      </div>
+    </div>
+  }
+
+  <ng-template #storeForm>
+    <form class="store-form" [formGroup]="form" (ngSubmit)="saveStorefront()" novalidate>
+      @if (editing()) {
+        <header class="store-form__header">
+          <button type="button" class="store-form__back" (click)="cancelForm()">
+            <ng-icon name="solarAltArrowLeftBoldDuotone" aria-hidden="true" />
+            Back
+          </button>
+          <div>
+            <h3>Edit Storefront</h3>
+            <p>Keep the details used for deliveries and order updates accurate.</p>
+          </div>
+        </header>
+      } @else {
+        <header class="connect-header">
+          <div class="connect-header__icons">
+            <span class="connect-header__dots" aria-hidden="true"></span>
+            <span class="connect-header__icon connect-header__icon--brand">
+              <app-logo variant="mark" />
+            </span>
+            <span class="connect-header__link" aria-hidden="true">
+              <ng-icon name="solarLinkBoldDuotone" aria-hidden="true" />
+            </span>
+            <span class="connect-header__icon connect-header__icon--store">
+              <ng-icon name="solarShop2BoldDuotone" aria-hidden="true" />
+            </span>
+            <span class="connect-header__dots" aria-hidden="true"></span>
+          </div>
+          <h3>Connect Your Store</h3>
+          <p>Tell us where orders come from and how we can reach the store.</p>
+        </header>
+      }
+
+      <div class="store-form__steps" aria-hidden="true">
+        <span [class.is-active]="formStep() === 1"></span>
+        <span [class.is-active]="formStep() === 2"></span>
+      </div>
+
+      @if (error()) {
+        <p class="store-alert store-alert--error" role="alert">
+          <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />
+          {{ error() }}
+        </p>
+      }
+
+      @if (formStep() === 1) {
+        <fieldset class="store-form__section">
+          <div class="store-form__grid">
+            <label class="field">
+              Store Name
+              <input
+                type="text"
+                formControlName="name"
+                autocomplete="organization"
+                placeholder="Your store name"
+                [class.field-control--invalid]="
+                  form.controls.name.touched && form.controls.name.invalid
+                "
+              />
+              @if (form.controls.name.touched && form.controls.name.invalid) {
+                <span class="field__hint field__hint--error">Enter at least 2 characters.</span>
+              }
+            </label>
+            <label class="field">
+              Store Email
+              <input
+                type="email"
+                formControlName="email"
+                autocomplete="email"
+                placeholder="orders@yourstore.com"
+                [class.field-control--invalid]="
+                  form.controls.email.touched && form.controls.email.invalid
+                "
+              />
+              @if (form.controls.email.touched && form.controls.email.invalid) {
+                <span class="field__hint field__hint--error">Enter a valid email address.</span>
+              }
+            </label>
+          </div>
+
+          <label class="field">
+            Store Phone
+            <app-phone-input
+              name="storePhone"
+              [country]="phoneCountry()"
+              [value]="phoneNumber()"
+              (countryChange)="changePhoneCountry($event)"
+              (valueChange)="changePhone($event)"
+            />
+            @if (!phoneIsValid() && phoneNumber()) {
+              <span class="field__hint field__hint--error">Enter a valid phone number.</span>
+            }
+          </label>
+
+          <label class="field">
+            <span class="field__label-row"
+              >Website <span class="field__optional">Optional</span></span
+            >
+            <div class="field__affix field__affix--leading">
+              <ng-icon name="solarLinkBoldDuotone" aria-hidden="true" />
+              <input
+                type="text"
+                formControlName="website"
+                inputmode="url"
+                autocomplete="url"
+                placeholder="yourstore.com"
+                [class.field-control--invalid]="
+                  form.controls.website.touched && form.controls.website.invalid
+                "
+              />
+            </div>
+            @if (form.controls.website.touched && form.controls.website.invalid) {
+              <span class="field__hint field__hint--error">Enter a valid website.</span>
+            }
+          </label>
+
+          <label class="field">
+            <span class="field__label-row"
+              >Description <span class="field__optional">Optional</span></span
+            >
+            <textarea
+              formControlName="description"
+              maxlength="500"
+              placeholder="A short note about what your store sells"
+            ></textarea>
+            <span class="field__hint">{{ form.controls.description.value.length }}/500</span>
+          </label>
+        </fieldset>
+      } @else {
+        <section class="store-form__section" aria-labelledby="dispatch-address-title">
+          <header class="store-form__section-heading">
+            <h4 id="dispatch-address-title">Dispatch Address</h4>
+            <p>Used as the pickup point for storefront orders.</p>
+          </header>
+
+          @if (savedAddresses().length) {
+            <div class="address-picker" #addressPicker>
+              <label class="field">
+                Pickup Address
+                <button
+                  type="button"
+                  class="address-picker__trigger"
+                  (click)="toggleAddressPicker()"
+                >
+                  <ng-icon name="solarMapPointWaveBoldDuotone" aria-hidden="true" />
+                  @if (addressMode() === 'saved' && selectedAddress(); as address) {
+                    <span class="address-picker__value">
+                      <strong>{{ address.label }}</strong>
+                      <small>{{ address.address }}</small>
+                    </span>
+                  } @else if (addressMode() === 'custom') {
+                    <span class="address-picker__value">
+                      <strong>Custom address</strong>
+                      <small>{{ form.controls.address.value || 'No address entered yet' }}</small>
+                    </span>
+                  } @else {
+                    <span class="address-picker__placeholder">Choose address</span>
+                  }
+                  <ng-icon
+                    name="solarAltArrowDownBoldDuotone"
+                    class="address-picker__chevron"
+                    [class.is-open]="addressPickerOpen()"
+                    aria-hidden="true"
+                  />
+                </button>
+              </label>
+              @if (addressPickerOpen()) {
+                <ul class="address-picker__list" role="listbox">
+                  @for (address of savedAddresses(); track address.id) {
+                    <li>
+                      <button
+                        type="button"
+                        role="option"
+                        [attr.aria-selected]="selectedAddressId() === address.id"
+                        (click)="chooseSavedAddress(address.id)"
+                      >
+                        <strong>{{ address.label }}</strong>
+                        <small>{{ address.address }}</small>
+                      </button>
+                    </li>
+                  }
+                  <li>
+                    <button
+                      type="button"
+                      class="address-picker__custom"
+                      (click)="chooseCustomAddress()"
+                    >
+                      <ng-icon name="solarAddCircleBoldDuotone" aria-hidden="true" />
+                      Add a different address
+                    </button>
+                  </li>
+                </ul>
+              }
+            </div>
+          }
+
+          @if (addressMode() === 'custom' || !savedAddresses().length) {
+            <label class="field">
+              <span class="field__label-row"
+                >{{ savedAddresses().length ? 'Custom Address' : 'Pickup Address' }}
+                <span class="field__optional">Optional</span></span
+              >
+              <div class="field__affix field__affix--leading">
+                <ng-icon name="solarMapPointWaveBoldDuotone" aria-hidden="true" />
+                <input
+                  type="text"
+                  formControlName="address"
+                  autocomplete="street-address"
+                  placeholder="12 Admiralty Way, Lekki, Lagos"
+                />
+              </div>
+            </label>
+          }
+        </section>
+
+        <section class="store-form__section" aria-labelledby="preferred-couriers-title">
+          <header class="store-form__section-heading">
+            <h4 id="preferred-couriers-title">Preferred Couriers</h4>
+            <p>Pick the delivery partners you want prioritised. You can leave this open.</p>
+          </header>
+
+          @if (!loadingCouriers() && couriers().length) {
+            <div class="courier-search">
+              <ng-icon name="solarMagniferBoldDuotone" aria-hidden="true" />
+              <input
+                type="text"
+                placeholder="Search couriers"
+                aria-label="Search loaded couriers"
+                [value]="courierSearch()"
+                (input)="courierSearch.set($any($event.target).value)"
+              />
+              @if (courierSearch()) {
+                <button
+                  type="button"
+                  aria-label="Clear courier search"
+                  (click)="courierSearch.set('')"
+                >
+                  <ng-icon name="solarCloseCircleBoldDuotone" aria-hidden="true" />
+                </button>
+              }
+            </div>
+          }
+
+          @if (loadingCouriers()) {
+            <div class="courier-list courier-list--loading" aria-label="Loading couriers">
+              @for (item of [1, 2, 3, 4]; track item) {
+                <span></span>
+              }
+            </div>
+          } @else if (filteredCouriers().length) {
+            <ul class="courier-list" role="list">
+              @for (courier of filteredCouriers(); track courier.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="courier-row"
+                    role="checkbox"
+                    [class.courier-row--selected]="courierSelected(courier.id)"
+                    [attr.aria-checked]="courierSelected(courier.id)"
+                    (click)="toggleCourier(courier.id)"
+                  >
+                    <span class="courier-row__logo" aria-hidden="true">
+                      @if (courier.logoUrl) {
+                        <img [src]="courier.logoUrl" alt="" width="36" height="36" />
+                      } @else {
+                        {{ courier.name.charAt(0).toUpperCase() }}
+                      }
+                    </span>
+                    <span class="courier-row__copy">
+                      <strong class="courier-row__name">{{ courier.name }}</strong>
+                      @if (courier.rating || courier.deliveryWindow || courier.priceLabel) {
+                        <span class="courier-row__meta">
+                          @if (courier.rating) {
+                            <span class="courier-row__rating">
+                              <ng-icon name="solarStarBoldDuotone" aria-hidden="true" />
+                              {{ courier.rating }}
+                              @if (courier.reviewCount) {
+                                ({{ courier.reviewCount }})
+                              }
+                            </span>
+                          }
+                          @if (courier.deliveryWindow) {
+                            <span>{{ courier.deliveryWindow }}</span>
+                          }
+                          @if (courier.priceLabel) {
+                            <span>{{ courier.priceLabel }}</span>
+                          }
+                        </span>
+                      }
+                    </span>
+                    <span class="courier-row__check" aria-hidden="true">
+                      <ng-icon name="solarCheckCircleBoldDuotone" />
+                    </span>
+                  </button>
+                </li>
+              }
+            </ul>
+          } @else if (couriers().length) {
+            <div class="courier-options__empty">
+              <strong>No Matching Couriers Yet</strong>
+              <span>Try another name or load more couriers to continue searching.</span>
+            </div>
+          } @else {
+            <p class="courier-options__empty">
+              Courier preferences are unavailable right now. You can still connect your store.
+            </p>
+          }
+
+          @if (!loadingCouriers() && hasMoreCouriers()) {
+            <button
+              type="button"
+              class="courier-load-more"
+              [disabled]="loadingMoreCouriers()"
+              (click)="loadMoreCouriers()"
+            >
+              @if (loadingMoreCouriers()) {
+                <span class="courier-load-more__spinner" aria-hidden="true"></span>
+                Loading Couriers...
+              } @else {
+                Load More Couriers
+                <ng-icon name="solarAltArrowDownBoldDuotone" aria-hidden="true" />
+              }
+            </button>
+          }
+        </section>
+      }
+
+      @if (!editing() && formStep() === 2) {
+        <p class="store-form__consent">
+          By clicking "{{ saveLabel() }}," you agree to connect this store to Fardelins and accept
+          our <a routerLink="/terms">Terms and Conditions</a>.
+        </p>
+      }
+      <footer class="store-form__actions">
+        @if (formStep() === 1) {
+          <button type="button" class="btn btn--ghost" (click)="cancelForm()">Cancel</button>
+          <button type="button" class="btn btn--primary" (click)="goToStep2()">Next</button>
+        } @else {
+          <button type="button" class="btn btn--ghost" (click)="goToStep1()">Back</button>
+          <button type="submit" class="btn btn--primary" [disabled]="!canSave()">
+            @if (saved()) {
+              <ng-icon name="solarCheckCircleBoldDuotone" aria-hidden="true" />
+            }
+            {{ saveLabel() }}
+          </button>
+        }
+      </footer>
+    </form>
+  </ng-template>
+
+  @if (formOpen() && !editing()) {
+    <div class="store-modal-backdrop" appPortalToShell (click)="cancelForm()">
+      <div
+        class="store-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Add storefront"
+        (click)="$event.stopPropagation()"
+      >
+        @if (connectionStage() === 'connecting' || connectionStage() === 'connected') {
+          <app-storefront-connection-handoff
+            [stage]="connectionStage() === 'connecting' ? 'connecting' : 'connected'"
+            [storefront]="connectedStorefront()"
+            [apiKey]="apiKey()"
+            [keyError]="connectionKeyError()"
+            [preparingKey]="preparingConnectionKey()"
+            [courierNames]="connectedCourierNames()"
+            [copied]="handoffCopied()"
+            (retryKey)="retryConnectionKey()"
+            (copyValue)="copyText($event.value, $event.target)"
+            (openStorefront)="openConnectedStorefront()"
+          />
+        } @else {
+          <ng-container [ngTemplateOutlet]="storeForm" />
+        }
+      </div>
+    </div>
+  }
+
+  @if (confirmAction()) {
+    <div class="confirm-backdrop" appPortalToShell (click)="closeConfirmation()">
+      <section
+        class="confirm-dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-labelledby]="confirmAction() + '-title'"
+        (click)="$event.stopPropagation()"
+      >
+        <button
+          type="button"
+          class="confirm-dialog__close"
+          aria-label="Close confirmation"
+          (click)="closeConfirmation()"
+        >
+          <ng-icon name="solarCloseCircleBoldDuotone" aria-hidden="true" />
+        </button>
+        <span
+          class="confirm-dialog__icon"
+          [class.confirm-dialog__icon--danger]="confirmAction() === 'delete'"
+        >
+          <ng-icon
+            [name]="
+              confirmAction() === 'delete' ? 'solarTrashBinTrashBoldDuotone' : 'solarKeyBoldDuotone'
+            "
+            aria-hidden="true"
+          />
+        </span>
+        @if (confirmAction() === 'delete') {
+          <h3 id="delete-title">Remove {{ selectedStorefront()?.name }}?</h3>
+          <p>The storefront and its connection details will no longer be available here.</p>
+        } @else {
+          <h3 id="regenerate-title">Generate A New API Key?</h3>
+          <p>If a key already exists, integrations using it may stop working immediately.</p>
+        }
+        <div class="confirm-dialog__actions">
+          <button type="button" class="btn btn--ghost" (click)="closeConfirmation()">Cancel</button>
+          <button
+            type="button"
+            class="btn"
+            [class.btn--danger]="confirmAction() === 'delete'"
+            [class.btn--primary]="confirmAction() === 'regenerate'"
+            [disabled]="deleting() || generatingKey()"
+            (click)="confirm()"
+          >
+            @if (confirmAction() === 'delete') {
+              {{ deleting() ? 'Removing...' : 'Remove Store' }}
+            } @else {
+              {{ generatingKey() ? 'Generating...' : 'Generate Key' }}
+            }
+          </button>
+        </div>
+      </section>
+    </div>
+  }
+</div>

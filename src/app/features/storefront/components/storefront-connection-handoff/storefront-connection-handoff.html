@@ -1,0 +1,114 @@
+@if (stage() === 'connecting') {
+  <section class="progress" aria-live="polite">
+    <span class="progress__mark"><app-logo variant="mark" /></span>
+    <span class="progress__loader" aria-hidden="true"></span>
+    <h3>Connecting Your Storefront</h3>
+    <p>We are saving the store, delivery preferences and secure connection details.</p>
+  </section>
+} @else if (storefront(); as store) {
+  <section class="success" aria-labelledby="connection-success-title">
+    <header class="success__header">
+      <div class="success__link" aria-hidden="true">
+        <span class="success__tile success__tile--brand"><app-logo variant="mark" /></span>
+        <span class="success__tile success__tile--store">
+          <ng-icon name="solarShop2BoldDuotone" aria-hidden="true" />
+        </span>
+        <span class="success__ring">
+          <span class="success__pulse"></span>
+          <ng-icon name="solarCheckCircleBoldDuotone" aria-hidden="true" />
+        </span>
+      </div>
+      <p>Storefront Connected</p>
+      <h3 id="connection-success-title">{{ titleCase(store.name) }} Is Ready</h3>
+      <span>Copy the details below.</span>
+    </header>
+
+    <div class="credentials">
+      <div class="credential">
+        <div class="credential__label">
+          <span>Property ID</span><small>Identifies this storefront</small>
+        </div>
+        <div class="credential__field">
+          <code>{{ store.id }}</code>
+          <button
+            type="button"
+            [attr.aria-label]="copied() === 'property-id' ? 'Property ID copied' : 'Copy property ID'"
+            (click)="copyValue.emit({ value: store.id, target: 'property-id' })"
+          >
+            <ng-icon
+              [name]="
+                copied() === 'property-id' ? 'solarCheckCircleBoldDuotone' : 'solarCopyBoldDuotone'
+              "
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+      </div>
+
+      <div class="credential">
+        <div class="credential__label">
+          <span>API Key</span><small>Keep this on your server</small>
+        </div>
+        <div class="credential__field">
+          <code [class.is-visible]="apiKey() && keyVisible()">{{
+            apiKey() && keyVisible() ? apiKey() : '••••••••••••••••••••••••••••••••'
+          }}</code>
+          <button
+            type="button"
+            class="credential__eye"
+            [attr.aria-label]="keyVisible() ? 'Hide API key' : 'Reveal API key'"
+            [disabled]="!apiKey()"
+            (click)="keyVisible.set(!keyVisible())"
+          >
+            <ng-icon
+              [name]="keyVisible() ? 'solarEyeClosedBoldDuotone' : 'solarEyeBoldDuotone'"
+              aria-hidden="true"
+            />
+          </button>
+          <button
+            type="button"
+            [attr.aria-label]="copied() === 'api-key' ? 'API key copied' : 'Copy API key'"
+            [disabled]="!apiKey()"
+            (click)="copyValue.emit({ value: apiKey()!, target: 'api-key' })"
+          >
+            <ng-icon
+              [name]="
+                copied() === 'api-key' ? 'solarCheckCircleBoldDuotone' : 'solarCopyBoldDuotone'
+              "
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+      </div>
+
+      @if (courierNames().length) {
+        <div class="credential">
+          <div class="credential__label">
+            <span>Preferred Couriers</span><small>Picked for your orders</small>
+          </div>
+          <ul class="credential__chips">
+            @for (name of courierNames(); track name) {
+              <li>{{ name }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+
+    @if (keyError()) {
+      <p class="warning" role="alert">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />
+        The store is connected, but the API key could not be prepared. {{ keyError() }}
+        <button type="button" [disabled]="preparingKey()" (click)="retryKey.emit()">
+          {{ preparingKey() ? 'Preparing...' : 'Try Again' }}
+        </button>
+      </p>
+    }
+
+    <footer class="actions">
+      <button type="button" class="btn btn--primary btn--block" (click)="openStorefront.emit()">
+        Let's Go
+      </button>
+    </footer>
+  </section>
+}

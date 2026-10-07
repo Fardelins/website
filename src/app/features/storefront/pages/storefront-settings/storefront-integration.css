@@ -1,0 +1,461 @@
+/* Integration and Details tabs plus the page-wide motion and responsive rules; split from storefront-settings.css for the style budget, loaded right after it so cascade order is unchanged. */
+
+.quick {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  color: #f4f4f4;
+  background: #1a1a1a;
+}
+
+.quick__bar {
+  display: flex;
+  min-height: 52px;
+  padding: 8px 12px 8px 20px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #0e0e0e;
+  color: #d4d4d4;
+  font:
+    13px 'SFMono-Regular',
+    Consolas,
+    'Liberation Mono',
+    monospace;
+}
+
+.quick__bar--split {
+  border-top: 1px solid #2a2a2a;
+  border-bottom: 1px solid #2a2a2a;
+  font-family: var(--font-body);
+  font-weight: 620;
+}
+
+.quick__bar button {
+  display: inline-flex;
+  min-height: 34px;
+  padding: 0 12px;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 10px;
+  color: #d4d4d4;
+  background: transparent;
+  font: 620 13px var(--font-body);
+  cursor: pointer;
+}
+
+.quick__bar button ng-icon {
+  font-size: 18px;
+}
+
+.quick__bar button:hover {
+  color: #fff;
+  background: #2a2a2a;
+}
+
+.quick__code {
+  margin: 0;
+  padding: 16px 20px;
+  overflow-x: auto;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 13px;
+  line-height: 1.85;
+  scrollbar-width: thin;
+}
+
+.quick__code .line {
+  display: block;
+}
+
+.tk-key,
+.tk-cmd {
+  color: #cdb4ff;
+}
+
+.tk-op {
+  color: #7a7a7a;
+}
+
+.tk-val,
+.tk-str {
+  color: #8fe0b0;
+}
+
+.tk-flag {
+  color: #8cc8ff;
+}
+
+.tk-hint {
+  color: #ffcf8a;
+  font-style: italic;
+}
+
+.key-card {
+  min-width: 0;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 16px;
+  background: var(--dashboard-card);
+}
+
+.key-row {
+  display: grid;
+  min-width: 0;
+  padding: 14px 18px;
+  grid-template-columns: minmax(110px, 0.3fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.key-row + .key-row {
+  border-top: 1px solid var(--dashboard-border);
+}
+
+.key-row h4 {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.key-field {
+  display: flex;
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 6px 6px 14px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-md, 10px);
+  background: var(--dashboard-control);
+}
+
+.key-field code {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: var(--dashboard-muted);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.key-field code.is-visible {
+  color: var(--dashboard-text);
+}
+
+.key-field button {
+  display: inline-grid;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  font-size: 19px;
+  cursor: pointer;
+}
+
+.key-field__eye {
+  color: var(--dashboard-muted);
+  background: transparent;
+}
+
+.key-field__eye:hover:not(:disabled) {
+  color: var(--color-primary-600);
+}
+
+.key-field__copy {
+  color: var(--color-primary-600);
+  background: var(--color-primary-100);
+}
+
+.key-field__copy:hover:not(:disabled) {
+  color: #fff;
+  background: var(--color-primary-500);
+}
+
+.key-field button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.key-tips {
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--color-primary-500) 18%, var(--dashboard-border));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-primary-500) 6%, var(--dashboard-card));
+}
+
+.key-tips h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 680;
+}
+
+.key-tips h4 ng-icon {
+  color: var(--color-primary-600);
+  font-size: 20px;
+}
+
+.key-tips ul {
+  display: grid;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  gap: 6px;
+  color: var(--dashboard-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.key-tips li::marker {
+  color: var(--color-primary-500);
+}
+
+.detail-grid {
+  display: grid;
+  margin: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.detail-grid > div {
+  display: grid;
+  min-width: 0;
+  padding: 16px 18px;
+  gap: 6px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 14px;
+  background: var(--dashboard-card);
+}
+
+.detail-grid dt {
+  color: var(--dashboard-muted);
+  font-size: 12px;
+}
+
+.detail-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  font-weight: 580;
+}
+
+.detail-note {
+  margin: 0;
+  padding: 14px 16px;
+  border-left: 2px solid var(--color-primary-400);
+  color: var(--dashboard-muted);
+  background: color-mix(in srgb, var(--color-primary-500) 4%, transparent);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.store-danger {
+  display: flex;
+  margin-top: 6px;
+  padding: 16px 18px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border: 1px solid color-mix(in srgb, var(--color-feedback-error) 22%, var(--dashboard-border));
+  border-radius: 14px;
+}
+
+.store-danger > div {
+  display: grid;
+  gap: 4px;
+}
+
+.store-danger h4 {
+  font-size: 14px;
+  font-weight: 680;
+}
+
+.store-danger p {
+  color: var(--dashboard-muted);
+  font-size: 12px;
+}
+
+.store-danger button {
+  display: inline-flex;
+  min-height: 38px;
+  padding: 0 14px;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--color-feedback-error);
+  background: color-mix(in srgb, var(--color-feedback-error) 8%, var(--dashboard-card));
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .ov-bar {
+    padding: 16px 16px 0;
+    flex-wrap: wrap;
+  }
+
+  .ov-tabs {
+    max-width: 100%;
+  }
+
+  .ov-tabs button {
+    padding: 0 12px;
+  }
+
+  .key-row {
+    padding: 14px 14px 16px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .store-overview__header {
+    flex-wrap: wrap;
+  }
+
+  .store-overview__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .ov-panel {
+    padding: 16px 16px 24px;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .store-danger {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.storefront :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid var(--dashboard-focus);
+  outline-offset: 2px;
+}
+
+@keyframes store-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (max-width: 900px) {
+  .storefront-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .storefront {
+    min-height: 380px;
+  }
+
+  .storefront-state {
+    min-height: 430px;
+    padding: 48px 18px;
+  }
+
+  .storefront > app-empty-state {
+    min-height: 430px;
+    padding: 32px 18px;
+  }
+
+  .storefront-state > p {
+    max-width: 34ch;
+  }
+
+  .store-form__header,
+  .store-overview__header {
+    padding: 20px 16px;
+  }
+
+  .store-form__header {
+    align-items: flex-start;
+  }
+
+  .connect-header {
+    padding: 26px 16px 4px;
+  }
+
+  .connect-header__dots {
+    display: none;
+  }
+
+  .store-form__back {
+    padding-inline: 8px;
+  }
+
+  .store-form__header p {
+    max-width: 30ch;
+  }
+
+  .store-form__section {
+    padding: 26px 16px;
+    gap: 18px;
+  }
+
+  .store-form__grid,
+  .courier-list,
+  .courier-list--loading {
+    grid-template-columns: 1fr;
+  }
+
+  .store-form__actions {
+    /* Lives in the modal's own scroll area now, so it flows with the form instead of pinning over content. */
+    padding: 16px;
+  }
+
+  .store-alert {
+    margin-inline: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .store-form__header {
+    display: grid;
+  }
+
+  .store-form__back {
+    width: fit-content;
+  }
+
+  .store-overview__header {
+    gap: 10px;
+  }
+
+  .store-overview__identity h3 {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .store-form,
+  .store-overview,
+  .courier-list--loading span,
+  .courier-load-more__spinner {
+    animation: none;
+  }
+
+  .store-list__item,
+  .courier-row,
+  .address-picker__chevron {
+    transition: none;
+  }
+}
+
+:host-context(.dashboard-motion-off) .store-form,
+:host-context(.dashboard-motion-off) .store-overview,
+:host-context(.dashboard-motion-off) .courier-list--loading span,
+:host-context(.dashboard-motion-off) .courier-load-more__spinner {
+  animation: none;
+}
