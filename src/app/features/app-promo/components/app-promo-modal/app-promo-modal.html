@@ -1,0 +1,252 @@
+<div class="promo-backdrop" (click)="backdropClick($event)">
+  <section
+    #dialog
+    class="promo"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="app-promo-title"
+    aria-describedby="app-promo-body"
+    tabindex="-1"
+    (keydown.escape)="dismiss()"
+  >
+    <div class="promo__media">
+      <span class="promo__wash" aria-hidden="true"></span>
+      <span class="promo__glyphs" aria-hidden="true"></span>
+
+      <button
+        type="button"
+        class="promo__flip-toggle"
+        [attr.aria-pressed]="face() === 'qr'"
+        (click)="flip()"
+      >
+        <ng-icon
+          [name]="face() === 'qr' ? 'solarSmartphoneBoldDuotone' : 'solarScannerBoldDuotone'"
+          aria-hidden="true"
+        />
+        {{ face() === 'qr' ? 'Show the app' : 'Scan to install' }}
+      </button>
+
+      <div class="promo__flip" [class.promo__flip--qr]="face() === 'qr'">
+        <div class="promo__face promo__face--phone">
+          <div class="promo__phone-wrap">
+            <img
+              [appTilt]="10"
+              src="/home/phone-image-480.webp"
+              alt="The Fardelins app showing an active delivery and its recent history"
+              width="600"
+              height="1224"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+        </div>
+
+        <div class="promo__face promo__face--qr">
+          <div
+            class="promo__qr-frame"
+            [class.promo__qr-frame--revealing]="qrRevealing()"
+            [style.--reveal-ms.ms]="qrRevealMs"
+            [style.--reveal-stagger-ms.ms]="qrRevealStaggerMs"
+          >
+            <div
+              class="promo__qr-plate"
+              [appTilt]="14"
+              [appTiltResponse]="0.22"
+              [appTiltPerspective]="620"
+              appTiltSurface="parent"
+              appQrSpotlight
+              appQrSpotlightSurface="parent"
+            >
+              @if (qrModules().length) {
+                <span class="promo__qr-layers">
+                  <svg
+                    class="promo__qr-code promo__qr-code--base"
+                    [attr.viewBox]="qrViewBox()"
+                    role="img"
+                    aria-label="Scan to install Fardelins"
+                  >
+                    @for (module of qrModules(); track $index) {
+                      <rect
+                        class="promo__qr-module"
+                        [attr.x]="module.x + 0.08"
+                        [attr.y]="module.y + 0.08"
+                        width="0.84"
+                        height="0.84"
+                        rx="0.28"
+                        [style.--d]="module.delay"
+                      />
+                    }
+                    @for (finder of qrFinders(); track $index) {
+                      <g class="promo__qr-finder" [style.--d]="finder.delay">
+                        <rect
+                          [attr.x]="finder.x"
+                          [attr.y]="finder.y"
+                          width="7"
+                          height="7"
+                          rx="1.5"
+                        />
+                        <rect
+                          class="promo__qr-finder-gap"
+                          [attr.x]="finder.x + 1"
+                          [attr.y]="finder.y + 1"
+                          width="5"
+                          height="5"
+                          rx="1"
+                        />
+                        <circle [attr.cx]="finder.x + 3.5" [attr.cy]="finder.y + 3.5" r="1.5" />
+                      </g>
+                    }
+                  </svg>
+
+                  <svg
+                    class="promo__qr-code promo__qr-code--rainbow"
+                    [attr.viewBox]="qrViewBox()"
+                    aria-hidden="true"
+                  >
+                    <defs>
+                      <linearGradient
+                        id="app-promo-qr-rainbow"
+                        gradientUnits="userSpaceOnUse"
+                        x1="0"
+                        y1="0"
+                        [attr.x2]="qrSpan()"
+                        [attr.y2]="qrSpan()"
+                      >
+                        <stop offset="0%" stop-color="#ff3b6b" />
+                        <stop offset="16%" stop-color="#ff8a34" />
+                        <stop offset="32%" stop-color="#ffd93d" />
+                        <stop offset="49%" stop-color="#39dd91" />
+                        <stop offset="65%" stop-color="#25c7f5" />
+                        <stop offset="82%" stop-color="#4f70ff" />
+                        <stop offset="100%" stop-color="#b64cff" />
+                      </linearGradient>
+                    </defs>
+                    @for (module of qrModules(); track $index) {
+                      <rect
+                        class="promo__qr-module"
+                        [attr.x]="module.x + 0.08"
+                        [attr.y]="module.y + 0.08"
+                        width="0.84"
+                        height="0.84"
+                        rx="0.28"
+                        [style.--d]="module.delay"
+                      />
+                    }
+                    @for (finder of qrFinders(); track $index) {
+                      <g class="promo__qr-finder" [style.--d]="finder.delay">
+                        <rect
+                          [attr.x]="finder.x"
+                          [attr.y]="finder.y"
+                          width="7"
+                          height="7"
+                          rx="1.5"
+                        />
+                        <rect
+                          class="promo__qr-finder-gap"
+                          [attr.x]="finder.x + 1"
+                          [attr.y]="finder.y + 1"
+                          width="5"
+                          height="5"
+                          rx="1"
+                        />
+                        <circle [attr.cx]="finder.x + 3.5" [attr.cy]="finder.y + 3.5" r="1.5" />
+                      </g>
+                    }
+                  </svg>
+
+                  <svg
+                    class="promo__qr-code promo__qr-code--spotlight"
+                    [attr.viewBox]="qrViewBox()"
+                    aria-hidden="true"
+                  >
+                    @for (module of qrModules(); track $index) {
+                      <rect
+                        class="promo__qr-module"
+                        [attr.x]="module.x + 0.08"
+                        [attr.y]="module.y + 0.08"
+                        width="0.84"
+                        height="0.84"
+                        rx="0.28"
+                        [style.--d]="module.delay"
+                      />
+                    }
+                    @for (finder of qrFinders(); track $index) {
+                      <g class="promo__qr-finder" [style.--d]="finder.delay">
+                        <rect
+                          [attr.x]="finder.x"
+                          [attr.y]="finder.y"
+                          width="7"
+                          height="7"
+                          rx="1.5"
+                        />
+                        <rect
+                          class="promo__qr-finder-gap"
+                          [attr.x]="finder.x + 1"
+                          [attr.y]="finder.y + 1"
+                          width="5"
+                          height="5"
+                          rx="1"
+                        />
+                        <circle [attr.cx]="finder.x + 3.5" [attr.cy]="finder.y + 3.5" r="1.5" />
+                      </g>
+                    }
+                  </svg>
+
+                  <span class="promo__qr-logo" aria-hidden="true">
+                    <img src="/home/app-icon.svg" alt="" width="34" height="34" />
+                  </span>
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="promo__close" aria-label="Close" (click)="dismiss()">
+      <ng-icon name="solarCloseCircleBoldDuotone" aria-hidden="true" />
+    </button>
+
+    <div class="promo__body">
+      <p class="promo__eyebrow">{{ copy().eyebrow }}</p>
+      <h2 id="app-promo-title">{{ copy().title }}</h2>
+      <p id="app-promo-body">{{ copy().body }}</p>
+
+      @if (sendLinkEnabled && phone()) {
+        <button
+          type="button"
+          class="promo__send-link"
+          [disabled]="sendingLink() || linkSent()"
+          (click)="sendLink()"
+        >
+          @if (linkSent()) {
+            Link sent to {{ phone() }}
+          } @else {
+            {{ sendingLink() ? 'Sending…' : 'Send a link to my phone' }}
+          }
+        </button>
+        @if (sendError()) {
+          <p class="promo__error" role="alert">{{ sendError() }}</p>
+        }
+      }
+    </div>
+
+    <footer class="promo__actions">
+      <button type="button" class="btn btn--soft" (click)="notNow()">Not now</button>
+      @if (storeUrl) {
+        <a
+          class="btn btn--primary"
+          [href]="storeUrl"
+          target="_blank"
+          rel="noopener"
+          (click)="accept()"
+          >{{ ctaLabel }}</a
+        >
+      } @else {
+        <a class="btn btn--primary" [routerLink]="downloadRoute" (click)="accept()">{{
+          ctaLabel
+        }}</a>
+      }
+    </footer>
+  </section>
+</div>

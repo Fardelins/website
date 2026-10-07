@@ -28,4 +28,9 @@ export const APP_DOWNLOAD_CONFIG = {
       icon: '/home/apple-logo.svg',
     },
   } satisfies Record<'android' | 'ios', AppStoreLink>,
+  // Flip `enabled` on once the backend ships the endpoint; the UI is already wired.
+  sendLink: {
+    enabled: false,
+    endpoint: '/user/app-download-link',
+  },
 } as const;
