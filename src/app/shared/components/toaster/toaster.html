@@ -1,0 +1,73 @@
+<section
+  class="toaster"
+  [class.toaster--raised]="raised()"
+  [class.toaster--expanded]="expanded()"
+  aria-label="Notifications"
+  aria-live="polite"
+  aria-relevant="additions text"
+  (mouseenter)="setHovered(true)"
+  (mouseleave)="setHovered(false)"
+  (focusin)="onFocusIn()"
+  (focusout)="onFocusOut($event)"
+>
+  <ol
+    class="toaster__list"
+    [style.--front-height.px]="frontHeight()"
+    [style.height.px]="expanded() ? stackHeight() : frontHeight()"
+  >
+    @for (toast of toasts(); track toast.id) {
+      <li
+        class="toast"
+        [class.toast--error]="toast.tone === 'error'"
+        [class.toast--compact]="!toast.description && !toast.actions.length"
+        [class.toast--leaving]="toast.leaving"
+        [class.toast--back]="index(toast) > 0"
+        [class.toast--hidden]="index(toast) > 2"
+        [style.--index]="index(toast)"
+        [style.--offset.px]="offset(toast)"
+        [style.--height.px]="height(toast)"
+        (pointerdown)="onPointerDown($event, toast)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp($event)"
+        (pointercancel)="onPointerUp($event)"
+      >
+        <div class="toast__inner" #inner [attr.data-toast-id]="toast.id">
+          <span class="toast__icon" aria-hidden="true">
+            <ng-icon
+              [name]="
+                toast.tone === 'error'
+                  ? 'solarDangerCircleBoldDuotone'
+                  : 'solarCheckCircleBoldDuotone'
+              "
+            />
+          </span>
+          <div class="toast__copy">
+            <p class="toast__title">{{ toast.title }}</p>
+            @if (toast.description) {
+              <p class="toast__body">{{ toast.description }}</p>
+            }
+            @if (toast.actions.length) {
+              <div class="toast__actions">
+                @for (action of toast.actions; track action.label) {
+                  <button type="button" class="toast__action" (click)="runAction(toast, action)">
+                    {{ action.label }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+          <button
+            type="button"
+            class="toast__close"
+            aria-label="Dismiss notification"
+            (click)="dismiss(toast)"
+          >
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M5 5l10 10M15 5L5 15" />
+            </svg>
+          </button>
+        </div>
+      </li>
+    }
+  </ol>
+</section>
