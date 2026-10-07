@@ -1,0 +1,145 @@
+@if (open()) {
+  <div class="palette__scrim" (click)="close()"></div>
+
+  <div
+    class="palette"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Search"
+    (keydown)="onKeydown($event)"
+  >
+    <header class="palette__field">
+      <ng-icon name="solarMagniferBoldDuotone" aria-hidden="true" />
+      <input
+        #field
+        type="text"
+        [value]="query()"
+        (input)="setQuery($any($event.target).value)"
+        placeholder="Search parcels, tracking IDs, help"
+        aria-label="Search"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button type="button" class="palette__esc" (click)="close()" aria-label="Close search">
+        ESC
+      </button>
+    </header>
+
+    <div class="palette__scopes" role="group" aria-label="Filter results">
+      @for (item of scopes; track item.key) {
+        <button
+          type="button"
+          class="palette__chip"
+          [class.palette__chip--on]="scope() === item.key"
+          [attr.aria-pressed]="scope() === item.key"
+          (click)="setScope(item.key)"
+        >
+          <ng-icon [name]="item.icon" aria-hidden="true" />{{ item.label }}
+        </button>
+      }
+    </div>
+
+    <div class="palette__results">
+      @for (group of groups(); track group.scope) {
+        <section class="palette__group">
+          <h2>{{ group.label }}</h2>
+          @for (result of group.results; track result.id) {
+            <button
+              type="button"
+              class="palette__row"
+              [class.palette__row--active]="indexOf(result) === active()"
+              (mouseenter)="active.set(indexOf(result))"
+              (click)="run(result)"
+            >
+              <span class="palette__row-icon"
+                ><ng-icon [name]="result.icon" aria-hidden="true"
+              /></span>
+              <span class="palette__row-text">
+                <strong>{{ result.title }}</strong>
+                @if (result.detail) {
+                  <small>{{ result.detail }}</small>
+                }
+              </span>
+              @if (result.hint) {
+                <kbd>{{ result.hint }}</kbd>
+              }
+            </button>
+          }
+        </section>
+      }
+
+      @if (empty()) {
+        @switch (scope()) {
+          @case ('tracking') {
+            <div class="palette__empty">
+              <app-ascii-spotlight label="Fardelins">
+                <p>No tracking match</p>
+                <span>Enter the complete tracking ID and check every letter and number.</span>
+                <div class="palette__empty-actions">
+                  <button
+                    type="button"
+                    class="palette__empty-action palette__empty-action--primary"
+                    (click)="setScope(null)"
+                  >
+                    Search everything
+                  </button>
+                </div>
+              </app-ascii-spotlight>
+            </div>
+          }
+          @case ('help') {
+            <div class="palette__empty">
+              <app-ascii-spotlight label="Fardelins">
+                <p>No help article found</p>
+                <span>Try fewer words, or browse the help center by topic.</span>
+                <div class="palette__empty-actions">
+                  <button type="button" class="palette__empty-action" (click)="setScope(null)">
+                    Clear filter
+                  </button>
+                  <button
+                    type="button"
+                    class="palette__empty-action palette__empty-action--primary"
+                    (click)="openHelp()"
+                  >
+                    Browse help center
+                  </button>
+                </div>
+              </app-ascii-spotlight>
+            </div>
+          }
+          @default {
+            <div class="palette__empty">
+              <app-ascii-spotlight label="Fardelins">
+                <p>What are you looking for?</p>
+                <span
+                  >A parcel, a tracking ID, or a question. We'll match whatever we can and point you
+                  at the rest.</span
+                >
+                <div class="palette__empty-actions">
+                  @if (scope()) {
+                    <button type="button" class="palette__empty-action" (click)="setScope(null)">
+                      Clear filter
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="palette__empty-action palette__empty-action--primary"
+                    (click)="searchAllParcels()"
+                  >
+                    Browse all parcels
+                  </button>
+                </div>
+              </app-ascii-spotlight>
+            </div>
+          }
+        }
+      }
+    </div>
+
+    <footer class="palette__foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd>Navigate</span>
+      <span><kbd>↵</kbd>Open</span>
+      <span><kbd>Esc</kbd>Close</span>
+    </footer>
+  </div>
+}
