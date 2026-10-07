@@ -1,0 +1,50 @@
+<link rel="stylesheet" href="/maplibre/maplibre-gl.css" />
+<div class="route-map">
+  <div #canvas class="route-map__canvas" [class.route-map__canvas--ready]="ready()"></div>
+  @if (topFade()) {
+    <div class="route-map__top-fade" aria-hidden="true"></div>
+  }
+
+  @if (ready()) {
+    <button
+      type="button"
+      class="route-map__recenter"
+      (click)="recenter()"
+      aria-label="Recenter map"
+      title="Recenter map"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="6" />
+        <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+        <path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
+      </svg>
+    </button>
+  }
+  @if (!ready()) {
+    <!-- A map-shaped skeleton rather than a spinner, so the swap is a reveal and not a jump. -->
+    <div class="route-map__loading" aria-label="Map overview" role="status">
+      <svg
+        class="route-map__ghost"
+        viewBox="0 0 100 60"
+        aria-hidden="true"
+        preserveAspectRatio="none"
+      >
+        <path d="M -4 40 L 30 34 L 52 44 L 78 18 L 104 24" />
+        <path d="M 12 -4 L 22 62" />
+        <path d="M 66 -4 L 74 62" />
+      </svg>
+      <ng-content />
+      @if (failed()) {
+        <p class="route-map__error">Map unavailable. Your parcel details are still here.</p>
+      }
+    </div>
+  }
+</div>
