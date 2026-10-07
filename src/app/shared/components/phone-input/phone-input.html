@@ -1,0 +1,65 @@
+<span class="phone">
+  <span class="phone__country">
+    <button
+      type="button"
+      class="phone__country-trigger"
+      aria-haspopup="listbox"
+      aria-controls="country-options"
+      [attr.aria-expanded]="menuOpen()"
+      [attr.aria-label]="'Country: ' + selectedCountry().name + ' ' + selectedCountry().callingCode"
+      (click)="toggleMenu()"
+    >
+      <img
+        class="phone__flag"
+        [src]="flagUrl(selectedCountry().iso2)"
+        alt=""
+        aria-hidden="true"
+        width="22"
+        height="16"
+      />
+      <span>{{ selectedCountry().callingCode }}</span>
+      <span class="phone__chevron" aria-hidden="true"></span>
+    </button>
+
+    @if (menuOpen()) {
+      <div id="country-options" class="phone__country-menu" role="listbox">
+        <input
+          class="phone__country-search"
+          type="search"
+          placeholder="Search country or code"
+          aria-label="Search countries"
+          [value]="query()"
+          (input)="query.set($any($event.target).value)"
+        />
+        <div class="phone__country-options">
+          @for (item of filteredCountries(); track item.iso2) {
+            <button
+              type="button"
+              class="phone__country-option"
+              role="option"
+              [class.phone__country-option--selected]="item.iso2 === country()"
+              [attr.aria-selected]="item.iso2 === country()"
+              (click)="selectCountry(item.iso2)"
+            >
+              <img [src]="flagUrl(item.iso2)" alt="" aria-hidden="true" width="22" height="16" />
+              <span class="phone__country-name">{{ item.name }}</span>
+              <span class="phone__calling-code">{{ item.callingCode }}</span>
+            </button>
+          } @empty {
+            <span class="phone__country-empty">No country found</span>
+          }
+        </div>
+      </div>
+    }
+  </span>
+  <input
+    type="tel"
+    [name]="name()"
+    autocomplete="tel-national"
+    inputmode="numeric"
+    [placeholder]="placeholder()"
+    [required]="required()"
+    [value]="value()"
+    (input)="onPhoneInput($any($event.target))"
+  />
+</span>

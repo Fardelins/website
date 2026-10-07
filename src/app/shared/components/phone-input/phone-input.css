@@ -1,0 +1,159 @@
+/* No box of its own, the .phone span below sits directly in the parent .field's
+   grid/flex layout, exactly as if this markup were still inlined there. */
+:host {
+  display: contents;
+}
+
+.phone {
+  display: flex;
+  gap: 8px;
+}
+.phone__country {
+  position: relative;
+  display: flex;
+  flex: 0 0 120px;
+  min-width: 0;
+}
+.phone__country-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 13px 12px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  color: var(--color-styles-body);
+  background: var(--color-neutral-white);
+  font: 500 14px/1.4 var(--font-body);
+  cursor: pointer;
+  transition:
+    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.phone__country-trigger:focus-visible,
+.phone__country:has(.phone__country-menu) .phone__country-trigger {
+  border-color: var(--color-primary-500);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+.phone__flag,
+.phone__country-option img {
+  display: block;
+  flex: none;
+  width: 22px;
+  height: 16px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+.phone__chevron {
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 160ms ease;
+}
+.phone__country:has(.phone__country-menu) .phone__chevron {
+  transform: translateY(2px) rotate(225deg);
+}
+.phone__country-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  width: min(340px, calc(100vw - 40px));
+  padding: 8px;
+  border: 1px solid var(--color-styles-stroke);
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-white);
+  box-shadow: 0 18px 48px rgba(24, 12, 45, 0.18);
+}
+.phone__country-search {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  color: var(--color-styles-body);
+  background: var(--color-neutral-white);
+  font: 400 14px/1.4 var(--font-body);
+  outline: none;
+}
+.phone__country-search:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+.phone__country-options {
+  display: grid;
+  gap: 2px;
+  max-height: 240px;
+  margin-top: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.phone__country-option {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--color-styles-body);
+  background: transparent;
+  font: 400 14px/1.35 var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+.phone__country-option:hover,
+.phone__country-option--selected {
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+.phone__country-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.phone__calling-code {
+  color: var(--color-styles-label);
+  font-variant-numeric: tabular-nums;
+}
+.phone__country-empty {
+  padding: 18px 12px;
+  color: var(--color-styles-label);
+  font-size: 13px;
+  text-align: center;
+}
+.phone > input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  padding: 13px 14px;
+  color: var(--color-styles-body);
+  background: var(--color-neutral-white);
+  font: 400 14px/1.4 var(--font-body);
+  outline: none;
+  transition:
+    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.phone > input::placeholder {
+  color: var(--color-styles-placeholder);
+}
+.phone > input:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone__chevron {
+    transition: none;
+  }
+}

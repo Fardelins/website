@@ -1,0 +1,24 @@
+<div
+  class="otp"
+  role="group"
+  aria-label="Verification code"
+  [style.--otp-length]="length()"
+  [class.otp--shake]="shaking()"
+  [class.otp--checking]="status() === 'checking'"
+  [class.otp--success]="status() === 'success'"
+>
+  @for (index of slots(); track index) {
+    <input
+      #box
+      class="otp__box"
+      type="text"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+      [attr.maxlength]="length()"
+      [attr.aria-label]="'Digit ' + (index + 1)"
+      [disabled]="status() === 'checking'"
+      (input)="onInput(index, $event)"
+      (keydown)="onKeydown(index, $event)"
+    />
+  }
+</div>

@@ -1,0 +1,45 @@
+<div class="combobox" [class.combobox--strict]="strict()">
+  <input
+    #field
+    type="text"
+    role="combobox"
+    aria-autocomplete="list"
+    aria-haspopup="listbox"
+    autocomplete="off"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="listId"
+    [attr.aria-activedescendant]="activeIndex() >= 0 ? listId + '-' + activeIndex() : null"
+    [id]="fieldId()"
+    [name]="name()"
+    [value]="query()"
+    [placeholder]="loading() ? loadingLabel() : placeholder()"
+    [disabled]="disabled() || loading()"
+    [required]="required()"
+    (input)="onInput($any($event.target).value)"
+    (focus)="onFocus()"
+    (blur)="onBlur()"
+    (keydown)="onKeydown($event)"
+  />
+  @if (strict()) {
+    <ng-icon class="combobox__caret" name="solarAltArrowDownBoldDuotone" aria-hidden="true" />
+  }
+  @if (open() && !loading() && options().length) {
+    <ul class="combobox__list" [id]="listId" role="listbox">
+      @for (option of filtered(); track option.id; let i = $index) {
+        <li
+          [id]="listId + '-' + i"
+          role="option"
+          class="combobox__option"
+          [class.combobox__option--active]="i === activeIndex()"
+          [attr.aria-selected]="i === activeIndex()"
+          (mousedown)="$event.preventDefault()"
+          (click)="choose(option)"
+        >
+          {{ option.label | titlecase }}
+        </li>
+      } @empty {
+        <li class="combobox__empty">{{ emptyLabel() }}</li>
+      }
+    </ul>
+  }
+</div>
