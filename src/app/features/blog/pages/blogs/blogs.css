@@ -100,7 +100,7 @@
   background: transparent;
   transition: background 160ms ease;
 }
-.blogs-search__clear svg {
+.blogs-search__clear ng-icon {
   position: relative;
 }
 .blogs-search__clear:hover {
@@ -223,7 +223,7 @@
   opacity: 0.6;
   cursor: default;
 }
-.blogs-load-more img {
+.blogs-load-more ng-icon {
   flex: 0 0 18px;
 }
 

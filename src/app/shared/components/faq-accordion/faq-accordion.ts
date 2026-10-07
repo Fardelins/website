@@ -1,4 +1,6 @@
 import { Component, inject, input, signal } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { solarAltArrowDownBoldDuotone } from '@ng-icons/solar-icons/bold-duotone';
 import { HapticsService } from '@core/services/haptics.service';
 
 export interface FaqItem {
@@ -9,6 +11,8 @@ export interface FaqItem {
 @Component({
   selector: 'app-faq-accordion',
   standalone: true,
+  imports: [NgIcon],
+  viewProviders: [provideIcons({ solarAltArrowDownBoldDuotone })],
   templateUrl: './faq-accordion.html',
   styleUrl: './faq-accordion.css',
 })

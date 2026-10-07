@@ -10,6 +10,11 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  solarCheckCircleBoldDuotone,
+  solarLinkBoldDuotone,
+} from '@ng-icons/solar-icons/bold-duotone';
 import { BlogCard } from '../../components/blog-card/blog-card';
 import { BlogLoader } from '../../components/blog-loader/blog-loader';
 import { BlogNewsletter } from '../../components/blog-newsletter/blog-newsletter';
@@ -29,7 +34,8 @@ interface TocItem {
 
 @Component({
   selector: 'app-blog-detail',
-  imports: [BlogCard, BlogLoader, BlogNewsletter, RouterLink, TiltDirective],
+  imports: [BlogCard, BlogLoader, BlogNewsletter, RouterLink, TiltDirective, NgIcon],
+  viewProviders: [provideIcons({ solarCheckCircleBoldDuotone, solarLinkBoldDuotone })],
   templateUrl: './blog-detail.html',
   styleUrl: './blog-detail.css',
 })
@@ -63,13 +69,13 @@ export class BlogDetail implements OnDestroy {
     if (!post) return '';
     const snippet = post.excerpt.trim().replace(/\s+/g, ' ');
     const short = snippet.length > 120 ? `${snippet.slice(0, 117).trimEnd()}…` : snippet;
-    return `Read our latest story on Fardelins 📦 “${post.title}”${short ? ` — ${short}` : ''}`;
+    return `Read our latest story on Fardelins 📦 “${post.title}”${short ? `: ${short}` : ''}`;
   });
 
   protected readonly toc = signal<TocItem[]>([]);
   protected readonly activeTocId = signal('');
 
-  /** Fill level (0–1) of the sticky TOC rail, driven by the active section — mirrors Terms. */
+  /** Fill level (0–1) of the sticky TOC rail, driven by the active section, mirrors Terms. */
   protected readonly tocProgress = computed(() => {
     const items = this.toc();
     if (items.length < 2) return 0;
@@ -148,7 +154,7 @@ export class BlogDetail implements OnDestroy {
       this.related.set(
         await this.blogService.fetchRelated(article.categoryId, article.id, RELATED_COUNT),
       );
-      // Content lands in the DOM via [innerHTML] on the next tick — build the TOC after that (browser only).
+      // Content lands in the DOM via [innerHTML] on the next tick, build the TOC after that (browser only).
       if (this.isBrowser)
         setTimeout(() => {
           this.buildToc();
@@ -266,7 +272,7 @@ export class BlogDetail implements OnDestroy {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 1800);
     } catch {
-      /* clipboard unavailable — no-op */
+      /* clipboard unavailable, no-op */
     }
   }
 

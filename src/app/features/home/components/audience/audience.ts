@@ -8,6 +8,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { solarArrowLeftBoldDuotone, solarArrowRightBoldDuotone } from './audience-icons';
 import { Card } from '@shared/components/card/card';
 import { HapticsService } from '@core/services/haptics.service';
 
@@ -17,14 +19,14 @@ interface AudienceItem {
   description: string;
 }
 
-/** Pixels per animation frame — desktop-only; touch devices use native momentum. */
+/** Pixels per animation frame, desktop-only; touch devices use native momentum. */
 const AUTO_SCROLL_SPEED = 0.5;
 const SCROLL_SETTLE_MS = 180;
-
 @Component({
   selector: 'app-audience',
   standalone: true,
-  imports: [Card],
+  imports: [Card, NgIcon],
+  viewProviders: [provideIcons({ solarArrowLeftBoldDuotone, solarArrowRightBoldDuotone })],
   templateUrl: './audience.html',
   styleUrl: './audience.css',
 })
@@ -83,7 +85,7 @@ export class Audience implements AfterViewInit, OnDestroy {
   private settleTimer: ReturnType<typeof setTimeout> | null = null;
   private loopWidth = 0;
   private autoEnabled = false;
-  /** Own float accumulator — reading back scrollLeft rounds to int and can stall a <1px/frame drift. */
+  /** Own float accumulator, reading back scrollLeft rounds to int and can stall a <1px/frame drift. */
   private position = 0;
 
   ngAfterViewInit(): void {
@@ -104,7 +106,7 @@ export class Audience implements AfterViewInit, OnDestroy {
     window.removeEventListener('resize', this.measure);
   }
 
-  /** Distance of one full item set (incl. gaps) — the seamless loop period. */
+  /** Distance of one full item set (incl. gaps), the seamless loop period. */
   private measure = (): void => {
     const el = this.track().nativeElement;
     const first = el.children[0] as HTMLElement | undefined;

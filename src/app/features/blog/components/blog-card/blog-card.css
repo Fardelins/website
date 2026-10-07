@@ -76,8 +76,9 @@
 .blog-card:hover .blog-card__link {
   color: var(--color-primary-600);
 }
-.blog-card__link img {
+.blog-card__link ng-icon {
   flex: 0 0 20px;
+  font-size: 20px;
 }
 
 @media (prefers-reduced-motion: reduce) {

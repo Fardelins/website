@@ -1,6 +1,12 @@
 import { Component, inject, signal, viewChild } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCircleAlert, lucideCircleCheck } from '@ng-icons/lucide';
+import {
+  solarCheckCircleBoldDuotone,
+  solarClockCircleBoldDuotone,
+  solarDangerCircleBoldDuotone,
+  solarLetterBoldDuotone,
+  solarPhoneRoundedBoldDuotone,
+} from '@ng-icons/solar-icons/bold-duotone';
 import {
   ComponentConfig,
   ShaderBackground,
@@ -16,7 +22,7 @@ import { HapticsService } from '@core/services/haptics.service';
 import { SITE_NAME, SeoService } from '@core/services/seo.service';
 import { CONTACT_FAQS } from './contact-faq.data';
 
-// contact-us can take minutes to respond (synchronous email send) — reassure in two stages.
+// contact-us can take minutes to respond (synchronous email send), reassure in two stages.
 const HINT_STAGE_1_MS = 8000;
 const HINT_STAGE_2_MS = 60000;
 
@@ -41,7 +47,15 @@ const CONTACT_IMAGE_PRESET: ComponentConfig[] = [
 @Component({
   selector: 'app-contact',
   imports: [ShaderBackground, TiltDirective, FaqAccordion, NgIcon],
-  viewProviders: [provideIcons({ lucideCircleCheck, lucideCircleAlert })],
+  viewProviders: [
+    provideIcons({
+      solarCheckCircleBoldDuotone,
+      solarDangerCircleBoldDuotone,
+      solarLetterBoldDuotone,
+      solarPhoneRoundedBoldDuotone,
+      solarClockCircleBoldDuotone,
+    }),
+  ],
   templateUrl: './contact.html',
   styleUrl: './contact.css',
 })

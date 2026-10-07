@@ -41,7 +41,7 @@
   background: var(--color-primary-600);
 }
 
-/* Hero — text and image both sit inside the navbar-aligned container. */
+/* Hero, text and image both sit inside the navbar-aligned container. */
 .article-hero {
   padding: 120px var(--spacing-80) 0;
   background: var(--color-primary-50);
@@ -138,7 +138,7 @@
   opacity: 0.55;
 }
 
-/* Body — content column left-aligned to the navbar, TOC in the space on the right. */
+/* Body, content column left-aligned to the navbar, TOC in the space on the right. */
 .article-body {
   padding: 96px var(--spacing-80);
 }
@@ -154,7 +154,7 @@
   min-width: 0;
 }
 
-/* On this page — sticky jump links with a moving progress rail, mirroring the Terms index. */
+/* On this page, sticky jump links with a moving progress rail, mirroring the Terms index. */
 .article-toc {
   position: sticky;
   top: 120px;
@@ -238,7 +238,7 @@
   transform: translateX(2px);
 }
 
-/* Mobile reading progress bar — floats above the bottom edge like the download bar. */
+/* Mobile reading progress bar, floats above the bottom edge like the download bar. */
 .article-progress {
   display: none;
 }
@@ -278,6 +278,7 @@
   height: 44px;
   padding: 0;
   border: 0;
+  color: var(--color-styles-title);
   background: transparent;
   cursor: pointer;
   text-decoration: none;
@@ -287,6 +288,12 @@
   display: block;
   width: 32px;
   height: 32px;
+}
+.article-share__btn ng-icon {
+  font-size: 24px;
+}
+.article-share__status-icon {
+  color: #16a34a;
 }
 .article-share__btn:hover {
   opacity: 0.82;
@@ -328,7 +335,7 @@
   }
 }
 @media (max-width: 1100px) {
-  /* Not enough width for the side TOC — collapse to a single column and
+  /* Not enough width for the side TOC, collapse to a single column and
      surface reading progress as a floating bar at the bottom instead. */
   .article-body__inner {
     grid-template-columns: 1fr;

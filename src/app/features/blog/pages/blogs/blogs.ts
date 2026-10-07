@@ -1,4 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  solarAltArrowDownBoldDuotone,
+  solarCloseCircleBoldDuotone,
+  solarMagniferBoldDuotone,
+} from '@ng-icons/solar-icons/bold-duotone';
 import { SITE_NAME, SITE_URL, SeoService } from '@core/services/seo.service';
 import { BlogCard } from '../../components/blog-card/blog-card';
 import { BlogEmptyState } from '../../components/blog-empty-state/blog-empty-state';
@@ -12,7 +18,14 @@ const SEARCH_DEBOUNCE_MS = 350;
 
 @Component({
   selector: 'app-blogs',
-  imports: [BlogCard, BlogLoader, BlogEmptyState, BlogNewsletter],
+  imports: [BlogCard, BlogLoader, BlogEmptyState, BlogNewsletter, NgIcon],
+  viewProviders: [
+    provideIcons({
+      solarMagniferBoldDuotone,
+      solarCloseCircleBoldDuotone,
+      solarAltArrowDownBoldDuotone,
+    }),
+  ],
   templateUrl: './blogs.html',
   styleUrl: './blogs.css',
 })
@@ -24,9 +37,9 @@ export class Blogs {
   protected readonly activeCategoryId = signal<number | null>(null);
   protected readonly searchQuery = signal('');
 
-  /** True only for the very first fetch — shows the full shader loader. */
+  /** True only for the very first fetch, shows the full shader loader. */
   protected readonly loading = signal(true);
-  /** True for category/search-triggered refetches — dims the existing grid instead of replacing it. */
+  /** True for category/search-triggered refetches, dims the existing grid instead of replacing it. */
   protected readonly refreshing = signal(false);
   protected readonly loadingMore = signal(false);
   protected readonly error = signal(false);

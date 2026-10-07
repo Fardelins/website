@@ -37,7 +37,7 @@
       <ng-icon
         class="email-verified-page__icon"
         [class.email-verified-page__icon--error]="!isSuccess()"
-        [name]="isSuccess() ? 'lucideCircleCheck' : 'lucideCircleAlert'"
+        [name]="isSuccess() ? 'solarCheckCircleBoldDuotone' : 'solarDangerCircleBoldDuotone'"
         aria-hidden="true"
       />
     </div>
@@ -46,9 +46,7 @@
     <p class="email-verified-page__description">{{ description() }}</p>
     <div class="email-verified-page__actions">
       @if (isSuccess()) {
-        <a
-          href="https://courier.fardelins.com/#/auth/login"
-          class="email-verified-page__link email-verified-page__link--solid"
+        <a routerLink="/login" class="email-verified-page__link email-verified-page__link--solid"
           >Sign in</a
         >
         <a routerLink="/" class="email-verified-page__link email-verified-page__link--outline"

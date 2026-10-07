@@ -206,7 +206,7 @@
   flex: 0 0 22px;
   width: 22px;
   height: 22px;
-  object-fit: contain;
+  font-size: 22px;
 }
 .contact-direct a {
   color: inherit;

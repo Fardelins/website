@@ -60,6 +60,7 @@
   padding: var(--spacing-lg);
   border: none;
   border-radius: var(--radius-100);
+  color: var(--color-styles-title);
   background: var(--color-styles-off-white);
   cursor: pointer;
   transition: background 0.2s ease;
@@ -69,13 +70,9 @@
   background: var(--color-7);
 }
 
-.audience__nav-btn img {
+.audience__nav-btn ng-icon {
   width: 32px;
   height: 32px;
-}
-
-.audience__nav-btn--next img {
-  transform: rotate(180deg);
 }
 
 .audience__track {

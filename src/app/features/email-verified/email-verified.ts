@@ -4,7 +4,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { map } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCircleCheck, lucideCircleAlert } from '@ng-icons/lucide';
+import {
+  solarCheckCircleBoldDuotone,
+  solarDangerCircleBoldDuotone,
+} from '@ng-icons/solar-icons/bold-duotone';
 import { SITE_NAME, SeoService } from '@core/services/seo.service';
 import { HapticsService } from '@core/services/haptics.service';
 
@@ -29,14 +32,14 @@ type Variant = 'success' | 'already-verified' | 'error';
 const CONFETTI_COLORS = ['#521c99', '#9776c1', '#29cc6a', '#0099ff'];
 const FALLING_CONFETTI_COUNT = 60;
 const BURST_CONFETTI_COUNT = 16;
-// Kept short on purpose — the falling confetti is the main event, the icon burst is a quick coda after it lands.
+// Kept short on purpose, the falling confetti is the main event, the icon burst is a quick coda after it lands.
 const FALL_MAX_DELAY_MS = 300;
 const FALL_MAX_DURATION_MS = 1900;
 
 @Component({
   selector: 'app-email-verified',
   imports: [RouterLink, NgIcon],
-  viewProviders: [provideIcons({ lucideCircleCheck, lucideCircleAlert })],
+  viewProviders: [provideIcons({ solarCheckCircleBoldDuotone, solarDangerCircleBoldDuotone })],
   templateUrl: './email-verified.html',
   styleUrl: './email-verified.css',
 })
@@ -63,7 +66,7 @@ export class EmailVerified {
 
   protected readonly isSuccess = computed(() => this.query().status === 'success');
 
-  // "Already verified" isn't really a failure — it gets its own copy and a lighter haptic than a broken link.
+  // "Already verified" isn't really a failure, it gets its own copy and a lighter haptic than a broken link.
   protected readonly variant = computed<Variant>(() => {
     if (this.isSuccess()) return 'success';
     return (this.query().message ?? '').toLowerCase().includes('already verified')
@@ -89,7 +92,7 @@ export class EmailVerified {
     return this.query().message || 'This verification link is invalid or has expired.';
   });
 
-  // Fixed per load, not reactive — both confetti effects only ever play once, on the success state.
+  // Fixed per load, not reactive, both confetti effects only ever play once, on the success state.
   protected readonly fallingConfetti: FallingConfettiPiece[] = this.buildFallingConfetti();
   protected readonly burstConfetti: BurstConfettiPiece[] = this.buildBurstConfetti();
 
@@ -107,7 +110,7 @@ export class EmailVerified {
       robots: 'noindex, follow',
     });
 
-    // Fires immediately, alongside the falling confetti — not held back for the icon burst.
+    // Fires immediately, alongside the falling confetti, not held back for the icon burst.
     switch (this.variant()) {
       case 'success':
         this.haptics.success();
@@ -136,7 +139,8 @@ export class EmailVerified {
   private buildBurstConfetti(): BurstConfettiPiece[] {
     if (!this.isBrowser || !this.isSuccess()) return [];
     return Array.from({ length: BURST_CONFETTI_COUNT }, (_, i) => {
-      const angle = ((360 / BURST_CONFETTI_COUNT) * i + (Math.random() * 20 - 10)) * (Math.PI / 180);
+      const angle =
+        ((360 / BURST_CONFETTI_COUNT) * i + (Math.random() * 20 - 10)) * (Math.PI / 180);
       const distance = 70 + Math.random() * 50;
       return {
         color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
