@@ -1,0 +1,369 @@
+<div
+  class="shell"
+  [class.shell--task]="isTaskRoute()"
+  [class.shell--collapsed]="preferences.sidebarCollapsed()"
+>
+  <aside class="sidebar">
+    <header class="sidebar__head">
+      <a class="brand" routerLink="/app" aria-label="Fardelins home">
+        <app-logo [variant]="preferences.sidebarCollapsed() ? 'mark' : 'lockup'" />
+      </a>
+      <button
+        type="button"
+        class="collapse"
+        (click)="toggleSidebar()"
+        [attr.aria-expanded]="!preferences.sidebarCollapsed()"
+        [attr.aria-label]="preferences.sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+        [attr.title]="preferences.sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+      >
+        <ng-icon name="solarSidebarMinimalisticBoldDuotone" aria-hidden="true" />
+      </button>
+    </header>
+
+    <nav class="rail" aria-label="Main">
+      @for (item of navItems; track item.path) {
+        <a
+          class="rail__link"
+          [routerLink]="item.path"
+          routerLinkActive="rail__link--active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          ariaCurrentWhenActive="page"
+          [attr.title]="preferences.sidebarCollapsed() ? item.label : null"
+        >
+          <ng-icon [name]="item.icon" aria-hidden="true" />
+          <span class="rail__label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="utility">
+      <a
+        class="rail__link"
+        routerLink="/app/help"
+        routerLinkActive="rail__link--active"
+        ariaCurrentWhenActive="page"
+        [attr.title]="preferences.sidebarCollapsed() ? 'Help center' : null"
+      >
+        <ng-icon name="solarQuestionCircleBoldDuotone" aria-hidden="true" />
+        <span class="rail__label">Help center</span>
+        <ng-icon class="rail__trail" name="solarArrowRightUpBoldDuotone" aria-hidden="true" />
+      </a>
+
+      @if (preferences.sidebarCollapsed()) {
+        <button
+          type="button"
+          class="rail__link appearance__compact"
+          (click)="toggleTheme()"
+          [attr.title]="
+            preferences.effectiveTheme() === 'dark' ? 'Switch to light' : 'Switch to dark'
+          "
+          [attr.aria-label]="
+            preferences.effectiveTheme() === 'dark' ? 'Switch to light' : 'Switch to dark'
+          "
+        >
+          <ng-icon
+            [name]="
+              preferences.effectiveTheme() === 'dark'
+                ? 'solarMoonBoldDuotone'
+                : 'solarSunBoldDuotone'
+            "
+            aria-hidden="true"
+          />
+        </button>
+      } @else {
+        <div class="appearance" role="group" aria-label="Appearance">
+          <span
+            class="appearance__thumb"
+            [class.appearance__thumb--dark]="preferences.effectiveTheme() === 'dark'"
+            aria-hidden="true"
+          ></span>
+          <button
+            type="button"
+            class="appearance__option"
+            [class.appearance__option--on]="preferences.effectiveTheme() === 'light'"
+            [attr.aria-pressed]="preferences.effectiveTheme() === 'light'"
+            (click)="setTheme('light')"
+          >
+            <ng-icon name="solarSunBoldDuotone" aria-hidden="true" /><span>Light</span>
+          </button>
+          <button
+            type="button"
+            class="appearance__option"
+            [class.appearance__option--on]="preferences.effectiveTheme() === 'dark'"
+            [attr.aria-pressed]="preferences.effectiveTheme() === 'dark'"
+            (click)="setTheme('dark')"
+          >
+            <ng-icon name="solarMoonBoldDuotone" aria-hidden="true" /><span>Dark</span>
+          </button>
+        </div>
+      }
+    </div>
+
+    <div class="account">
+      @if (menuOpen()) {
+        <div class="menu" role="menu" aria-label="Account">
+          <a
+            class="menu__item"
+            role="menuitem"
+            routerLink="/app/profile"
+            (click)="menuOpen.set(false)"
+          >
+            <ng-icon name="solarUserRoundedBoldDuotone" aria-hidden="true" />My profile
+          </a>
+          <a class="menu__item" role="menuitem" routerLink="/contact" (click)="menuOpen.set(false)">
+            <ng-icon name="solarHeadphonesRoundBoldDuotone" aria-hidden="true" />Contact support
+          </a>
+          <button type="button" class="menu__item" role="menuitem" (click)="openAppPromo()">
+            <ng-icon name="solarSmartphoneBoldDuotone" aria-hidden="true" />Get the mobile app
+          </button>
+          <span class="menu__rule" aria-hidden="true"></span>
+          <button
+            type="button"
+            class="menu__item menu__item--exit"
+            role="menuitem"
+            (click)="signOut()"
+            [disabled]="signingOut()"
+          >
+            <ng-icon name="solarLogout2BoldDuotone" aria-hidden="true" />{{
+              signingOut() ? 'Signing out…' : 'Sign out'
+            }}
+          </button>
+        </div>
+      }
+
+      <button
+        type="button"
+        class="account__card"
+        (click)="toggleMenu()"
+        [attr.aria-expanded]="menuOpen()"
+        aria-haspopup="menu"
+        [attr.title]="preferences.sidebarCollapsed() ? displayName() : null"
+        [attr.aria-label]="'Account menu for ' + displayName()"
+      >
+        <span class="account__avatar" aria-hidden="true">
+          @if (user()?.avatarUrl) {
+            <img [src]="user()!.avatarUrl" alt="" width="36" height="36" />
+          } @else {
+            {{ initials() }}
+          }
+        </span>
+        <span class="account__text">
+          <span class="account__name">{{ displayName() }}</span>
+          <span class="account__email">{{ user()?.email }}</span>
+        </span>
+        <ng-icon class="account__chevron" name="solarAltArrowRightBoldDuotone" aria-hidden="true" />
+      </button>
+    </div>
+  </aside>
+
+  <main class="shell__main" id="app-content">
+    <header class="topbar">
+      @if (isParcelDetail()) {
+        <a
+          class="topbar__title topbar__back"
+          routerLink="/app/deliveries"
+          (click)="backToParcels()"
+        >
+          <ng-icon name="solarArrowLeftBoldDuotone" aria-hidden="true" />
+          Back to parcel list
+        </a>
+      } @else {
+        <h1 class="topbar__title">{{ pageTitle() }}</h1>
+      }
+
+      <button
+        type="button"
+        class="topbar__search"
+        [class.topbar__search--attention]="isParcelsList()"
+        (click)="openPalette()"
+      >
+        <ng-icon name="solarMagniferBoldDuotone" aria-hidden="true" />
+        <span>Search parcels, tracking IDs, help</span>
+        <kbd aria-hidden="true">{{ searchHint }}</kbd>
+      </button>
+
+      <div class="topbar__actions">
+        <button
+          type="button"
+          class="topbar__mobile-search"
+          (click)="openPalette()"
+          aria-label="Search parcels"
+        >
+          <ng-icon name="solarMagniferBoldDuotone" aria-hidden="true" />
+        </button>
+
+        <div class="notifications">
+          <button
+            type="button"
+            class="notifications__trigger"
+            #notificationsTrigger
+            (click)="toggleNotifications()"
+            [attr.aria-expanded]="notificationsOpen()"
+            aria-controls="delivery-notifications"
+            aria-label="Delivery notifications"
+          >
+            <ng-icon name="solarBellBingBoldDuotone" aria-hidden="true" />
+            @if (unreadCount()) {
+              <span>{{ unreadCount() }}</span>
+            }
+          </button>
+
+          @if (notificationsOpen()) {
+            <section
+              class="notifications__menu"
+              #notificationsMenu
+              id="delivery-notifications"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delivery-notifications-title"
+            >
+              <header class="notifications__head">
+                <div class="notifications__head-row">
+                  <h2 id="delivery-notifications-title">Notifications</h2>
+                  <div class="notifications__head-actions">
+                    <button
+                      type="button"
+                      class="notifications__mark-all"
+                      [disabled]="!unreadCount()"
+                      (click)="markAllAsRead()"
+                    >
+                      Mark all read
+                    </button>
+                    <button
+                      type="button"
+                      class="notifications__close"
+                      aria-label="Close notifications"
+                      (click)="closeNotifications()"
+                    >
+                      <ng-icon name="solarCloseCircleBoldDuotone" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+                <div class="notif-tabs" role="group" aria-label="Filter notifications">
+                  <span
+                    class="notif-tabs__thumb"
+                    [class.notif-tabs__thumb--unread]="notificationsFilter() === 'unread'"
+                    aria-hidden="true"
+                  ></span>
+                  <button
+                    type="button"
+                    class="notif-tabs__option"
+                    [class.notif-tabs__option--on]="notificationsFilter() === 'all'"
+                    [attr.aria-pressed]="notificationsFilter() === 'all'"
+                    (click)="setNotificationsFilter('all')"
+                  >
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    class="notif-tabs__option"
+                    [class.notif-tabs__option--on]="notificationsFilter() === 'unread'"
+                    [attr.aria-pressed]="notificationsFilter() === 'unread'"
+                    (click)="setNotificationsFilter('unread')"
+                  >
+                    Unread
+                  </button>
+                </div>
+              </header>
+
+              <div class="notifications__scroll">
+                <div
+                  class="notifications__list"
+                  #notificationsList
+                  (scroll)="onNotificationsScroll()"
+                >
+                  @for (group of notificationGroups(); track group.label) {
+                    <div class="notifications__group">
+                      <span class="notifications__date">{{ group.label }}</span>
+                      @for (notification of group.items; track notification.id) {
+                        <a
+                          class="notif"
+                          [class.notif--unread]="!notification.read"
+                          [routerLink]="['/app/deliveries', notification.id]"
+                          (click)="markAsRead(notification.id); closeNotifications(false)"
+                        >
+                          <span class="notif__badge" aria-hidden="true">
+                            @if (notification.imageUrl) {
+                              <img [src]="notification.imageUrl" alt="" width="36" height="36" />
+                            } @else {
+                              <ng-icon name="solarBoxBoldDuotone" />
+                            }
+                          </span>
+                          <span class="notif__content">
+                            <span class="notif__line1">
+                              <strong>{{ notification.title }}</strong>
+                              <time>{{ relativeTime(notification.createdAt) }}</time>
+                            </span>
+                            <span class="notif__copy">{{ notification.copy }}</span>
+                          </span>
+                          @if (!notification.read) {
+                            <span class="notif__dot" aria-hidden="true"></span>
+                          }
+                        </a>
+                      }
+                    </div>
+                  } @empty {
+                    <p class="notifications__empty">
+                      @if (notificationsFilter() === 'unread') {
+                        You're all caught up.
+                      } @else {
+                        Nothing new. Your future delivery updates will appear here.
+                      }
+                    </p>
+                  }
+                </div>
+                <div
+                  class="notifications__fade"
+                  [class.notifications__fade--hidden]="notificationsAtEnd()"
+                  aria-hidden="true"
+                ></div>
+              </div>
+            </section>
+          }
+        </div>
+      </div>
+    </header>
+
+    <div
+      class="shell__body"
+      [class.shell__body--scrolling]="bodyScrolling()"
+      (scroll)="onBodyScroll()"
+    >
+      <router-outlet />
+    </div>
+  </main>
+
+  <nav class="shell__tabs" aria-label="Main">
+    @for (item of tabs; track item.path) {
+      <a
+        class="shell__tab"
+        [routerLink]="item.path"
+        routerLinkActive="shell__tab--active"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
+        ariaCurrentWhenActive="page"
+      >
+        <ng-icon [name]="item.icon" aria-hidden="true" />
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+</div>
+
+<app-command-palette [open]="paletteOpen()" (closed)="paletteOpen.set(false)" />
+
+<app-toaster [raised]="!isTaskRoute()" />
+
+<!-- Once the rating prompt is up, the app promo waits for it instead of covering it. -->
+@if (appPromo.active(); as promoTrigger) {
+  @if (!ratingPrompt.parcel()) {
+    <app-promo-modal [trigger]="promoTrigger" (closed)="appPromo.resolve($event)" />
+  }
+}
+
+@if (ratingPrompt.parcel(); as ratedParcel) {
+  <app-rating-prompt
+    [parcel]="ratedParcel"
+    (later)="ratingPrompt.later()"
+    (done)="ratingPrompt.finish()"
+  />
+}

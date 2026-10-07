@@ -1,0 +1,746 @@
+:host {
+  display: block;
+  height: 100dvh;
+  overflow: hidden;
+  color: var(--dashboard-text);
+  background: var(--dashboard-canvas);
+  --color-neutral-white: var(--dashboard-card);
+  --color-styles-off-white: var(--dashboard-control);
+  --color-styles-stroke: var(--dashboard-border);
+  --color-border-input: var(--dashboard-border);
+  --color-styles-body: var(--dashboard-text);
+  --color-styles-title: var(--dashboard-text);
+  --color-styles-label: var(--dashboard-muted);
+  --color-styles-placeholder: var(--dashboard-muted);
+  /* Figma dark-mode Primary ramp, exact steps, was hand-approximated before. */
+  --color-primary-50: #1a0f24;
+  --color-primary-100: #241236;
+  --color-primary-200: #331a56;
+  --color-primary-300: #442276;
+  --color-primary-400: #5b2d9a;
+  --color-primary-500: #7449ad;
+  --color-primary-600: #8b64c2;
+  --color-primary-700: #a480d4;
+  --color-primary-800: #c1a6e5;
+  --color-primary-900: #e1d3f6;
+  --color-feedback-error: #ff5c5c;
+  --color-feedback-success: #7ad46c;
+  --color-feedback-info: #6c9dff;
+  --shadow-elevation-1: var(--dashboard-shadow-hover);
+
+  --rail-accent: #8b64c2;
+  /* Soft tint for an active row's background, Primary-50, not a grey. */
+  --rail-accent-wash: var(--color-primary-50);
+  --sidebar-width: 272px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* The mark stays brand purple on both grounds; the short accent bar and the wordmark
+     flip, because the source art paints them near-black. */
+  --logo-ink: #8c4ee0;
+  --logo-accent: #f1f1f1;
+  --logo-word: #f1f1f1;
+}
+
+:host-context([data-theme='light']) {
+  /* Figma light-mode Primary ramp, exact steps. */
+  --color-primary-50: #ede8f4;
+  --color-primary-100: #dcd1ea;
+  --color-primary-200: #b9a4d6;
+  --color-primary-300: #9776c1;
+  --color-primary-400: #7449ad;
+  --color-primary-500: #521c99;
+  --color-primary-600: #41167a;
+  --color-primary-700: #31105b;
+  --color-primary-800: #200b3d;
+  --color-primary-900: #10051e;
+  --color-feedback-error: #991c24;
+  --color-feedback-success: #63991c;
+  --color-feedback-info: #494fad;
+  --rail-accent: #41167a;
+  --rail-accent-wash: var(--color-primary-50);
+  --logo-ink: #6619cc;
+  --logo-accent: #10051e;
+  --logo-word: #6619cc;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  height: 100%;
+  background: var(--dashboard-canvas);
+}
+.shell--collapsed {
+  --sidebar-width: 76px;
+}
+.sidebar {
+  display: none;
+}
+.shell__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  /* One frame for every /app page, so gutters and edges don't shift as you navigate.
+     Pages that need a tighter measure override --page-max on their own root. */
+  --page-max: 1760px;
+  --page-pad: clamp(18px, 2.4vw, 38px);
+  --page-max-read: 1120px;
+  --page-max-form: 880px;
+  --topbar-h: 76px;
+}
+/* The dashboard body: a rounded panel recessed into the sidebar-coloured field, so
+   the top bar reads as chrome sitting above the content rather than inside it.
+   It's the shell's only scroll container, sidebar and top bar never move. */
+.shell__body {
+  flex: 1;
+  min-width: 0;
+  margin: 0 14px 14px 0;
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+  border-radius: 22px;
+  background: var(--dashboard-surface);
+  overflow: hidden auto;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.shell__body--scrolling {
+  scrollbar-color: color-mix(in srgb, var(--color-primary-500) 42%, transparent) transparent;
+}
+.shell__body::-webkit-scrollbar {
+  width: 6px;
+}
+.shell__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.shell__body::-webkit-scrollbar-thumb {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  background-clip: padding-box;
+  transition: background-color 180ms ease;
+}
+.shell__body--scrolling::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-primary-500) 42%, transparent);
+  background-clip: padding-box;
+}
+.shell__body::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-primary-500) 68%, transparent);
+  background-clip: padding-box;
+}
+@media (max-width: 900px) {
+  .shell__body {
+    margin: 0 10px 10px;
+    border-radius: 18px;
+  }
+}
+
+/* ---- Top bar: page title, search, notifications ---- */
+.topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  /* Same gutter as the page content, so the title sits directly above the greeting. */
+  padding: 16px var(--page-pad, 24px);
+  /* Guaranteed height: pages below (e.g. delivery-detail's sticky map) size themselves off this var. */
+  min-height: var(--topbar-h);
+  box-sizing: border-box;
+}
+.topbar__title {
+  color: var(--dashboard-text);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.topbar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  color: var(--dashboard-text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-decoration: none;
+  cursor: pointer;
+}
+.topbar__back ng-icon {
+  font-size: 16px;
+}
+.topbar__back:hover {
+  color: var(--color-primary-500);
+}
+.topbar__search {
+  --search-accent: var(--color-primary-500);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-self: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 12px 0 14px;
+  border: 1px solid var(--dashboard-border);
+  /* Matches the site's actual CTA radius (navbar__btn, .btn), that's a rounded
+     rectangle, not a pill, so the dashboard follows the same language. */
+  border-radius: var(--radius-lg);
+  background: var(--dashboard-surface);
+  cursor: text;
+  transition:
+    border-color 180ms var(--ease-out),
+    box-shadow 180ms var(--ease-out),
+    transform 180ms var(--ease-out);
+}
+.topbar__search:hover {
+  border-color: var(--search-accent);
+  box-shadow: 0 9px 24px color-mix(in srgb, var(--search-accent) 20%, transparent);
+  transform: translateY(-1px);
+}
+.topbar__search:focus-visible {
+  border-color: var(--rail-accent);
+  box-shadow: 0 0 0 3px var(--dashboard-focus);
+  outline: none;
+}
+.topbar__search ng-icon {
+  flex: none;
+  color: var(--dashboard-muted);
+  font-size: 18px;
+}
+.topbar__search span {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 0;
+  overflow: hidden;
+  color: var(--dashboard-muted);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 400 14px/1.4 var(--font-body);
+}
+.topbar__search--attention span {
+  color: transparent;
+  background: linear-gradient(
+    100deg,
+    var(--dashboard-muted) 15%,
+    var(--color-primary-400) 42%,
+    var(--dashboard-text) 50%,
+    var(--color-primary-400) 58%,
+    var(--dashboard-muted) 85%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  animation: search-text-shimmer 16s linear infinite;
+  -webkit-background-clip: text;
+}
+@keyframes search-text-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  62% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+.topbar__search kbd {
+  flex: none;
+  padding: 4px 8px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 7px;
+  color: var(--dashboard-muted);
+  background: var(--dashboard-card);
+  font: 500 11px/1 var(--font-body);
+}
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  gap: 8px;
+}
+.topbar__mobile-search {
+  display: none;
+}
+.topbar .notifications {
+  justify-self: end;
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    padding: 12px var(--page-pad, 16px);
+  }
+  /* The field would be a sliver at this width; the shortcut still focuses it on tablets. */
+  .topbar__search {
+    display: none;
+  }
+  .topbar__mobile-search {
+    display: grid;
+  }
+}
+
+/* ---- Mobile tab bar ---- */
+.shell__tabs {
+  position: fixed;
+  right: 10px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  left: 10px;
+  z-index: 40;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  padding: 7px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--dashboard-card) 93%, transparent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+}
+.shell--task .shell__tabs {
+  display: none;
+}
+.shell--task .shell__body {
+  padding-bottom: 0;
+}
+.shell__tab {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-height: 52px;
+  padding: 7px 4px;
+  border-radius: 16px;
+  color: var(--dashboard-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    color 180ms ease,
+    background 180ms ease;
+}
+.shell__tab ng-icon {
+  font-size: 20px;
+}
+.shell__tab--active {
+  color: var(--rail-accent);
+  background: var(--rail-accent-wash);
+}
+
+@media (min-width: 768px) {
+  .shell,
+  .shell--task {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .shell__body {
+    padding-bottom: 0;
+  }
+  .shell__tabs {
+    display: none;
+  }
+
+  .sidebar {
+    position: relative;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    width: var(--sidebar-width);
+    height: 100%;
+    padding: 20px 14px 16px;
+    background: var(--dashboard-sidebar);
+    overflow: visible;
+    transition: width 320ms var(--ease-out);
+  }
+
+  /* ---- Header ---- */
+  .sidebar__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 40px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    text-decoration: none;
+  }
+  .brand app-logo {
+    height: 30px;
+  }
+
+  /* Lifted out of the header flow so it straddles the sidebar's edge instead of
+     stacking under the mark when collapsed. */
+  .collapse {
+    position: absolute;
+    top: 24px;
+    right: -15px;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--dashboard-border);
+    border-radius: 50%;
+    color: var(--dashboard-muted);
+    background: var(--dashboard-card);
+    font-size: 16px;
+    cursor: pointer;
+    transition:
+      color 180ms ease,
+      background 180ms ease,
+      transform 220ms var(--ease-out);
+  }
+  .collapse:hover {
+    color: var(--dashboard-text);
+    background: var(--dashboard-control);
+    transform: scale(1.06);
+  }
+  .shell--collapsed .collapse ng-icon {
+    transform: rotate(180deg);
+  }
+
+  .rail {
+    display: grid;
+    gap: 10px;
+  }
+  .rail__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: 48px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 13px;
+    color: var(--dashboard-muted);
+    background: none;
+    font: 600 15px/1 var(--font-body);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      color 180ms ease,
+      background 180ms ease;
+  }
+  .rail__link ng-icon {
+    flex: none;
+    font-size: 25px;
+    transition: transform 220ms var(--ease-out);
+  }
+  .rail__link:hover {
+    color: var(--dashboard-text);
+    background: var(--dashboard-control);
+  }
+  .rail__link:hover ng-icon {
+    transform: translateX(1px);
+  }
+  /* The one row that should say "you're in a purple app", text and icon pick up
+     the brand accent, background is a soft purple wash, not grey. */
+  .rail__link--active {
+    color: var(--rail-accent);
+    background: var(--rail-accent-wash);
+  }
+  .rail__label {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition:
+      opacity 200ms ease,
+      transform 260ms var(--ease-out);
+  }
+  /* Trails the label, so it reads as "this goes somewhere" rather than as the row's icon. */
+  .rail__trail {
+    margin-left: auto;
+    color: var(--dashboard-muted);
+    font-size: 17px;
+    transition:
+      opacity 200ms ease,
+      transform 220ms var(--ease-out);
+  }
+  .rail__link:hover .rail__trail {
+    transform: translate(1px, -1px);
+  }
+  .shell--collapsed .rail__trail {
+    width: 0;
+    margin-left: 0;
+    opacity: 0;
+    overflow: hidden;
+  }
+
+  /* ---- Utility block ---- */
+  .utility {
+    display: grid;
+    gap: 14px;
+    margin-top: auto;
+  }
+  /* Travel is one column plus the 2px grid gap. */
+
+  /* ---- Account card + menu ---- */
+  .account {
+    position: relative;
+    padding-top: 14px;
+    border-top: 1px solid var(--dashboard-border);
+  }
+  .account__card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px;
+    border: 1px solid transparent;
+    border-radius: 15px;
+    color: inherit;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      border-color 180ms ease,
+      background 180ms ease;
+  }
+  .account__card:hover {
+    border-color: var(--dashboard-border);
+    background: var(--dashboard-account);
+  }
+  .account__avatar {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    color: #fff;
+    background: linear-gradient(150deg, #7f45c4, #55208f);
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .account__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .account__text {
+    display: grid;
+    min-width: 0;
+    transition:
+      opacity 200ms ease,
+      transform 260ms var(--ease-out);
+  }
+  .account__name,
+  .account__email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .account__name {
+    color: var(--dashboard-text);
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+  .account__email {
+    color: var(--dashboard-muted);
+    font-size: 10.5px;
+  }
+  .account__chevron {
+    flex: none;
+    margin-left: auto;
+    color: var(--dashboard-muted);
+    font-size: 15px;
+  }
+
+  /* Opens beside the card, clearing the sidebar edge entirely. */
+  .menu {
+    position: absolute;
+    bottom: 0;
+    left: calc(100% + 12px);
+    z-index: 100;
+    display: grid;
+    gap: 2px;
+    width: 216px;
+    padding: 6px;
+    border: 1px solid var(--dashboard-border);
+    border-radius: 16px;
+    background: var(--dashboard-card);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    transform-origin: left bottom;
+    animation: menu-in 200ms var(--ease-out) both;
+  }
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+      transform: translateX(-8px) scale(0.97);
+    }
+  }
+  .menu__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 38px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 11px;
+    color: var(--dashboard-text);
+    background: none;
+    font: 600 12.5px/1 var(--font-body);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 160ms ease;
+  }
+  .menu__item ng-icon {
+    color: var(--dashboard-muted);
+    font-size: 17px;
+  }
+  .menu__item:hover {
+    background: var(--dashboard-control);
+  }
+  .menu__item--exit {
+    color: var(--color-feedback-error);
+  }
+  .menu__item--exit ng-icon {
+    color: currentColor;
+  }
+  .menu__item:disabled {
+    cursor: wait;
+    opacity: 0.6;
+  }
+  .menu__rule {
+    height: 1px;
+    margin: 4px 6px;
+    background: var(--dashboard-border);
+  }
+
+  /* ---- Collapsed. Every label collapses the same way: width to zero so it stops
+     reserving space, and a short slide out so it reads as leaving, not blinking. ---- */
+  .shell--collapsed .rail__label,
+  .shell--collapsed .account__text,
+  .shell--collapsed .account__chevron {
+    width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translateX(-6px);
+    pointer-events: none;
+  }
+  .shell--collapsed .rail__link,
+  .shell--collapsed .account__card {
+    gap: 0;
+  }
+  .shell--collapsed .sidebar__head {
+    justify-content: center;
+  }
+  .shell--collapsed .rail__link {
+    justify-content: center;
+    padding: 0;
+  }
+  .shell--collapsed .account__card {
+    justify-content: center;
+    padding: 8px 0;
+  }
+  .shell--collapsed .account__avatar {
+    margin-inline: auto;
+  }
+
+  /* ---- Keyboard focus ---- */
+  .collapse:focus-visible,
+  .rail__link:focus-visible,
+  .brand:focus-visible {
+    outline: 2px solid var(--rail-accent);
+    outline-offset: 3px;
+    border-radius: 13px;
+  }
+}
+.shell__tab:focus-visible {
+  outline: 2px solid var(--rail-accent);
+  outline-offset: -2px;
+}
+
+/* Segmented light/dark control: one sliding thumb behind two buttons. */
+.appearance {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-top: 8px;
+  padding: 3px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-100);
+  background: var(--dashboard-control);
+}
+.appearance__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  height: calc(100% - 6px);
+  border-radius: var(--radius-100);
+  background: var(--dashboard-card);
+  box-shadow: var(--dashboard-shadow);
+  transition: transform 240ms var(--ease-out);
+}
+.appearance__thumb--dark {
+  transform: translateX(100%);
+}
+.appearance__option {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-100);
+  color: var(--dashboard-muted);
+  background: none;
+  font: 500 13px/1 var(--font-body);
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+.appearance__option ng-icon {
+  font-size: 15px;
+}
+.appearance__option--on {
+  color: var(--dashboard-text);
+}
+.appearance__option:focus-visible,
+.appearance__compact:focus-visible {
+  outline: 2px solid var(--rail-accent);
+  outline-offset: 2px;
+}
+.appearance__compact {
+  justify-content: center;
+}
+
+:host-context(.dashboard-motion-off) .sidebar,
+:host-context(.dashboard-motion-off) .rail__label,
+:host-context(.dashboard-motion-off) .rail__link,
+:host-context(.dashboard-motion-off) .rail__link ng-icon,
+:host-context(.dashboard-motion-off) .appearance__thumb,
+:host-context(.dashboard-motion-off) .account__text,
+:host-context(.dashboard-motion-off) .account__card,
+:host-context(.dashboard-motion-off) .collapse {
+  transition: none;
+}
+:host-context(.dashboard-motion-off) .menu {
+  animation: none;
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .rail__label,
+  .rail__link,
+  .rail__link ng-icon,
+  .menu {
+    animation: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .topbar__search--attention span {
+    color: var(--dashboard-muted);
+    background: none;
+    animation: none;
+  }
+  .shell__tab {
+    transition: none;
+  }
+}
