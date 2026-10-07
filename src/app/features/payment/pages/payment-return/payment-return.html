@@ -1,0 +1,74 @@
+<main class="payment-return" role="main">
+  <div class="payment-return__content" aria-live="polite">
+    <ng-icon
+      class="payment-return__icon"
+      [class.payment-return__icon--success]="state() === 'success'"
+      [class.payment-return__icon--waiting]="
+        state() === 'pending' || state() === 'checking' || state() === 'error'
+      "
+      [class.payment-return__icon--spin]="state() === 'checking'"
+      [name]="icon()"
+      aria-hidden="true"
+    />
+
+    @if (copy(); as text) {
+      <h1>{{ text.headline }}</h1>
+      <p class="payment-return__description">{{ text.description }}</p>
+    } @else {
+      <h1>Checking your payment</h1>
+      <p class="payment-return__description">This only takes a moment.</p>
+    }
+
+    @if (reference) {
+      <p class="payment-return__reference">
+        <span>Reference</span>
+        <strong>{{ reference }}</strong>
+      </p>
+    }
+
+    @if (state() !== 'checking') {
+      <div class="payment-return__actions">
+        @switch (state()) {
+          @case ('success') {
+            <a class="payment-return__link payment-return__link--solid" routerLink="/app/deliveries"
+              >My parcels</a
+            >
+            <a class="payment-return__link payment-return__link--outline" routerLink="/app"
+              >Go to dashboard</a
+            >
+          }
+          @case ('failed') {
+            <a class="payment-return__link payment-return__link--solid" routerLink="/app/send"
+              >Book again</a
+            >
+            <a class="payment-return__link payment-return__link--outline" routerLink="/contact"
+              >Contact us</a
+            >
+          }
+          @case ('missing') {
+            <a class="payment-return__link payment-return__link--solid" routerLink="/app/deliveries"
+              >My parcels</a
+            >
+            <a class="payment-return__link payment-return__link--outline" routerLink="/contact"
+              >Contact us</a
+            >
+          }
+          @default {
+            <button
+              type="button"
+              class="payment-return__link payment-return__link--solid"
+              (click)="recheck()"
+            >
+              Check again
+            </button>
+            <a
+              class="payment-return__link payment-return__link--outline"
+              routerLink="/app/deliveries"
+              >My parcels</a
+            >
+          }
+        }
+      </div>
+    }
+  </div>
+</main>
