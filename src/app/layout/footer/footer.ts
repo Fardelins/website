@@ -187,7 +187,7 @@ export class Footer implements AfterViewInit, OnDestroy {
   private logoSpeedTarget = 1;
 
   constructor() {
-    // Reduced-motion pauses shaders — start fully clear so the scene stays legible.
+    // Reduced-motion pauses shaders, start fully clear so the scene stays legible.
     if (this.prefersReducedMotion) {
       this.latched = true;
       this.clearCurrent = 1;
@@ -261,7 +261,7 @@ export class Footer implements AfterViewInit, OnDestroy {
   protected setBackgroundHover(hovered: boolean): void {
     this.hovering = hovered;
     this.lastX = this.lastY = null;
-    if (hovered) this.cancelTease(); // the user is here now — stop the demo
+    if (hovered) this.cancelTease(); // the user is here now, stop the demo
 
     if (this.refogTimer !== null) {
       clearTimeout(this.refogTimer);
@@ -277,7 +277,7 @@ export class Footer implements AfterViewInit, OnDestroy {
     }
   }
 
-  /** Reset to a fresh haze — slow, fog-like roll-back. Resumes the paused shader. */
+  /** Reset to a fresh haze, slow, fog-like roll-back. Resumes the paused shader. */
   private refog(): void {
     this.latched = false;
     this.swipeAccum = 0;
@@ -326,7 +326,7 @@ export class Footer implements AfterViewInit, OnDestroy {
   protected wipe(event: PointerEvent): void {
     if (this.latched) return;
     this.cancelTease();
-    this.hintVisible.set(false); // real interaction started — drop the prompt
+    this.hintVisible.set(false); // real interaction started, drop the prompt
 
     const el = event.currentTarget as HTMLElement;
     const swipeLen = el.clientWidth * SWIPE_FRACTION || 1;
@@ -341,7 +341,7 @@ export class Footer implements AfterViewInit, OnDestroy {
     const progress = this.swipeAccum / budget;
     this.clearTarget = Math.min(PRE_ACTIVATION_CAP, progress);
 
-    // Wiped enough — the fog commits and finishes dissipating on its own.
+    // Wiped enough, the fog commits and finishes dissipating on its own.
     if (progress >= ACTIVATE_AT) {
       this.latched = true;
       this.clearTarget = 1;

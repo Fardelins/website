@@ -24,7 +24,7 @@ export class Home {
       description,
       path: '/',
       type: 'website',
-      // LCP element — mirror the hero's AVIF <source> so the browser can start
+      // LCP element, mirror the hero's AVIF <source> so the browser can start
       // the fetch from the prerendered HTML before Angular hydrates.
       preloadImage: {
         href: '/home/phone-image-800.avif',

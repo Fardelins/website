@@ -5,7 +5,7 @@ import { ComponentConfig, ShaderBackground } from '@shared/components/shader-bac
 const LOGO_URL = '/home/logo.svg';
 const STAGE_INTERVAL_MS = 1400;
 
-/** Filters cycled over the logo — each stage swaps `ShaderBackground`'s whole preset, which
+/** Filters cycled over the logo, each stage swaps `ShaderBackground`'s whole preset, which
  * triggers its built-in recreate + fade-in, giving the loader a "materializing" feel for free. */
 const STAGES: ComponentConfig[][] = [
   [

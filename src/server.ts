@@ -16,7 +16,7 @@ const angularApp = new AngularNodeAppEngine();
 app.disable('x-powered-by');
 app.use(compression());
 
-// Baseline security headers. CSP is intentionally omitted — inline WebGL shaders
+// Baseline security headers. CSP is intentionally omitted, inline WebGL shaders
 // and injected WordPress markup mean it must be authored deliberately, not guessed.
 app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -56,7 +56,7 @@ function upstreamHeaders(req: express.Request): Headers {
 }
 
 // Reverse-proxy WordPress paths so the app can call them same-origin (no CORS).
-// Override with the WORDPRESS_ORIGIN env var if the CMS moves; mirrors proxy.conf.json.
+// Override with the WORDPRESS_ORIGIN env var if the CMS moves; mirrors proxy.conf.mjs.
 const WORDPRESS_ORIGIN = process.env['WORDPRESS_ORIGIN'] ?? 'https://cms.fardelins.com';
 const WP_PROXY_PREFIXES = ['/wp-json', '/wp-admin', '/contact-form-config'];
 const WORDPRESS_JS_GATE_COOKIE = 'hc_js_gate=1';
@@ -65,7 +65,7 @@ app.use((req, res, next) => {
   const prefix = WP_PROXY_PREFIXES.find((p) => req.path === p || req.path.startsWith(`${p}/`));
   if (!prefix) return next();
 
-  // The contact form config lives under /contact/ on WordPress (see proxy.conf.json).
+  // The contact form config lives under /contact/ on WordPress (see proxy.conf.mjs).
   const targetPath =
     prefix === '/contact-form-config'
       ? req.originalUrl.replace('/contact-form-config', '/contact/')
@@ -109,7 +109,7 @@ app.use((req, res, next) => {
 
 // Reverse-proxy the logistics API so the browser calls tracking reads same-origin
 // (no CORS). Override with TRACKING_API_ORIGIN if the API host moves; mirrors
-// TRACKING_API_ORIGIN in tracking.config.ts and the /v1 entry in proxy.conf.json.
+// TRACKING_API_ORIGIN in tracking.config.ts and the /v1 entry in proxy.conf.mjs.
 const TRACKING_API_ORIGIN = process.env['TRACKING_API_ORIGIN'] ?? 'https://staging.fardelins.com';
 
 app.use((req, res, next) => {
@@ -182,7 +182,7 @@ app.post('/api/newsletter/subscribe', express.json(), async (req, res) => {
       title?: string;
       detail?: string;
     } | null;
-    // Already on the list — tell the user rather than pretending it's a fresh signup.
+    // Already on the list, tell the user rather than pretending it's a fresh signup.
     if (upstream.status === 400 && body?.title === 'Member Exists') {
       res.status(200).json({ status: 'already_subscribed' });
       return;

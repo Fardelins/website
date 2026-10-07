@@ -23,7 +23,7 @@ const DEFAULT_PREFERENCES: ConsentPreferences = { necessary: true, analytics: fa
 
 /**
  * Cookie-consent state: reads/writes the saved choice and exposes per-category
- * grants. GDPR opt-in — nothing beyond `necessary` is granted until the visitor
+ * grants. GDPR opt-in, nothing beyond `necessary` is granted until the visitor
  * chooses. Wire third-party scripts (e.g. analytics) to `analyticsGranted`.
  */
 @Injectable({ providedIn: 'root' })

@@ -32,7 +32,7 @@ export interface SeoData {
     href: string;
     imagesrcset?: string;
     imagesizes?: string;
-    /** e.g. 'image/avif' — restricts preload to browsers that support it. */
+    /** e.g. 'image/avif', restricts preload to browsers that support it. */
     type?: string;
   };
 }

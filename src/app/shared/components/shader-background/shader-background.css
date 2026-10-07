@@ -10,7 +10,7 @@
   /* Absolutely positioned so the canvas's large intrinsic (device-pixel)
      width/height attributes, set by the WebGL library, can never leak into
      layout. Without this, Safari/iOS briefly lays the canvas out at its
-     intrinsic size during first paint — overflowing the page until a warm
+     intrinsic size during first paint, overflowing the page until a warm
      reload. inset:0 keeps it filling the sized host. */
   position: absolute;
   inset: 0;

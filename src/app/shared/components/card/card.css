@@ -102,7 +102,7 @@
     line-height: 34px;
   }
 
-  /* Title is already at its compact size on small screens — don't scale it down. */
+  /* Title is already at its compact size on small screens, don't scale it down. */
   .card:hover .card__title {
     transform: none;
   }

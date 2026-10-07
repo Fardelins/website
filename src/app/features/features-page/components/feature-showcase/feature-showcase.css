@@ -421,7 +421,7 @@
 
   /* Collapse the four stacked items into a single auto-cycling card: only the
      active step is shown, its text reveals from a mask, and the shared timer
-     advances (and loops) it — mirroring the journey card's reveal. */
+     advances (and loops) it, mirroring the journey card's reveal. */
   .feature-showcase__items {
     margin-top: 40px;
     grid-template-columns: 1fr;

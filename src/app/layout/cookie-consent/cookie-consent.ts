@@ -14,7 +14,7 @@ import { HapticsService } from '@core/services/haptics.service';
 export class CookieConsent {
   private readonly consent = inject(ConsentService);
   private readonly haptics = inject(HapticsService);
-  // Rendered browser-only: the choice lives in localStorage, so SSR can't know it — gating
+  // Rendered browser-only: the choice lives in localStorage, so SSR can't know it, gating
   // here avoids a banner flash on hydration for visitors who already decided.
   protected readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 

@@ -75,7 +75,7 @@
   overflow: hidden;
 }
 /* Anchored from the top so the phone's full height overflows the visual's
-   bottom edge and is cropped by overflow:hidden — matching the home page. */
+   bottom edge and is cropped by overflow:hidden, matching the home page. */
 .blogs-newsletter__visual img {
   position: absolute;
   right: clamp(12px, 5vw, 80px);

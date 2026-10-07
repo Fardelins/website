@@ -5,7 +5,7 @@ export const FEATURES_FAQS: FaqItem[] = [
   {
     question: 'What is Fardelins?',
     answer:
-      'Fardelins is a delivery management platform that connects customers, stores, couriers, and dispatchers in one place — from placing a delivery request to real-time tracking and proof of delivery.',
+      'Fardelins is a delivery management platform that connects customers, stores, couriers, and dispatchers in one place, from placing a delivery request to real-time tracking and proof of delivery.',
   },
   {
     question: 'Who is Fardelins built for?',
@@ -20,7 +20,7 @@ export const FEATURES_FAQS: FaqItem[] = [
   {
     question: 'How does dispatch and coordination work?',
     answer:
-      'Dispatchers get a single operational view of active deliveries — assign work, update statuses, resolve issues, and keep routes moving without switching between tools.',
+      'Dispatchers get a single operational view of active deliveries: assign work, update statuses, resolve issues, and keep routes moving without switching between tools.',
   },
   {
     question: 'Can I manage my courier team?',

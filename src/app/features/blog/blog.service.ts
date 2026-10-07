@@ -197,7 +197,7 @@ interface MappedMedia {
 }
 
 // Pick a mid-size `src` and build a responsive `srcset` from WordPress's
-// generated sizes. No intrinsic dims — the template crops to a fixed CSS ratio.
+// generated sizes. No intrinsic dims, the template crops to a fixed CSS ratio.
 function mapMedia(media?: WpFeaturedMedia): MappedMedia {
   const sizes = media?.media_details?.sizes ?? {};
   const chosen = sizes['medium_large'] ?? sizes['large'];
@@ -225,7 +225,7 @@ function mapMedia(media?: WpFeaturedMedia): MappedMedia {
   return { image, imageSrcset };
 }
 
-/** WordPress titles arrive in inconsistent casing (some fully uppercase) — normalize to Title Case. */
+/** WordPress titles arrive in inconsistent casing (some fully uppercase), normalize to Title Case. */
 function toTitleCase(text: string): string {
   return text
     .toLowerCase()
@@ -233,7 +233,7 @@ function toTitleCase(text: string): string {
 }
 
 function stripHtml(html: string): string {
-  // Server (SSR/prerender) has no DOM — fall back to a regex strip + basic entity decode.
+  // Server (SSR/prerender) has no DOM, fall back to a regex strip + basic entity decode.
   if (typeof document === 'undefined') {
     return html
       .replace(/<[^>]*>/g, ' ')
@@ -256,7 +256,7 @@ function stripHtml(html: string): string {
 // Authored excerpts run ≤10% of the body, auto-derived ones ~80%+; 0.5 splits them.
 const AUTO_EXCERPT_BODY_RATIO = 0.5;
 
-// WP always returns an excerpt — authored, or auto-derived from the body. Drop the
+// WP always returns an excerpt, authored, or auto-derived from the body. Drop the
 // derived one (it just repeats the article), detected by its "[…]" marker or length.
 function resolveExcerpt(excerptHtml: string, contentHtml: string): string {
   const excerpt = stripHtml(excerptHtml);
@@ -348,7 +348,7 @@ function normalizeContent(html: string, featuredImage: string | null): string {
     });
   }
 
-  // 4. A list item with a heading is a stacked subheading+body, not a bullet — hoist it out.
+  // 4. A list item with a heading is a stacked subheading+body, not a bullet, hoist it out.
   body.querySelectorAll('li').forEach((li) => {
     if (!li.querySelector('h1, h2, h3, h4, h5, h6')) return;
     const list = li.closest('ul, ol');
