@@ -1,0 +1,358 @@
+<main class="parcels-page">
+  <header class="page-intro">
+    <div>
+      <h1>Manage your Parcel</h1>
+      <p>View, track and manage all your deliveries in one place.</p>
+    </div>
+    <a class="btn btn--primary new-parcel" routerLink="/app/send">
+      <ng-icon name="solarAddCircleBoldDuotone" aria-hidden="true" />
+      <span>Send a parcel</span>
+    </a>
+  </header>
+
+  <div class="workspace-wrap">
+    <section class="workspace">
+      <div class="bar">
+        <div class="filters" role="tablist" aria-label="Filter parcels by status">
+          @for (item of filters; track item.key) {
+            <button
+              type="button"
+              role="tab"
+              class="filter"
+              [class.filter--active]="filter() === item.key"
+              [attr.aria-selected]="filter() === item.key"
+              (click)="selectFilter(item.key)"
+            >
+              {{ item.label }}
+              <span>{{ counts()[item.key] }}</span>
+            </button>
+          }
+        </div>
+        <button
+          type="button"
+          class="filter-trigger"
+          [class.filter-trigger--active]="chips().length > 0"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="filtersOpen()"
+          (click)="toggleFilters()"
+        >
+          <ng-icon name="solarFilterBoldDuotone" aria-hidden="true" />
+          <span>Filters</span>
+          @if (chips().length) {
+            <b>{{ chips().length }}</b>
+          }
+        </button>
+      </div>
+
+      @if (chips().length) {
+        <div class="chips" aria-label="Active filters">
+          @for (chip of chips(); track chip.key) {
+            <span class="chip" [class.chip--place]="chip.key === 'destination'">
+              {{ chip.label }}
+              <button
+                type="button"
+                (click)="removeChip(chip.key)"
+                [attr.aria-label]="'Remove filter ' + chip.label"
+              >
+                <ng-icon name="solarCloseCircleBoldDuotone" aria-hidden="true" />
+              </button>
+            </span>
+          }
+          <button type="button" class="chips__clear" (click)="clearFilters()">Clear all</button>
+        </div>
+      }
+
+      @if (loading()) {
+        <div class="parcel-list parcel-list--loading" aria-label="Loading parcels">
+          @for (row of [1, 2, 3, 4, 5]; track row) {
+            <app-skeleton height="82px" radius="14px" />
+          }
+        </div>
+      } @else if (failed()) {
+        <app-empty-state
+          icon="solarDangerCircleBoldDuotone"
+          tone="error"
+          title="We couldn't load your parcels"
+          copy="Check your connection and try again."
+        >
+          <button type="button" class="btn btn--soft" (click)="load()">Retry</button>
+        </app-empty-state>
+      } @else if (!visible().length) {
+        <app-empty-state
+          [icon]="
+            query() || filter() !== 'all' || chips().length
+              ? 'solarMinimalisticMagniferBoldDuotone'
+              : 'solarBoxMinimalisticBoldDuotone'
+          "
+          [title]="
+            query() || filter() !== 'all' || chips().length
+              ? 'No matching parcels'
+              : 'Your first parcel starts here'
+          "
+          [copy]="
+            query() || filter() !== 'all' || chips().length
+              ? 'Try another search or clear the current filter.'
+              : 'Book a delivery and its complete journey will appear here.'
+          "
+        >
+          @if (query() || filter() !== 'all' || chips().length) {
+            <button type="button" class="btn btn--soft" (click)="clearEverything()">
+              Clear filters
+            </button>
+          } @else {
+            <a class="btn btn--primary" routerLink="/app/send">Send a parcel</a>
+          }
+        </app-empty-state>
+      } @else {
+        <div class="parcel-head" aria-hidden="true">
+          <span>Parcel</span><span>Destination</span><span>Booked</span><span>Status</span
+          ><span>Amount</span><span></span>
+        </div>
+        <ul class="parcel-list">
+          @for (item of paged(); track item.trackingId) {
+            <li>
+              <a class="parcel parcel--desktop" [routerLink]="['/app/deliveries', item.trackingId]">
+                <span class="parcel__identity">
+                  <span class="parcel__thumb" aria-hidden="true">
+                    @if (item.imageUrl) {
+                      <img [src]="item.imageUrl" alt="" loading="lazy" />
+                    } @else {
+                      <img
+                        class="parcel__thumb-default"
+                        src="/app/parcel-default-350.webp"
+                        alt=""
+                        loading="lazy"
+                      />
+                    }
+                  </span>
+                  <span class="parcel__name"
+                    ><strong>{{ item.title }}</strong
+                    ><span>{{ item.trackingId }}</span></span
+                  >
+                </span>
+                <span class="parcel__destination"
+                  ><small>Destination</small><strong>{{ item.receiverName || 'Recipient' }}</strong
+                  ><span>{{ item.dropOff || 'Address unavailable' }}</span></span
+                >
+                <span class="parcel__date"
+                  ><small>Booked</small>{{ item.createdLabel || 'Date unavailable' }}</span
+                >
+                <span class="parcel__status"
+                  ><small>Status</small><app-status-pill [status]="item.status"
+                /></span>
+                <span class="parcel__amount"
+                  ><small>Amount</small>{{ item.amountLabel || 'Not available' }}</span
+                >
+                <ng-icon
+                  class="parcel__arrow"
+                  name="solarAltArrowRightBoldDuotone"
+                  aria-hidden="true"
+                />
+              </a>
+              <article class="mobile-parcel">
+                <a
+                  class="mobile-parcel__thumb"
+                  [routerLink]="['/app/deliveries', item.trackingId]"
+                  [attr.aria-label]="'Open ' + item.title"
+                >
+                  @if (item.imageUrl) {
+                    <img [src]="item.imageUrl" alt="" loading="lazy" />
+                  } @else {
+                    <img
+                      class="parcel__thumb-default"
+                      src="/app/parcel-default-350.webp"
+                      alt=""
+                      loading="lazy"
+                    />
+                  }
+                </a>
+                <div class="mobile-parcel__body">
+                  <a
+                    class="mobile-parcel__title"
+                    [routerLink]="['/app/deliveries', item.trackingId]"
+                  >
+                    {{ item.title }}
+                  </a>
+                  <app-tracking-copy
+                    class="mobile-parcel__tracking"
+                    [trackingId]="item.trackingId"
+                  />
+                  <div class="mobile-parcel__foot">
+                    <span
+                      >To: <strong>{{ item.receiverName || 'Recipient' }}</strong></span
+                    >
+                    <app-status-pill [status]="item.status" />
+                  </div>
+                </div>
+              </article>
+            </li>
+          }
+        </ul>
+        <nav
+          class="pagination"
+          [class.pagination--summary-only]="pageCount() === 1"
+          aria-label="Parcel pages"
+        >
+          <p>
+            Showing <strong>{{ resultStart() }} to {{ resultEnd() }}</strong> out of
+            <strong>{{ visible().length }}</strong> results
+          </p>
+          @if (pageCount() > 1) {
+            <div class="pagination__controls">
+              <button
+                type="button"
+                class="pagination__step"
+                aria-label="Previous page"
+                [disabled]="page() === 1"
+                (click)="setPage(page() - 1)"
+              >
+                Prev
+              </button>
+              @for (item of paginationItems(); track $index) {
+                @if (item === 'ellipsis') {
+                  <span class="pagination__ellipsis" aria-hidden="true">...</span>
+                } @else {
+                  <button
+                    type="button"
+                    class="pagination__page"
+                    [class.pagination__page--active]="page() === item"
+                    [attr.aria-current]="page() === item ? 'page' : null"
+                    [attr.aria-label]="'Page ' + item"
+                    (click)="setPage(item)"
+                  >
+                    {{ item }}
+                  </button>
+                }
+              }
+              <button
+                type="button"
+                class="pagination__step"
+                aria-label="Next page"
+                [disabled]="page() === pageCount()"
+                (click)="setPage(page() + 1)"
+              >
+                Next
+              </button>
+            </div>
+          }
+        </nav>
+      }
+    </section>
+
+    @if (filtersOpen()) {
+      <div class="filter-backdrop" (click)="closeFilters()"></div>
+      <div class="filter-panel" role="dialog" aria-label="Filter parcels">
+        <header class="filter-panel__head">
+          <strong>Filter parcels</strong>
+        </header>
+
+        <fieldset class="filter-group">
+          <legend>Booked between</legend>
+          <div class="field__row">
+            <label class="field"
+              >From
+              <input
+                type="date"
+                [value]="draft().dateFrom"
+                (input)="patchDraft({ dateFrom: $any($event.target).value })"
+              />
+            </label>
+            <label class="field"
+              >To
+              <input
+                type="date"
+                [value]="draft().dateTo"
+                (input)="patchDraft({ dateTo: $any($event.target).value })"
+              />
+            </label>
+          </div>
+          <div class="presets">
+            <span class="presets__label">Suggested:</span>
+            @for (preset of datePresets; track preset.key) {
+              <button type="button" class="preset" (click)="setDatePreset(preset.key)">
+                {{ preset.label }}
+              </button>
+            }
+          </div>
+        </fieldset>
+
+        <fieldset class="filter-group">
+          <legend>Amount</legend>
+          <div class="field__row">
+            <label class="field"
+              >Min (₦)
+              <input
+                type="number"
+                min="0"
+                inputmode="numeric"
+                placeholder="0"
+                [value]="draft().minPrice ?? ''"
+                (input)="setAmount('minPrice', $any($event.target).value)"
+              />
+            </label>
+            <label class="field"
+              >Max (₦)
+              <input
+                type="number"
+                min="0"
+                inputmode="numeric"
+                placeholder="Any"
+                [value]="draft().maxPrice ?? ''"
+                (input)="setAmount('maxPrice', $any($event.target).value)"
+              />
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="filter-group">
+          <legend>Destination</legend>
+          <div class="field__row">
+            <label class="field"
+              >State
+              <select (change)="setState($any($event.target).value)">
+                <option value="" [selected]="!draft().state">Any state</option>
+                @for (state of states(); track state.id) {
+                  <option [value]="state.label" [selected]="state.label === draft().state">
+                    {{ state.label | titlecase }}
+                  </option>
+                }
+              </select>
+            </label>
+            <label class="field"
+              >City
+              <select
+                [disabled]="!draft().state || loadingCities()"
+                (change)="patchDraft({ city: $any($event.target).value })"
+              >
+                <option value="" [selected]="!draft().city">
+                  {{ loadingCities() ? 'Loading…' : 'Any city' }}
+                </option>
+                @for (city of cities(); track city.id) {
+                  <option [value]="city.label" [selected]="city.label === draft().city">
+                    {{ city.label | titlecase }}
+                  </option>
+                }
+              </select>
+            </label>
+          </div>
+        </fieldset>
+
+        @if (draftError()) {
+          <p class="field__hint field__hint--error" role="alert">{{ draftError() }}</p>
+        }
+
+        <footer class="filter-panel__foot">
+          <button type="button" class="btn btn--soft" (click)="clearFilters()">Clear all</button>
+          <button
+            type="button"
+            class="btn btn--primary"
+            [disabled]="!!draftError()"
+            (click)="applyFilters()"
+          >
+            Show results
+          </button>
+        </footer>
+      </div>
+    }
+  </div>
+</main>

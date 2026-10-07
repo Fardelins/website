@@ -1,0 +1,678 @@
+:host {
+  display: block;
+}
+.detail-page {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 1320px);
+  margin-inline: auto;
+  /* Right edge sits close to the shell's own panel edge, only the map lives there. */
+  padding: var(--page-pad) calc(var(--page-pad) * 0.35) var(--page-pad) var(--page-pad);
+  color: var(--dashboard-text);
+}
+.detail-nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.tracking-code {
+  display: grid;
+  gap: 2px;
+}
+.tracking-code > span {
+  color: var(--dashboard-muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tracking-code__copy {
+  --tracking-copy-icon-size: 15px;
+  --tracking-copy-color: var(--dashboard-text);
+  --tracking-copy-icon-color: var(--color-primary-500);
+  --tracking-copy-padding: 4px 6px 4px 0;
+
+  font-size: clamp(20px, 2.6vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.detail-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.nav-btn {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 15px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+  font: 650 12px/1 var(--font-body);
+  cursor: pointer;
+}
+.nav-btn ng-icon {
+  font-size: 16px;
+}
+.nav-btn:hover:not([disabled]) {
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-500);
+}
+.nav-btn[disabled] {
+  opacity: 0.6;
+  cursor: default;
+}
+.nav-btn ng-icon.is-spinning {
+  animation: status-turn 1.4s linear infinite;
+}
+.nav-btn--primary {
+  border-color: var(--color-primary-500);
+  color: #fff;
+  background: var(--color-primary-500);
+}
+.nav-btn--primary:hover:not([disabled]) {
+  color: #fff;
+  background: var(--color-primary-600, var(--color-primary-500));
+}
+.pay-banner {
+  display: none;
+}
+/* Mirrors .map-pane's sizing but skips its background/border so the Skeleton's own shimmer isn't fought over by two stylesheets. */
+.map-pane-skeleton {
+  position: sticky;
+  top: var(--page-pad);
+  height: calc(100dvh - var(--topbar-h) - 14px - 2 * var(--page-pad));
+}
+.journey-card {
+  display: grid;
+  /* Photos left, text right; the card sits in the narrow left column, so the photo half stays modest. */
+  grid-template-columns: minmax(170px, 1.05fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: stretch;
+  padding: 20px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 20px;
+  background: var(--dashboard-card);
+}
+.journey-card__info {
+  min-width: 0;
+}
+/* The text half is narrow, so each pair reads top to bottom instead of side by side. */
+.journey-card .people-pair,
+.journey-card .route-pair {
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.journey-card .people-pair dd {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+/* Kept below the tracking number's own H2 in the page header, so the two don't compete. */
+.journey-card h1 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.journey-card__meta {
+  display: block;
+  margin-top: 4px;
+  color: var(--dashboard-muted);
+  font-size: 12.5px;
+}
+.people-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin: 20px 0 0;
+}
+.people-pair dt {
+  color: var(--dashboard-muted);
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+.people-pair dd {
+  margin: 6px 0 0;
+  overflow: hidden;
+  color: var(--dashboard-text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.modal {
+  width: min(92vw, 460px);
+  padding: 0;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 20px;
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+}
+.modal::backdrop {
+  background: rgba(8, 8, 8, 0.6);
+}
+.modal__card {
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+}
+.modal__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--parcel-status-cancelled);
+  background: color-mix(in srgb, var(--parcel-status-cancelled) 14%, transparent);
+  font-size: 22px;
+}
+.modal__card h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.modal__card p strong {
+  color: var(--dashboard-text);
+  font-weight: 650;
+}
+.modal__card p {
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.modal__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 12px;
+  color: var(--dashboard-text);
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.modal__check input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--color-primary-500);
+}
+.modal__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+.modal__danger {
+  color: var(--parcel-status-cancelled);
+}
+.people-pair dd.people-pair__contact {
+  margin-top: 2px;
+  color: var(--dashboard-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.parcel-description {
+  margin: 14px 0 0;
+  color: var(--dashboard-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.route-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin: 20px 0 0;
+}
+.route-pair div {
+  min-width: 0;
+}
+.route-pair dt {
+  color: var(--dashboard-muted);
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+.route-pair dd {
+  margin: 6px 0 0;
+  color: var(--dashboard-text);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.4;
+}
+.map-placeholder {
+  display: grid;
+  gap: 3px;
+  place-items: center;
+  color: var(--dashboard-text);
+  text-align: center;
+}
+.map-placeholder strong {
+  font-size: 14px;
+}
+.map-placeholder span {
+  color: var(--dashboard-muted);
+  font-size: 12px;
+}
+.progress-card,
+.panel {
+  border: 1px solid var(--dashboard-border);
+  border-radius: 18px;
+  background: var(--dashboard-card);
+}
+.progress-card {
+  padding: 12px 22px 22px;
+}
+.progress-card header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.progress-card header > div > span {
+  color: var(--dashboard-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.progress-card h2 {
+  margin-top: 3px;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.panel__head h2 {
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.progress-card__updated {
+  flex: none;
+  margin-top: 2px;
+  color: var(--dashboard-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.step__track {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--dashboard-control);
+}
+.step__track span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary-500);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.step--done .step__track span,
+.step--current .step__track span {
+  transform: scaleX(1);
+}
+.step--done .step__track span {
+  background: var(--parcel-status-delivered);
+}
+.step__label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: var(--dashboard-muted);
+  font-size: 11px;
+  font-weight: 550;
+}
+.step__label ng-icon {
+  flex: none;
+  font-size: 15px;
+}
+.step--done .step__label {
+  color: var(--parcel-status-delivered);
+}
+.step--current .step__label {
+  color: var(--color-primary-500);
+  font-weight: 650;
+}
+.step__pulse {
+  animation: status-turn 1.4s linear infinite;
+}
+@keyframes status-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(380px, 1.15fr);
+  gap: clamp(40px, 3vw, 48px);
+  align-items: start;
+}
+.detail-main {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.map-pane {
+  --map-radius: 20px;
+  position: sticky;
+  top: var(--page-pad);
+  /* Fills the shell's rounded panel exactly (100dvh minus topbar, shell__body's 14px bottom margin and a page-pad gap top and bottom) so the map never scrolls. */
+  height: calc(100dvh - var(--topbar-h) - 14px - 2 * var(--page-pad));
+  overflow: hidden;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--map-radius);
+  background: var(--dashboard-card);
+}
+.map-pane__canvas {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  /* A literal value, not inherit: inherit across the route-map host boundary left a square corner past the rounded frame. */
+  border-radius: var(--map-radius);
+}
+.panel {
+  padding: 20px 22px;
+}
+.timeline-toggle {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 9px;
+  color: var(--dashboard-text);
+  background: var(--dashboard-control);
+  cursor: pointer;
+}
+.timeline-toggle ng-icon {
+  font-size: 15px;
+  transition: transform 200ms var(--ease-out, ease);
+}
+.timeline-toggle.is-open ng-icon {
+  transform: rotate(180deg);
+}
+.timeline-toggle:hover {
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-500);
+}
+.timeline {
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.event {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 13px;
+  padding-bottom: 24px;
+}
+.event:last-child {
+  padding-bottom: 0;
+}
+.event::before {
+  content: '';
+  position: absolute;
+  top: 17px;
+  bottom: 0;
+  left: 8px;
+  width: 2px;
+  background: var(--parcel-status-delivered);
+}
+.event:last-child::before {
+  display: none;
+}
+.event__node {
+  z-index: 1;
+  justify-self: center;
+  width: 11px;
+  height: 11px;
+  margin-top: 3px;
+  border: 2px solid var(--parcel-status-delivered);
+  border-radius: 50%;
+  background: var(--parcel-status-delivered);
+}
+.event--current .event__node {
+  border-color: var(--color-primary-500);
+  background: var(--color-primary-500);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-primary-500) 13%, transparent);
+}
+.event__copy strong {
+  color: var(--dashboard-text);
+  font-size: 13px;
+  font-weight: 650;
+}
+.event__copy p {
+  margin-top: 4px;
+  color: var(--dashboard-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.event__current {
+  margin-left: 7px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  color: var(--color-primary-600);
+  background: color-mix(in srgb, var(--color-primary-500) 11%, transparent);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.event__location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  color: var(--dashboard-muted);
+  font-size: 10px;
+}
+.event time {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  color: var(--dashboard-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.event time strong {
+  color: var(--dashboard-text);
+  font-size: 10px;
+  font-weight: 600;
+}
+.timeline-empty {
+  margin-top: 20px;
+  padding: 28px;
+  border-radius: 12px;
+  color: var(--dashboard-muted);
+  background: var(--dashboard-control);
+  font-size: 12px;
+  text-align: center;
+}
+.invoice-link {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  height: 30px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 9px;
+  color: var(--dashboard-text);
+  background: var(--dashboard-control);
+  font: 650 11px/1 var(--font-body);
+  text-decoration: none;
+}
+.invoice-link ng-icon {
+  font-size: 14px;
+}
+.invoice-link:hover {
+  border-color: var(--color-primary-500);
+  color: var(--color-primary-500);
+}
+.facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 20px;
+  margin: 18px 0 0;
+}
+.facts dt {
+  color: var(--dashboard-muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.facts dd {
+  margin: 4px 0 0;
+  color: var(--dashboard-text);
+  font-size: 14px;
+  font-weight: 650;
+}
+.facts dd.is-paid {
+  color: var(--parcel-status-delivered);
+}
+.facts dd.is-unpaid {
+  color: var(--parcel-status-cancelled);
+}
+@media (max-width: 900px) {
+  .nav-btn--desktop {
+    display: none;
+  }
+  .pay-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid var(--color-primary-500);
+    border-radius: 18px;
+    background: var(--rail-accent-wash, var(--dashboard-control));
+  }
+  .pay-banner h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 650;
+  }
+  .pay-banner p {
+    margin: 3px 0 0;
+    color: var(--dashboard-muted);
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+  .detail-layout {
+    grid-template-columns: 1fr;
+    /* Desktop's 40-48px gap is a column gutter; stacked it left a dead gap under the map, so it matches .detail-main's 16px. */
+    gap: 16px;
+  }
+  .map-pane,
+  .map-pane-skeleton {
+    position: relative;
+    top: auto;
+    height: 380px;
+    /* The map is the core focus on a phone: right after the tracking-id header, before the cards. */
+    order: -1;
+  }
+}
+@media (max-width: 620px) {
+  .detail-page {
+    gap: 12px;
+  }
+  .detail-nav {
+    gap: 12px;
+  }
+  .nav-btn--refresh {
+    justify-content: center;
+    width: 40px;
+    padding: 0;
+  }
+  .nav-btn--refresh span {
+    display: none;
+  }
+  .pay-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .map-pane,
+  .map-pane-skeleton {
+    height: 320px;
+  }
+  .map-pane {
+    --map-radius: 16px;
+  }
+  /* Too narrow for two halves: the photos lead, the details follow. */
+  .journey-card {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 16px;
+  }
+  .route-pair,
+  .people-pair {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+  .progress-card {
+    padding-inline: 15px;
+  }
+  .stepper {
+    gap: 6px;
+  }
+  .step__label {
+    align-items: flex-start;
+    flex-direction: column;
+    font-size: 9px;
+  }
+  .panel {
+    padding: 17px 15px;
+  }
+  .event {
+    grid-template-columns: 18px minmax(0, 1fr);
+  }
+  .event time {
+    grid-column: 2;
+    justify-items: start;
+    margin-top: 5px;
+  }
+  .event time span {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .step__pulse,
+  .nav-btn ng-icon.is-spinning {
+    animation: none;
+  }
+  .nav-btn,
+  .timeline-toggle ng-icon {
+    transition: none;
+  }
+}

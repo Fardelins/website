@@ -1,0 +1,393 @@
+<main class="detail-page">
+  <header class="detail-nav">
+    <div class="tracking-code">
+      <span>Tracking ID</span>
+      <app-tracking-copy class="tracking-code__copy" [trackingId]="trackingId()" />
+    </div>
+    <div class="detail-nav__actions">
+      @if (canCancel()) {
+        <button type="button" class="nav-btn" [disabled]="busy() !== null" (click)="askCancel()">
+          Cancel shipment
+        </button>
+      }
+      @if (awaitingPayment()) {
+        <button
+          type="button"
+          class="nav-btn nav-btn--primary nav-btn--desktop"
+          [disabled]="busy() !== null"
+          (click)="completePayment()"
+        >
+          {{ busy() === 'pay' ? 'Opening Paystack…' : 'Complete payment' }}
+        </button>
+      }
+      @if (showRefresh()) {
+        <button
+          type="button"
+          class="nav-btn nav-btn--refresh"
+          (click)="refresh()"
+          [disabled]="loading() || refreshing()"
+          [attr.aria-label]="refreshing() ? 'Refreshing tracking' : 'Refresh tracking'"
+        >
+          <ng-icon
+            name="solarRefreshBoldDuotone"
+            [class.is-spinning]="refreshing()"
+            aria-hidden="true"
+          />
+          <span>{{ refreshing() ? 'Refreshing' : 'Refresh' }}</span>
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="detail-layout">
+      <div class="detail-main">
+        <app-skeleton height="180px" radius="20px" />
+        <app-skeleton height="145px" radius="18px" />
+        <app-skeleton height="230px" radius="18px" />
+        <app-skeleton height="205px" radius="18px" />
+      </div>
+      <app-skeleton class="map-pane-skeleton" radius="20px" />
+    </div>
+  } @else if (failed()) {
+    <app-empty-state
+      icon="solarDangerCircleBoldDuotone"
+      tone="error"
+      title="We couldn't load this delivery"
+      copy="Check your connection and try again."
+    >
+      <button type="button" class="btn btn--soft" (click)="load()">Retry</button>
+    </app-empty-state>
+  } @else if (!detail()) {
+    <app-empty-state
+      icon="solarMinimalisticMagniferBoldDuotone"
+      title="Delivery not found"
+      copy="We couldn't find a parcel with that tracking ID on your account."
+    >
+      <a class="btn btn--soft" routerLink="/app/deliveries">Back to my parcels</a>
+    </app-empty-state>
+  } @else if (detail(); as item) {
+    @if (awaitingPayment()) {
+      <section class="pay-banner" aria-labelledby="pay-title">
+        <div>
+          <h2 id="pay-title">Payment needed</h2>
+          <p>This delivery isn't booked until {{ item.amountLabel || 'the amount' }} is paid.</p>
+        </div>
+        <button
+          type="button"
+          class="btn btn--primary"
+          [disabled]="busy() !== null"
+          (click)="completePayment()"
+        >
+          {{ busy() === 'pay' ? 'Opening Paystack…' : 'Complete payment' }}
+        </button>
+      </section>
+    }
+    @if (actionError()) {
+      <p class="form-error" role="alert">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />{{ actionError() }}
+      </p>
+    }
+
+    <div class="detail-layout">
+      <div class="detail-main">
+        <section class="journey-card">
+          <app-image-carousel
+            class="journey-card__photos"
+            [images]="photos()"
+            [label]="item.title + ' photo'"
+          />
+          <div class="journey-card__info">
+            <h1>{{ item.title }}</h1>
+            @if (parcelMeta()) {
+              <span class="journey-card__meta">{{ parcelMeta() }}</span>
+            }
+            @if (item.description) {
+              <p class="parcel-description">{{ item.description }}</p>
+            }
+            <dl class="people-pair">
+              <div>
+                <dt>Sender</dt>
+                <dd>{{ item.senderName || 'Not available' }}</dd>
+                @if (item.senderPhone) {
+                  <dd class="people-pair__contact">{{ item.senderPhone }}</dd>
+                }
+                @if (item.senderEmail) {
+                  <dd class="people-pair__contact">{{ item.senderEmail }}</dd>
+                }
+              </div>
+              <div>
+                <dt>Recipient</dt>
+                <dd>{{ item.receiverName || 'Not available' }}</dd>
+                @if (item.receiverPhone) {
+                  <dd class="people-pair__contact">{{ item.receiverPhone }}</dd>
+                }
+                @if (item.receiverEmail) {
+                  <dd class="people-pair__contact">{{ item.receiverEmail }}</dd>
+                }
+              </div>
+            </dl>
+            <dl class="route-pair">
+              <div>
+                <dt>From</dt>
+                <dd>{{ item.pickupAddress || 'Pickup address unavailable' }}</dd>
+              </div>
+              <div>
+                <dt>To</dt>
+                <dd>{{ item.dropOffAddress || item.dropOff || 'Drop-off address unavailable' }}</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        @if (showStatusCard()) {
+          <section class="progress-card" aria-labelledby="progress-title">
+            <header>
+              <div>
+                <span>Delivery status</span>
+                <h2 id="progress-title">{{ currentStatusLabel() }}</h2>
+              </div>
+              @if (statusMeta()) {
+                <span class="progress-card__updated">{{ statusMeta() }}</span>
+              }
+            </header>
+            @if (showStepper()) {
+              <ol class="stepper" aria-label="Delivery progress">
+                @for (phase of phases; track phase.key; let i = $index) {
+                  <li
+                    class="step"
+                    [class.step--done]="phaseDone(i)"
+                    [class.step--current]="phaseCurrent(i)"
+                  >
+                    <span class="step__track"><span></span></span>
+                    <span class="step__label">
+                      @if (phaseDone(i)) {
+                        <ng-icon name="solarCheckCircleBoldDuotone" aria-hidden="true" />
+                      } @else if (phaseCurrent(i)) {
+                        <ng-icon
+                          class="step__pulse"
+                          name="solarRefreshCircleBoldDuotone"
+                          aria-hidden="true"
+                        />
+                      } @else {
+                        <ng-icon name="solarClockCircleBoldDuotone" aria-hidden="true" />
+                      }
+                      {{ stepLabel(phase) }}
+                    </span>
+                  </li>
+                }
+              </ol>
+            }
+          </section>
+        }
+
+        @if (handedOver()) {
+          <app-delivery-rating
+            class="panel"
+            [trackingId]="item.trackingId"
+            [shipmentId]="item.shipmentId ?? null"
+            [courierName]="item.courierName"
+            [deliveredLabel]="item.updatedLabel ?? null"
+          />
+        }
+
+        @if (showTimeline()) {
+          <section class="panel timeline-panel">
+            <header class="panel__head">
+              <h2>Tracking timeline</h2>
+              <button
+                type="button"
+                class="timeline-toggle"
+                [class.is-open]="timelineOpen()"
+                [attr.aria-expanded]="timelineOpen()"
+                [attr.aria-label]="(timelineOpen() ? 'Hide' : 'Show') + ' tracking updates'"
+                (click)="timelineOpen.set(!timelineOpen())"
+              >
+                <ng-icon name="solarAltArrowDownBoldDuotone" aria-hidden="true" />
+              </button>
+            </header>
+            @if (timelineOpen()) {
+              <ol class="timeline">
+                @for (event of item.events; track event.id; let first = $first) {
+                  <li class="event" [class.event--current]="first">
+                    <span class="event__node" aria-hidden="true"></span>
+                    <div class="event__copy">
+                      <strong>{{ event.statusLabel }}</strong>
+                      @if (first) {
+                        <span class="event__current">Current</span>
+                      }
+                      @if (event.description) {
+                        <p>{{ event.description }}</p>
+                      }
+                      @if (event.location) {
+                        <span class="event__location"
+                          ><ng-icon name="solarMapPointBoldDuotone" aria-hidden="true" />{{
+                            event.location
+                          }}</span
+                        >
+                      }
+                    </div>
+                    <time
+                      ><strong>{{ event.dateLabel }}</strong
+                      ><span>{{ event.timeLabel }}</span></time
+                    >
+                  </li>
+                }
+              </ol>
+            }
+          </section>
+        }
+
+        @if (packageFacts().length) {
+          <section class="panel facts-panel">
+            <header class="panel__head">
+              <h2>Package</h2>
+            </header>
+            <dl class="facts">
+              @for (fact of packageFacts(); track fact.label) {
+                <div>
+                  <dt>{{ fact.label }}</dt>
+                  <dd>{{ fact.value }}</dd>
+                </div>
+              }
+            </dl>
+          </section>
+        }
+
+        <section class="panel facts-panel">
+          <header class="panel__head">
+            <h2>Delivery details</h2>
+            <a
+              class="invoice-link"
+              [href]="'/v1/shipment/download-invoice/' + item.trackingId"
+              target="_blank"
+              rel="noopener"
+            >
+              <ng-icon name="solarDownloadMinimalisticBoldDuotone" aria-hidden="true" />
+              Invoice
+            </a>
+          </header>
+          <dl class="facts">
+            <div>
+              <dt>Booked</dt>
+              <dd>{{ item.createdLabel || 'Not available' }}</dd>
+            </div>
+            @if (isCancelled()) {
+              @if (item.updatedLabel) {
+                <div>
+                  <dt>Cancelled on</dt>
+                  <dd>{{ item.updatedLabel }}</dd>
+                </div>
+              }
+            } @else if (!awaitingPayment()) {
+              <div>
+                <dt>Estimated delivery</dt>
+                <dd>{{ item.etaLabel || 'Not assigned' }}</dd>
+              </div>
+            }
+            @if (item.deliveryTypeLabel) {
+              <div>
+                <dt>Delivery</dt>
+                <dd>{{ item.deliveryTypeLabel }}</dd>
+              </div>
+            }
+            <div>
+              <dt>Courier</dt>
+              <dd>{{ item.courierName || 'Not assigned' }}</dd>
+            </div>
+            @if (item.courierContact && !awaitingPayment() && !isCancelled()) {
+              <div>
+                <dt>Courier contact</dt>
+                <dd>{{ item.courierContact }}</dd>
+              </div>
+            }
+            <div>
+              <dt>Distance</dt>
+              <dd>{{ distanceLabel() || 'Calculating' }}</dd>
+            </div>
+            <div>
+              <dt>Amount</dt>
+              <dd>{{ item.amountLabel || 'Not available' }}</dd>
+            </div>
+            <div>
+              <dt>Payment</dt>
+              <dd [class.is-paid]="item.paid" [class.is-unpaid]="!item.paid">
+                {{ item.paid ? 'Paid' : 'Unpaid' }}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+
+      <aside class="map-pane">
+        <app-route-map
+          class="map-pane__canvas"
+          [points]="mapPoints()"
+          [route]="routeLine()"
+          [marker]="riderMarker()"
+          [overview]="overview()"
+        >
+          <div class="map-placeholder">
+            <strong>Locating your route</strong><span>Your delivery details are ready below.</span>
+          </div>
+        </app-route-map>
+      </aside>
+    </div>
+
+    <dialog
+      #cancelDialog
+      class="modal"
+      aria-labelledby="cancel-title"
+      (click)="onCancelBackdrop($event)"
+    >
+      <div class="modal__card">
+        <span class="modal__icon" aria-hidden="true">
+          <ng-icon name="solarDangerCircleBoldDuotone" />
+        </span>
+        <h2 id="cancel-title">Cancel this shipment?</h2>
+        <p>
+          You're about to cancel <strong>{{ item.title }}</strong> ({{ item.trackingId }}).
+          @if (item.paid) {
+            {{ item.amountLabel ? 'The ' + item.amountLabel : 'The amount' }} you paid will be
+            refunded to you within 1 to 2 business days.
+          } @else {
+            You haven't paid for it, so nothing will be charged. This can't be undone.
+          }
+        </p>
+        @if (item.paid) {
+          <label class="modal__check">
+            <input
+              type="checkbox"
+              [checked]="agreed()"
+              (change)="agreed.set($any($event.target).checked)"
+            />
+            <span>I agree to cancel this shipment and proceed with the refund.</span>
+          </label>
+        }
+        @if (cancelError()) {
+          <p class="form-error" role="alert">
+            <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />{{ cancelError() }}
+          </p>
+        }
+        <div class="modal__buttons">
+          <button
+            type="button"
+            class="btn btn--primary"
+            [disabled]="busy() !== null"
+            (click)="closeCancel()"
+          >
+            Keep shipment
+          </button>
+          <button
+            type="button"
+            class="btn btn--ghost modal__danger"
+            [disabled]="!canConfirmCancel() || busy() !== null"
+            (click)="cancelShipment()"
+          >
+            {{ busy() === 'cancel' ? 'Cancelling…' : 'Cancel shipment' }}
+          </button>
+        </div>
+      </div>
+    </dialog>
+  }
+</main>

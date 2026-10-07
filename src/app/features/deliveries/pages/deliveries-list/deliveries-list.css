@@ -1,0 +1,688 @@
+:host {
+  display: block;
+}
+.parcels-page {
+  display: grid;
+  gap: 18px;
+  width: min(100%, 1320px);
+  margin-inline: auto;
+  padding: var(--page-pad);
+  color: var(--dashboard-text);
+}
+.page-intro {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 10px 2px 6px;
+}
+.page-intro h1 {
+  font-size: clamp(25px, 3vw, 36px);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+.page-intro p {
+  margin-top: 8px;
+  max-width: 58ch;
+  color: var(--dashboard-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.new-parcel {
+  flex: none;
+}
+.workspace {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 18px;
+  background: var(--dashboard-card);
+}
+.workspace-wrap {
+  position: relative;
+  min-width: 0;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 22px;
+}
+.filters {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filters::-webkit-scrollbar {
+  display: none;
+}
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 9px 13px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--dashboard-muted);
+  background: transparent;
+  font: 550 12px/1 var(--font-body);
+  cursor: pointer;
+}
+.filter span {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding-inline: 5px;
+  border-radius: 999px;
+  color: var(--dashboard-muted);
+  background: var(--dashboard-control);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.filter--active {
+  border-color: color-mix(in srgb, var(--color-primary-500) 24%, transparent);
+  color: var(--color-primary-600);
+  background: color-mix(in srgb, var(--color-primary-500) 9%, transparent);
+}
+.filter--active span {
+  color: #fff;
+  background: var(--color-primary-500);
+}
+
+.filter-trigger {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-lg);
+  color: var(--dashboard-text);
+  background: transparent;
+  font: 550 12px/1 var(--font-body);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+.filter-trigger ng-icon {
+  color: var(--dashboard-muted);
+  font-size: 16px;
+}
+.filter-trigger:hover,
+.filter-trigger[aria-expanded='true'] {
+  border-color: color-mix(in srgb, var(--color-primary-500) 40%, var(--dashboard-border));
+  background: var(--dashboard-control);
+}
+.filter-trigger:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+.filter-trigger--active {
+  border-color: color-mix(in srgb, var(--color-primary-500) 24%, transparent);
+  color: var(--color-primary-600);
+  background: color-mix(in srgb, var(--color-primary-500) 9%, transparent);
+}
+.filter-trigger--active ng-icon {
+  color: var(--color-primary-500);
+}
+.filter-trigger b {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding-inline: 5px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--color-primary-500);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0 22px 14px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 999px;
+  color: var(--color-primary-600);
+  background: color-mix(in srgb, var(--color-primary-500) 9%, transparent);
+  font: 550 12px/1 var(--font-body);
+}
+/* The API's place names are lowercase ("lagos"); amounts and dates must keep their own casing. */
+.chip--place {
+  text-transform: capitalize;
+}
+.chip button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: inherit;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+}
+.chip button:hover {
+  color: var(--color-primary-500);
+}
+.chips__clear {
+  padding: 6px 4px;
+  border: 0;
+  color: var(--dashboard-muted);
+  background: none;
+  font: 550 12px/1 var(--font-body);
+  cursor: pointer;
+}
+.chips__clear:hover {
+  color: var(--dashboard-text);
+}
+
+.filter-backdrop {
+  display: none;
+}
+.filter-panel {
+  position: absolute;
+  top: 66px;
+  right: 22px;
+  z-index: 60;
+  display: grid;
+  gap: 18px;
+  width: min(392px, calc(100% - 44px));
+  padding: 20px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 18px;
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+  box-shadow: 0 18px 48px rgb(10 7 17 / 22%);
+  animation: filter-panel-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.filter-panel__head strong {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.filter-group {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.filter-group legend {
+  padding: 0;
+  margin-bottom: 10px;
+  color: var(--dashboard-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.filter-group .field {
+  min-width: 0;
+  gap: 6px;
+  color: var(--dashboard-muted);
+  font-size: 12px;
+}
+.filter-group .field input,
+.filter-group .field select {
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.presets__label {
+  margin-right: 2px;
+  color: var(--dashboard-muted);
+  font-size: 11.5px;
+  font-weight: 550;
+}
+.preset {
+  padding: 6px 11px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: 999px;
+  color: var(--dashboard-muted);
+  background: transparent;
+  font: 550 11.5px/1 var(--font-body);
+  cursor: pointer;
+}
+.preset:hover {
+  border-color: color-mix(in srgb, var(--color-primary-500) 40%, var(--dashboard-border));
+  color: var(--color-primary-600);
+}
+.filter-panel__foot {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+}
+.filter-panel__foot .btn {
+  min-height: 44px;
+  padding: 12px 18px;
+  font-size: 13px;
+}
+@keyframes filter-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.parcel-head,
+.parcel {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1.35fr) minmax(180px, 1.2fr) minmax(110px, 0.65fr) minmax(120px, 0.75fr)
+    minmax(100px, 0.55fr) 24px;
+  align-items: center;
+  gap: 18px;
+}
+.parcel-head {
+  padding: 8px 22px;
+  border-block: 1px solid var(--dashboard-border);
+  color: var(--color-primary-500);
+  background: var(--dashboard-card);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.parcel-head span:nth-child(4),
+.parcel__status {
+  justify-self: center;
+  text-align: center;
+}
+.parcel-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.parcel-list li + li {
+  border-top: 1px solid var(--dashboard-border);
+}
+.parcel-list--loading {
+  gap: 10px;
+  padding: 12px 20px 20px;
+}
+.parcel {
+  min-height: 82px;
+  padding: 13px 22px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 160ms ease;
+}
+.parcel:hover {
+  background: color-mix(in srgb, var(--color-primary-500) 4%, var(--dashboard-card));
+}
+.parcel:focus-visible {
+  outline: 3px solid var(--dashboard-focus);
+  outline-offset: -3px;
+}
+.parcel__identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.parcel__thumb {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  border-radius: 12px;
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+.parcel__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* No real photo yet: a shrunk, centered mark reads as a placeholder rather than a
+   photo, so it shouldn't fill the frame edge-to-edge the way a real image does. */
+.parcel__thumb .parcel__thumb-default {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+.parcel__name,
+.parcel__destination {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.parcel strong {
+  overflow: hidden;
+  color: var(--dashboard-text);
+  font-size: 13px;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.parcel__name span,
+.parcel__destination span {
+  overflow: hidden;
+  color: var(--dashboard-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.parcel__date,
+.parcel__amount {
+  color: var(--dashboard-text);
+  font-size: 12px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+.parcel small {
+  display: none;
+  color: var(--dashboard-muted);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.parcel__arrow {
+  color: var(--dashboard-muted);
+  font-size: 18px;
+  transition:
+    transform 160ms ease,
+    color 160ms ease;
+}
+.mobile-parcel {
+  display: none;
+}
+.parcel:hover .parcel__arrow {
+  color: var(--color-primary-500);
+  transform: translateX(3px);
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 22px;
+  border-top: 1px solid var(--dashboard-border);
+}
+.pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pagination p {
+  color: var(--dashboard-muted);
+  font-size: 11px;
+}
+.pagination p strong {
+  color: var(--dashboard-text);
+  font-weight: 650;
+}
+.pagination button {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--dashboard-muted);
+  background: transparent;
+  font: 600 11px/1 var(--font-body);
+  cursor: pointer;
+}
+.pagination button:hover:not(:disabled) {
+  border-color: var(--dashboard-border);
+  color: var(--dashboard-text);
+  background: var(--dashboard-control);
+}
+.pagination .pagination__page--active {
+  border-color: var(--color-primary-500);
+  color: #fff;
+  background: var(--color-primary-500);
+}
+.pagination__ellipsis {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  color: var(--dashboard-muted);
+  font-size: 12px;
+}
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+@media (max-width: 1240px) {
+  .parcel-head {
+    display: none;
+  }
+  .parcel-list {
+    gap: 10px;
+    padding: 0 14px 16px;
+  }
+  .parcel-list li + li {
+    border-top: 0;
+  }
+  .parcel {
+    /* Fixed, not auto: "Out for delivery" is nearly twice as long as every other
+       status label, so an auto column made only that row's status track (and
+       therefore its destination column) a different width than its siblings. */
+    grid-template-columns: minmax(0, 1.4fr) minmax(140px, 1fr) 116px;
+    gap: 14px;
+    min-height: 100px;
+    padding: 15px;
+    border: 1px solid var(--dashboard-border);
+    border-radius: 14px;
+  }
+  .parcel__date,
+  .parcel__amount {
+    display: none;
+  }
+  .parcel__status {
+    justify-self: end;
+  }
+  .parcel__arrow {
+    display: none;
+  }
+}
+@media (max-width: 680px) {
+  .parcels-page {
+    gap: 14px;
+    padding-bottom: calc(var(--page-pad) + 176px);
+  }
+  .page-intro {
+    align-items: flex-start;
+  }
+  .page-intro h1 {
+    font-size: 25px;
+  }
+  .page-intro p {
+    max-width: 32ch;
+    font-size: 12px;
+  }
+  .new-parcel {
+    position: fixed;
+    right: 28px;
+    bottom: calc(108px + env(safe-area-inset-bottom));
+    z-index: 35;
+    width: auto;
+    min-width: 0;
+    min-height: 52px;
+    gap: 8px;
+    padding: 0 19px 0 16px;
+    border-radius: 16px;
+    font-size: 13px;
+    box-shadow: none;
+  }
+  .new-parcel span {
+    display: inline;
+  }
+  .bar {
+    padding-inline: 14px;
+  }
+  .parcel-list {
+    gap: 0;
+    padding: 0;
+  }
+  .parcel-list li + li {
+    border-top: 1px solid var(--dashboard-border);
+  }
+  .parcel--desktop {
+    display: none;
+  }
+  .mobile-parcel {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    align-items: center;
+    gap: 13px;
+    padding: 14px 16px;
+  }
+  .mobile-parcel__thumb {
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    overflow: hidden;
+    border-radius: 14px;
+    color: var(--color-primary-600);
+    background: var(--color-primary-50);
+  }
+  .mobile-parcel__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .mobile-parcel__thumb .parcel__thumb-default {
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+  }
+  .mobile-parcel__body {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+  }
+  .mobile-parcel__title {
+    overflow: hidden;
+    color: var(--dashboard-text);
+    font-size: 15px;
+    font-weight: 650;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mobile-parcel__tracking {
+    min-width: 0;
+    color: var(--color-primary-500);
+    font: 600 12px/1.2 var(--font-body);
+    --tracking-copy-icon-size: 13px;
+  }
+  .mobile-parcel__title:focus-visible,
+  .mobile-parcel__thumb:focus-visible {
+    outline: 3px solid var(--dashboard-focus);
+    outline-offset: 2px;
+  }
+  .mobile-parcel__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+  }
+  .mobile-parcel__foot > span {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--dashboard-muted);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mobile-parcel__foot strong {
+    color: var(--dashboard-text);
+    font-size: 12.5px;
+    font-weight: 650;
+  }
+  .pagination {
+    justify-content: center;
+    padding-inline: 8px;
+  }
+  .pagination p {
+    display: none;
+  }
+  .pagination--summary-only {
+    display: none;
+  }
+  .pagination__controls {
+    justify-content: center;
+    gap: 2px;
+  }
+  .pagination button {
+    min-width: 30px;
+    padding-inline: 7px;
+  }
+  .pagination__ellipsis {
+    width: 16px;
+  }
+}
+/* Phones: the panel becomes a bottom sheet over a dimmed page, above the tab bar. */
+@media (max-width: 680px) {
+  .chips {
+    padding-inline: 14px;
+  }
+  /* Tabs scroll under the Filters button; fade the edge so it reads as scrollable, not cut off. */
+  .filters {
+    mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
+  }
+  .filter-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 155;
+    display: block;
+    background: rgb(10 7 17 / 52%);
+  }
+  .filter-panel {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 160;
+    width: 100%;
+    max-height: 88dvh;
+    padding: 20px 18px calc(20px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    border-width: 1px 0 0;
+    border-radius: 22px 22px 0 0;
+    animation-name: filter-sheet-in;
+  }
+  @keyframes filter-sheet-in {
+    from {
+      transform: translateY(24px);
+      opacity: 0;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .parcel,
+  .parcel__arrow,
+  .filter-panel {
+    transition: none;
+    animation: none;
+  }
+}
