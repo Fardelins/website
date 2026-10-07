@@ -1,0 +1,36 @@
+<main class="help">
+  <header class="help__hero">
+    <span class="help__icon"
+      ><ng-icon name="solarQuestionCircleBoldDuotone" aria-hidden="true"
+    /></span>
+    <div>
+      <span>Fardelins support</span>
+      <h2>What can we help with?</h2>
+      <p>Reach a human for delivery, payment, or account questions.</p>
+    </div>
+  </header>
+
+  <section class="help__grid" aria-label="Support options">
+    <a href="mailto:hello@fardelins.com">
+      <span><ng-icon name="solarLetterBoldDuotone" aria-hidden="true" /></span>
+      <div><strong>Email support</strong><small>hello&#64;fardelins.com</small></div>
+      <ng-icon name="solarArrowRightBoldDuotone" aria-hidden="true" />
+    </a>
+    <a href="tel:+2348142437284">
+      <span><ng-icon name="solarPhoneCallingBoldDuotone" aria-hidden="true" /></span>
+      <div><strong>Call us</strong><small>+234 814 243 7284</small></div>
+      <ng-icon name="solarArrowRightBoldDuotone" aria-hidden="true" />
+    </a>
+    <a routerLink="/contact">
+      <span><ng-icon name="solarChatRoundDotsBoldDuotone" aria-hidden="true" /></span>
+      <div><strong>Send a message</strong><small>Use the contact form</small></div>
+      <ng-icon name="solarArrowRightBoldDuotone" aria-hidden="true" />
+    </a>
+  </section>
+
+  <section class="help__note">
+    <strong>Include your tracking ID</strong>
+    <p>It helps the team find the right parcel and respond faster.</p>
+    <a routerLink="/app/deliveries">Open my parcels</a>
+  </section>
+</main>
