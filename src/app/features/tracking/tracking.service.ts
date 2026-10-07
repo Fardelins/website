@@ -44,7 +44,7 @@ export class TrackingService {
   private composeResult(id: string, raw: TrackingEventRaw[]): TrackingResult | null {
     if (raw.length === 0) return null;
 
-    // Sort by `order` ascending — it can be non-contiguous, so never rely on
+    // Sort by `order` ascending, it can be non-contiguous, so never rely on
     // array position or max(order) as a step count.
     const ascending = [...raw].sort((a, b) => a.order - b.order);
     const events = ascending.map((event) => this.mapEvent(event));
@@ -63,9 +63,10 @@ export class TrackingService {
         ? (positionInPhase + 1) / (currentPhase.statuses.length + 1)
         : 0.5;
 
-    // Reaching the final phase means the parcel is delivered — the journey is
+    // Reaching the final phase means the parcel is delivered, the journey is
     // finished, so the last step renders as done, not as an in-progress spinner.
     const delivered = currentPhaseIndex === TRACKING_PHASES.length - 1;
+    const accepted = currentPhaseIndex === 0 && latest.status === 'assigned';
 
     return {
       trackingId: id,
@@ -73,6 +74,7 @@ export class TrackingService {
       currentPhaseIndex,
       currentPhaseProgress,
       delivered,
+      accepted,
       completed: latest.status === 'completed',
       headline: latest.statusLabel,
       updatedLabel: `${latest.dateLabel} · ${latest.timeLabel}`,

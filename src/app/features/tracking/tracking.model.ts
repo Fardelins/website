@@ -36,8 +36,10 @@ export interface TrackingResult {
   currentPhaseIndex: number;
   /** 0–1: how far the latest status sits within the current phase's sub-statuses. */
   currentPhaseProgress: number;
-  /** True once the final phase is reached — the journey is finished, not in-progress. */
+  /** True once the final phase is reached, the journey is finished, not in-progress. */
   delivered: boolean;
+  /** True once a courier has accepted the job (`assigned`), which completes the first step. */
+  accepted: boolean;
   /** True only on the terminal `completed` status, which is what a receipt may be issued against. */
   completed: boolean;
   headline: string;
@@ -58,17 +60,25 @@ export const TRACKING_PHASES: TrackingPhase[] = [
   { key: 'delivered', label: 'Delivered', statuses: ['received', 'completed'] },
 ];
 
-// API status `delivered` actually means "out for delivery" — `received` is the real hand-off.
+// API status `delivered` actually means "out for delivery", `received` is the real hand-off.
 const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending pickup',
-  assigned: 'Assigned to courier',
+  pending: 'Pending',
+  assigned: 'Assigned',
   picked_up: 'Picked up',
-  enroute: 'En route to destination',
-  office: 'At courier office',
+  enroute: 'Enroute',
+  office: 'At office',
   delivered: 'Out for delivery',
-  received: 'Received by recipient',
-  completed: 'Delivered',
+  received: 'Received',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+  canceled: 'Cancelled',
+  failed: 'Failed',
 };
+
+/** The first step reads "Confirming" until a courier accepts the job (`assigned`). */
+export function phaseLabel(phase: TrackingPhase, status: string | null | undefined): string {
+  return phase.key === 'confirmed' && status === 'pending' ? 'Confirming' : phase.label;
+}
 
 export function phaseIndexForStatus(status: string): number {
   return TRACKING_PHASES.findIndex((phase) => phase.statuses.includes(status));

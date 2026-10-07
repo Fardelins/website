@@ -15,27 +15,27 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideCheck,
-  lucideChevronDown,
-  lucideCircleCheck,
-  lucideCircleDashed,
-  lucideCopy,
-  lucideLoaderCircle,
-  lucideRefreshCw,
-} from '@ng-icons/lucide';
+  solarAltArrowDownBoldDuotone,
+  solarBoxBoldDuotone,
+  solarCalendarBoldDuotone,
+  solarClockCircleBoldDuotone,
+  solarCloseCircleBoldDuotone,
+  solarDeliveryBoldDuotone,
+  solarRefreshCircleBoldDuotone,
+  solarRefreshBoldDuotone,
+  solarVerifiedCheckBoldDuotone,
+} from '@ng-icons/solar-icons/bold-duotone';
 import { TextMorph } from 'torph';
 import { animate } from 'motion/mini';
 import {
   ComponentConfig,
   ShaderBackground,
 } from '@shared/components/shader-background/shader-background';
+import { TrackingCopy } from '@shared/components/tracking-copy/tracking-copy';
 import { HapticsService } from '@core/services/haptics.service';
 import { SITE_NAME, SeoService } from '@core/services/seo.service';
-import { TRACKING_PHASES, TrackingResult } from '../../tracking.model';
+import { TRACKING_PHASES, TrackingPhase, TrackingResult, phaseLabel } from '../../tracking.model';
 import { TrackingService } from '../../tracking.service';
-import { trackDate, trackItems, trackPackage, trackTime } from '../../tracking.icons';
-
-const COPIED_RESET_MS = 1800;
 
 // Pointer-driven colour smoke, same preset as the home page's About section.
 const HERO_TRAIL_PRESET: ComponentConfig[] = [
@@ -88,20 +88,18 @@ const HERO_ASCII_PRESET: ComponentConfig[] = [
 
 @Component({
   selector: 'app-track',
-  imports: [RouterLink, NgIcon, ShaderBackground],
+  imports: [RouterLink, NgIcon, ShaderBackground, TrackingCopy],
   viewProviders: [
     provideIcons({
-      lucideCircleCheck,
-      lucideLoaderCircle,
-      lucideCircleDashed,
-      lucideCopy,
-      lucideCheck,
-      lucideRefreshCw,
-      lucideChevronDown,
-      trackPackage,
-      trackDate,
-      trackItems,
-      trackTime,
+      solarRefreshCircleBoldDuotone,
+      solarClockCircleBoldDuotone,
+      solarCloseCircleBoldDuotone,
+      solarRefreshBoldDuotone,
+      solarAltArrowDownBoldDuotone,
+      solarBoxBoldDuotone,
+      solarCalendarBoldDuotone,
+      solarDeliveryBoldDuotone,
+      solarVerifiedCheckBoldDuotone,
     }),
   ],
   templateUrl: './track.html',
@@ -125,9 +123,6 @@ export class Track {
   private previousResult: TrackingResult | null = null;
   private wasShowingResults = false;
 
-  private copyResetId: ReturnType<typeof setTimeout> | null = null;
-  private toastId: ReturnType<typeof setTimeout> | null = null;
-
   protected readonly phases = TRACKING_PHASES;
   protected readonly heroTrailPreset = HERO_TRAIL_PRESET;
   protected readonly heroAsciiPreset = HERO_ASCII_PRESET;
@@ -137,8 +132,6 @@ export class Track {
   protected readonly error = signal(false);
   protected readonly notFound = signal(false);
   protected readonly result = signal<TrackingResult | null>(null);
-  protected readonly copied = signal(false);
-  protected readonly toast = signal<string | null>(null);
   protected readonly timelineOpen = signal(true);
 
   /** Both set once per shipment; later updates go through torph/motion instead, so
@@ -151,7 +144,7 @@ export class Track {
     () => this.loading() || this.error() || this.notFound() || this.result() !== null,
   );
 
-  /** Excludes the (much shorter) loading skeleton — scrolling against it overshoots. */
+  /** Excludes the (much shorter) loading skeleton, scrolling against it overshoots. */
   protected readonly hasSettledContent = computed(
     () => this.error() || this.notFound() || this.result() !== null,
   );
@@ -180,13 +173,13 @@ export class Track {
       }
     });
 
-    // Invoice QR codes link to /track?tracking_id=... — fold into the path form above.
+    // Invoice QR codes link to /track?tracking_id=..., fold into the path form above.
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const id = params.get('tracking_id');
       if (id) void this.router.navigate(['/track', id], { replaceUrl: true });
     });
 
-    // The footer's rounded corners reveal <body>'s bg — keep it black until there's a result.
+    // The footer's rounded corners reveal <body>'s bg, keep it black until there's a result.
     if (this.isBrowser) {
       effect(() => {
         this.document.body.classList.toggle('track-page--empty', !this.hasContent());
@@ -262,22 +255,6 @@ export class Track {
     if (id && !this.loading()) void this.load(id);
   }
 
-  protected async copy(): Promise<void> {
-    const id = this.result()?.trackingId;
-    if (!id) return;
-    // Fire haptics before awaiting so iOS still has user activation.
-    this.haptics.light();
-    try {
-      await navigator.clipboard.writeText(id);
-      this.copied.set(true);
-      this.showToast('Tracking number copied');
-      if (this.copyResetId) clearTimeout(this.copyResetId);
-      this.copyResetId = setTimeout(() => this.copied.set(false), COPIED_RESET_MS);
-    } catch {
-      /* clipboard unavailable — no-op */
-    }
-  }
-
   protected toggleTimeline(): void {
     this.timelineOpen.update((open) => !open);
     this.haptics.selection();
@@ -285,29 +262,34 @@ export class Track {
 
   protected stepDone(index: number, result: TrackingResult): boolean {
     return (
-      index < result.currentPhaseIndex || (index === result.currentPhaseIndex && result.delivered)
+      index < result.currentPhaseIndex ||
+      (index === result.currentPhaseIndex && (result.delivered || result.accepted))
     );
   }
 
+  protected stepLabel(phase: TrackingPhase, result: TrackingResult): string {
+    return phaseLabel(phase, result.events[0]?.status);
+  }
+
   protected stepCurrent(index: number, result: TrackingResult): boolean {
-    return index === result.currentPhaseIndex && !result.delivered;
+    return index === result.currentPhaseIndex && !result.delivered && !result.accepted;
   }
 
   /** Bar fill for phase `index`: done → 1, active → measured fraction, upcoming → 0. */
   private phaseFraction(index: number, result: TrackingResult): number {
     if (index < result.currentPhaseIndex) return 1;
     if (index === result.currentPhaseIndex)
-      return result.delivered ? 1 : result.currentPhaseProgress;
+      return result.delivered || result.accepted ? 1 : result.currentPhaseProgress;
     return 0;
   }
 
   /** Spring-fills bars in sequence: any phase the shipment just finished catches up to full
-   *  before the new current phase starts filling — a wave rather than everything moving at once. */
+   *  before the new current phase starts filling, a wave rather than everything moving at once. */
   private async animateBars(old: TrackingResult, next: TrackingResult): Promise<void> {
     const fills = this.fillRefs().map((ref) => ref.nativeElement);
     if (fills.length === 0) return;
 
-    const target = next.delivered ? 1 : next.currentPhaseProgress;
+    const target = next.delivered || next.accepted ? 1 : next.currentPhaseProgress;
     const spring = { type: 'spring', stiffness: 260, damping: 28, mass: 0.9 } as const;
 
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -337,12 +319,6 @@ export class Track {
     this.headlineMorphElement = element;
     this.headlineMorph ??= new TextMorph({ element, duration: 420 });
     this.headlineMorph.update(text);
-  }
-
-  private showToast(message: string): void {
-    this.toast.set(message);
-    if (this.toastId) clearTimeout(this.toastId);
-    this.toastId = setTimeout(() => this.toast.set(null), COPIED_RESET_MS);
   }
 
   private searchedReset(): void {

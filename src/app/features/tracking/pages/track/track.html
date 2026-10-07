@@ -10,7 +10,7 @@
 
       <form class="track-search" role="search" (submit)="$event.preventDefault(); submit()">
         <div class="track-search__field">
-          <ng-icon class="track-search__icon" name="trackPackage" aria-hidden="true" />
+          <ng-icon class="track-search__icon" name="solarBoxBoldDuotone" aria-hidden="true" />
           <input
             #idInput
             type="text"
@@ -29,14 +29,7 @@
               aria-label="Clear tracking number"
               (click)="clear(); idInput.value = ''"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M18 6 6 18M6 6l12 12"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
+              <ng-icon name="solarCloseCircleBoldDuotone" aria-hidden="true" />
             </button>
           }
         </div>
@@ -80,36 +73,14 @@
                 <div class="rhead__id">
                   <span class="rhead__eyebrow">Results for</span>
                   <div class="rhead__code">
-                    <span class="ship-code">{{ r.trackingId }}</span>
-                    <button
-                      type="button"
-                      class="copy"
-                      [class.copy--active]="copied()"
-                      (click)="copy()"
-                      [attr.aria-label]="
-                        copied() ? 'Tracking number copied' : 'Copy tracking number'
-                      "
-                    >
-                      <span class="copy__icons">
-                        <ng-icon
-                          class="copy__icon copy__icon--copy"
-                          name="lucideCopy"
-                          aria-hidden="true"
-                        />
-                        <ng-icon
-                          class="copy__icon copy__icon--check"
-                          name="lucideCheck"
-                          aria-hidden="true"
-                        />
-                      </span>
-                    </button>
+                    <app-tracking-copy class="ship-code" [trackingId]="r.trackingId" />
                   </div>
                 </div>
                 <button type="button" class="refresh" (click)="refresh()" [disabled]="loading()">
                   <ng-icon
                     class="refresh__icon"
                     [class.spin]="loading()"
-                    name="lucideRefreshCw"
+                    name="solarRefreshBoldDuotone"
                     aria-hidden="true"
                   />
                   Refresh
@@ -117,23 +88,35 @@
               </section>
 
               <section class="panel panel--meta">
-                <div class="glance__item">
-                  <ng-icon class="glance__icon" name="trackDate" aria-hidden="true" />
+                <div class="glance__item glance__item--delivery-date">
+                  <ng-icon
+                    class="glance__icon"
+                    name="solarCalendarBoldDuotone"
+                    aria-hidden="true"
+                  />
                   <div class="glance__text">
                     <span class="glance__label">Estimated delivery</span>
                     <span class="glance__value">N/A</span>
                   </div>
                 </div>
-                <div class="glance__item">
-                  <ng-icon class="glance__icon" name="trackItems" aria-hidden="true" />
+                <div class="glance__item glance__item--shipment-items">
+                  <ng-icon
+                    class="glance__icon"
+                    name="solarDeliveryBoldDuotone"
+                    aria-hidden="true"
+                  />
                   <div class="glance__text">
                     <span class="glance__label">Shipment items</span>
-                    <span class="glance__value">3 items</span>
+                    <span class="glance__value">1 item</span>
                   </div>
                 </div>
                 @if (fetchedLabel()) {
-                  <div class="glance__item">
-                    <ng-icon class="glance__icon" name="trackTime" aria-hidden="true" />
+                  <div class="glance__item glance__item--last-updated">
+                    <ng-icon
+                      class="glance__icon"
+                      name="solarClockCircleBoldDuotone"
+                      aria-hidden="true"
+                    />
                     <div class="glance__text">
                       <span class="glance__label">Last updated</span>
                       <span class="glance__value">{{ fetchedLabel() }}</span>
@@ -165,21 +148,25 @@
                       </span>
                       <span class="step__row">
                         @if (stepDone(i, r)) {
-                          <ng-icon class="step__icon" name="lucideCircleCheck" aria-hidden="true" />
+                          <ng-icon
+                            class="step__icon"
+                            name="solarVerifiedCheckBoldDuotone"
+                            aria-hidden="true"
+                          />
                         } @else if (stepCurrent(i, r)) {
                           <ng-icon
                             class="step__icon spin"
-                            name="lucideLoaderCircle"
+                            name="solarRefreshCircleBoldDuotone"
                             aria-hidden="true"
                           />
                         } @else {
                           <ng-icon
                             class="step__icon"
-                            name="lucideCircleDashed"
+                            name="solarClockCircleBoldDuotone"
                             aria-hidden="true"
                           />
                         }
-                        <span class="step__label">{{ phase.label }}</span>
+                        <span class="step__label">{{ stepLabel(phase, r) }}</span>
                       </span>
                     </li>
                   }
@@ -198,7 +185,7 @@
                   <ng-icon
                     class="timeline-title__chev"
                     [class.open]="timelineOpen()"
-                    name="lucideChevronDown"
+                    name="solarAltArrowDownBoldDuotone"
                     aria-hidden="true"
                   />
                 </button>
@@ -245,12 +232,5 @@
         }
       </div>
     </section>
-  }
-
-  @if (toast()) {
-    <div class="toast" role="status">
-      <ng-icon name="lucideCircleCheck" aria-hidden="true" />
-      {{ toast() }}
-    </div>
   }
 </div>
