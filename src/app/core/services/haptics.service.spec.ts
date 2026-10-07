@@ -52,7 +52,10 @@ describe('HapticsService', () => {
     expect(document.querySelector('input[switch]')).not.toBeNull();
   });
 
-  it('suppresses haptics when reduced motion is requested', async () => {
+  // Deliberate: haptics stay decoupled from prefers-reduced-motion (see bami-build-standards
+  // "Haptics != reduced motion"). Tactile feedback isn't visual motion, so it keeps firing
+  // even when the user has asked to reduce animation.
+  it('still fires haptics when reduced motion is requested', async () => {
     vi.mocked(matchMedia).mockImplementation((query: string) => ({
       matches: query === '(prefers-reduced-motion: reduce)',
       media: query,
@@ -66,7 +69,7 @@ describe('HapticsService', () => {
     const service = TestBed.inject(HapticsService);
     service.light();
     await new Promise((resolve) => setTimeout(resolve, 20));
-    expect(vibrate).not.toHaveBeenCalled();
+    expect(vibrate).toHaveBeenCalledOnce();
   });
 
   it('honors the stored preference and throttles rapid repeated feedback', async () => {
