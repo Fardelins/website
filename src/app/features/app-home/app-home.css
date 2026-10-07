@@ -1,0 +1,424 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.dashboard {
+  --dashboard-card: #201a2c;
+  --dashboard-raised: #2b223b;
+  --dashboard-border: #3b2e4c;
+  display: grid;
+  gap: 20px;
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: var(--page-pad);
+}
+
+/* Wireframe bands. Top: the promo runs full height beside three tiles over the
+   activity chart. Bottom: active route and recent parcels, split evenly. */
+.dashboard__greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.dashboard__greeting h2 {
+  color: var(--dashboard-text);
+  font-size: clamp(21px, 2vw, 26px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.range select {
+  padding: 9px 12px;
+  border: 1px solid var(--dashboard-border);
+  /* Matches the site's field radius (forms.css .field input/textarea), this is a
+     dropdown, not a button or a badge, so it follows the field convention, not the pill. */
+  border-radius: var(--radius-md);
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+  font: 500 13px/1 var(--font-body);
+  cursor: pointer;
+  outline: none;
+}
+.range select:focus-visible {
+  border-color: var(--rail-accent);
+  box-shadow: 0 0 0 3px var(--dashboard-focus);
+}
+
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: 1.55fr repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+    'promo stat-a stat-b stat-c'
+    'promo chart chart chart';
+  gap: 16px;
+  align-items: stretch;
+}
+.dashboard__grid > .area-promo {
+  grid-area: promo;
+}
+.dashboard__grid > .area-chart {
+  grid-area: chart;
+}
+.dashboard__bottom {
+  grid-auto-rows: 600px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 0;
+  align-items: stretch;
+}
+.dashboard__more-cue {
+  position: fixed;
+  right: 0;
+  bottom: 48px;
+  left: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 0;
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  animation: more-cue-bob 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.dashboard__more-cue i {
+  width: 11px;
+  height: 11px;
+  border-right: 1.5px solid var(--dashboard-muted);
+  border-bottom: 1.5px solid var(--dashboard-muted);
+  transform: translateY(-2px) rotate(45deg);
+}
+.dashboard__more-cue:has(+ .dashboard__bottom.revealed) {
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+@keyframes more-cue-bob {
+  50% {
+    transform: translateY(5px);
+  }
+}
+.dashboard__bottom > * {
+  min-width: 0;
+  min-height: 0;
+}
+
+:host-context([data-theme='light']) .dashboard {
+  --dashboard-card: #fff;
+  --dashboard-raised: #f5f0ff;
+  --dashboard-border: #e8dff4;
+}
+
+@media (max-width: 1180px) {
+  .dashboard__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas:
+      'promo promo promo'
+      'stat-a stat-b stat-c'
+      'chart chart chart';
+  }
+  .dashboard__bottom {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 860px) {
+  .dashboard__grid {
+    grid-template-columns: 1fr;
+    grid-template-areas: none;
+  }
+  .dashboard__grid > .area-promo,
+  .dashboard__grid > .area-chart {
+    grid-area: auto;
+  }
+}
+
+.dashboard__error {
+  padding: 28px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  background: var(--dashboard-card);
+}
+.dashboard__first {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  min-height: 190px;
+  padding: 28px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+  box-shadow: var(--dashboard-shadow);
+  overflow: hidden;
+}
+.dashboard__first-orbit {
+  /* One-off decorative palette, doesn't correspond to any Figma Primary/State/
+     Accent value, confirmed against the full ramp. Named locals, not spec tokens,
+     so it's never mistaken for a semantic color elsewhere. */
+  --orbit-core: #6e2db8;
+  --orbit-moon-gold: #f5c63d;
+  --orbit-moon-green: #1ec78a;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border: 1px dashed rgba(111, 49, 188, 0.4);
+  border-radius: 50%;
+  animation: orbit-spin 9s linear infinite;
+}
+.dashboard__first-orbit::before,
+.dashboard__first-orbit::after,
+.dashboard__first-orbit i {
+  position: absolute;
+  border-radius: 50%;
+  content: '';
+}
+.dashboard__first-orbit::before {
+  width: 50px;
+  height: 50px;
+  background: var(--orbit-core);
+  box-shadow: inset -8px -8px 18px rgba(39, 7, 78, 0.22);
+}
+.dashboard__first-orbit::after {
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  background: var(--orbit-moon-gold);
+}
+.dashboard__first-orbit i {
+  right: 8px;
+  bottom: 10px;
+  width: 10px;
+  height: 10px;
+  background: var(--orbit-moon-green);
+}
+.dashboard__first > div > span {
+  color: var(--color-primary-500);
+  font-size: 10px;
+  font-weight: 700;
+}
+.dashboard__first h2 {
+  margin-top: 5px;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+.dashboard__first p {
+  max-width: 660px;
+  margin-top: 6px;
+  color: var(--dashboard-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.dashboard__first > a {
+  text-decoration: none;
+}
+.dashboard__all-delivered {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  min-height: 310px;
+  padding: 26px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+  box-shadow: var(--dashboard-shadow);
+  text-align: center;
+}
+.dashboard__all-delivered > span {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  color: var(--color-feedback-success);
+  background: color-mix(in srgb, var(--color-feedback-success) 14%, transparent);
+  font-size: 24px;
+  font-weight: 800;
+}
+.dashboard__all-delivered h2 {
+  margin-top: 16px;
+  font-size: 22px;
+}
+.dashboard__all-delivered p {
+  max-width: 360px;
+  margin-top: 6px;
+  color: var(--dashboard-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.dashboard__all-delivered a {
+  margin-top: 18px;
+  color: var(--color-primary-500);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@keyframes orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 767px) {
+  .dashboard {
+    gap: 16px;
+    padding: 18px 14px 30px;
+  }
+  .dashboard__greeting {
+    position: sticky;
+    top: 0;
+    z-index: 12;
+    align-items: center;
+    min-height: 78px;
+    margin: -18px -14px -8px;
+    padding: 17px 14px 24px;
+    background: linear-gradient(
+      to bottom,
+      var(--dashboard-surface) 0%,
+      var(--dashboard-surface) 72%,
+      color-mix(in srgb, var(--dashboard-surface) 72%, transparent) 88%,
+      transparent 100%
+    );
+    isolation: isolate;
+  }
+  .dashboard__greeting::before {
+    position: absolute;
+    inset: 0 0 14px;
+    z-index: -1;
+    background: color-mix(in srgb, var(--dashboard-surface) 88%, transparent);
+    backdrop-filter: blur(12px);
+    content: '';
+    -webkit-mask-image: linear-gradient(#000 72%, transparent);
+    mask-image: linear-gradient(#000 72%, transparent);
+  }
+  .dashboard__greeting h2 {
+    max-width: 58%;
+    font-size: clamp(18px, 5.4vw, 22px);
+    line-height: 1.15;
+  }
+  .range select {
+    min-height: 44px;
+    max-width: 132px;
+    padding-inline: 10px;
+    font-size: 12px;
+  }
+  .mobile-live-delivery,
+  .dashboard__more-cue {
+    display: none;
+  }
+  .dashboard__bottom {
+    grid-auto-rows: auto;
+  }
+  .mobile-scroll {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 460ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--mobile-order, 0) * 55ms);
+  }
+  .mobile-scroll.dash-in {
+    animation: none;
+  }
+  .mobile-scroll.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .dashboard__first {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 22px;
+  }
+  .dashboard__first-orbit {
+    width: 72px;
+    height: 72px;
+  }
+  .dashboard__first > a {
+    justify-self: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-in,
+  .dashboard__more-cue,
+  .dashboard__first-orbit,
+  .mobile-scroll {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+:host-context(.dashboard-motion-off) .dash-in,
+:host-context(.dashboard-motion-off) .dashboard__more-cue,
+:host-context(.dashboard-motion-off) .dashboard__first-orbit {
+  animation: none;
+}
+:host-context(.dashboard-motion-off) .mobile-scroll {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+.dash-in {
+  animation: dash-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--enter-order, 0) * 60ms);
+}
+@keyframes dash-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-in {
+    animation: none;
+  }
+}
+:host-context(.dashboard-motion-off) .dash-in {
+  animation: none;
+}
+
+/* Closest arrival / Recent parcels sit below the fold on most viewports, a
+   mount-time animation (like .dash-in) plays out before the user ever scrolls
+   down to see it. [appScrollReveal] adds .revealed once ~20% is in view instead. */
+.scroll-in {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* Reuses --enter-order (6/7) as a small stagger between the pair, not an absolute delay. */
+  transition-delay: calc((var(--enter-order, 6) - 6) * 80ms);
+}
+.scroll-in.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+:host-context(.dashboard-motion-off) .scroll-in {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}

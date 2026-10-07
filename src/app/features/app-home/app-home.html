@@ -1,0 +1,89 @@
+<div class="dashboard">
+  <header class="dashboard__greeting dash-in" style="--enter-order: 0">
+    <h2>{{ greeting().label }}, {{ displayName() }}</h2>
+
+    <label class="range">
+      <span class="sr-only">Activity range</span>
+      <select [value]="range()" (change)="range.set($any($event.target).value)">
+        <option value="this-week">This week</option>
+        <option value="this-month">This month</option>
+        <option value="last-month">Last month</option>
+        <option value="last-6-months">Last 6 months</option>
+        <option value="this-year">This year</option>
+      </select>
+    </label>
+  </header>
+
+  @if (loading()) {
+    <div aria-label="Loading dashboard">
+      <div class="dashboard__grid">
+        <app-skeleton class="area-promo" height="100%" radius="18px" />
+        @for (slot of [1, 2, 3]; track slot) {
+          <app-skeleton height="150px" radius="18px" />
+        }
+        <app-skeleton class="area-chart" height="260px" radius="18px" />
+      </div>
+      <div class="dashboard__bottom">
+        <app-skeleton height="330px" radius="18px" />
+        <app-skeleton height="330px" radius="18px" />
+      </div>
+    </div>
+  } @else if (failed()) {
+    <div class="dashboard__error">
+      <app-empty-state
+        icon="solarDangerCircleBoldDuotone"
+        tone="error"
+        title="Your deliveries did not load"
+        copy="Check your connection and try the dashboard again."
+      >
+        <button type="button" class="btn btn--soft" (click)="load()">Try again</button>
+      </app-empty-state>
+    </div>
+  } @else {
+    <div class="dashboard__grid">
+      <app-send-parcel-card
+        class="area-promo dash-in mobile-scroll"
+        style="--enter-order: 1; --mobile-order: 0"
+        appScrollReveal
+        [firstParcel]="dashboard().isEmpty"
+      />
+
+      @for (metric of statMetrics(); track metric.key; let i = $index) {
+        <app-parcel-snapshot-card
+          class="dash-in mobile-scroll"
+          appScrollReveal
+          [style.--enter-order]="2 + i"
+          [style.--mobile-order]="i + 1"
+          [metric]="metric"
+          [spendVisible]="preferences.spendVisible()"
+          (spendVisibleChange)="preferences.setSpendVisible($event)"
+        />
+      }
+
+      <app-delivery-activity-chart
+        class="area-chart dash-in mobile-scroll"
+        style="--enter-order: 5; --mobile-order: 4"
+        appScrollReveal
+        [activity]="dashboard().activity"
+        [range]="range()"
+      />
+    </div>
+
+    <div class="dashboard__more-cue" aria-hidden="true">
+      <span>Scroll to view more</span>
+      <i></i>
+    </div>
+    <div class="dashboard__bottom" appScrollReveal>
+      <section class="scroll-in mobile-live-delivery" appScrollReveal style="--enter-order: 6">
+        <app-active-delivery-card [deliveries]="dashboard().activeDeliveries" />
+      </section>
+
+      <app-recent-parcels
+        class="scroll-in mobile-scroll"
+        appScrollReveal
+        style="--enter-order: 7; --mobile-order: 5"
+        [parcels]="dashboard().recentParcels"
+      />
+    </div>
+  }
+</div>
