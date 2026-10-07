@@ -106,6 +106,76 @@ const jobs = [
     width: 1920,
     format: 'webp',
   },
+  // Dashboard promo art. Source is 350px, so no upsized variant: the card renders it
+  // at half that, which keeps it crisp on 2x without inventing detail.
+  ...['webp', 'avif'].map((format) => ({
+    input: 'image-sources/app/package-box-wings.png',
+    output: `public/app/package-box-wings-350.${format}`,
+    width: 350,
+    format,
+    avifQuality: AVIF_UI,
+  })),
+  // Generic parcel placeholder for list items (deliveries mock).
+  ...['webp', 'avif'].map((format) => ({
+    input: 'image-sources/app/parcel-default.png',
+    output: `public/app/parcel-default-350.${format}`,
+    width: 350,
+    format,
+    avifQuality: AVIF_UI,
+  })),
+  // Saved-address card icon, rendered tall (matches label+street block height) — 240 covers 2x at typical card sizes.
+  ...['webp', 'avif'].map((format) => ({
+    input: 'image-sources/app/location.png',
+    output: `public/app/location-240.${format}`,
+    width: 240,
+    format,
+    avifQuality: AVIF_UI,
+  })),
+  // KYC status icons (pending review / verified / rejected) — small, rendered at ~56px.
+  ...['pending-badge', 'verified-badge', 'rejected-badge'].flatMap((name) =>
+    ['webp', 'avif'].map((format) => ({
+      input: `image-sources/app/${name}.png`,
+      output: `public/app/${name}-120.${format}`,
+      width: 120,
+      format,
+      avifQuality: AVIF_UI,
+    })),
+  ),
+  // PDF fallback tile in the document-upload preview, rendered at ~60px.
+  ...['webp', 'avif'].map((format) => ({
+    input: 'image-sources/app/pdf.png',
+    output: `public/app/pdf-120.${format}`,
+    width: 120,
+    format,
+    avifQuality: AVIF_UI,
+  })),
+
+  // Auth panel art, one per route. Unsplash originals: glass-stack + glass-spiral by
+  // TSD Studio, chrome-ribbon by Nick Levish, horizon by Gabriel Hohenstein. Cropped
+  // 3:4 to match the panel's tall column.
+  ...['glass-stack', 'glass-spiral', 'chrome-ribbon', 'horizon'].flatMap((name) =>
+    [
+      { width: 600, height: 800 },
+      { width: 900, height: 1200 },
+    ].map(({ width, height }) => ({
+      input: `image-sources/auth/${name}.jpg`,
+      output: `public/auth/${name}-${width}.webp`,
+      width,
+      height,
+      format: 'webp',
+    })),
+  ),
+
+  // Social-proof avatars. Attention cropping keeps the face in frame at 36px circles;
+  // plain centre cropping decapitates several of these portraits.
+  ...[1, 2, 3, 4, 5].map((n) => ({
+    input: `image-sources/auth/avatar/member-${n}.jpg`,
+    output: `public/auth/avatar/member-${n}-96.webp`,
+    width: 96,
+    height: 96,
+    position: 'attention',
+    format: 'webp',
+  })),
   {
     input: 'image-sources/home/left.png',
     output: 'public/home/left-800.webp',
@@ -210,15 +280,31 @@ const jobs = [
 ];
 
 await Promise.all(
-  jobs.map(async ({ input, output, width, format, avifQuality = AVIF_PHOTO }) => {
-    await mkdir(path.dirname(output), { recursive: true });
-    let pipeline = sharp(input).rotate().resize({ width, withoutEnlargement: true });
-    pipeline =
-      format === 'avif'
-        ? pipeline.avif({ quality: avifQuality, effort: 5 })
-        : pipeline.webp({ quality: 76, alphaQuality: 82, smartSubsample: true });
-    await pipeline.toFile(output);
-  }),
+  jobs.map(
+    async ({
+      input,
+      output,
+      width,
+      height,
+      format,
+      avifQuality = AVIF_PHOTO,
+      position = 'centre',
+    }) => {
+      await mkdir(path.dirname(output), { recursive: true });
+      // A height alongside width means "crop to this aspect", so withoutEnlargement is
+      // dropped there — it would silently return the uncropped source instead.
+      let pipeline = sharp(input)
+        .rotate()
+        .resize(
+          height ? { width, height, fit: 'cover', position } : { width, withoutEnlargement: true },
+        );
+      pipeline =
+        format === 'avif'
+          ? pipeline.avif({ quality: avifQuality, effort: 5 })
+          : pipeline.webp({ quality: 76, alphaQuality: 82, smartSubsample: true });
+      await pipeline.toFile(output);
+    },
+  ),
 );
 
 console.log(`Generated ${jobs.length} optimized image files.`);
