@@ -1,5 +1,6 @@
-import { Component, ElementRef, HostListener, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '@core/auth/auth.service';
 import { HapticsService } from '@core/services/haptics.service';
 
 @Component({
@@ -15,6 +16,18 @@ export class Navbar {
 
   private readonly haptics = inject(HapticsService);
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
+
+  protected readonly isAuthenticated = this.auth.isAuthenticated;
+  protected readonly displayName = this.auth.displayName;
+  protected readonly avatarUrl = computed(() => this.auth.user()?.avatarUrl ?? null);
+  protected readonly initials = computed(() => {
+    const user = this.auth.user();
+    if (!user) return '';
+    return (
+      `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.trim() || user.email.charAt(0)
+    ).toUpperCase();
+  });
   protected isMenuOpen = false;
   protected isScrolled = false;
   protected get isDownloadPage(): boolean {

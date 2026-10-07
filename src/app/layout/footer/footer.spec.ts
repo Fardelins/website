@@ -40,13 +40,13 @@ describe('Footer', () => {
       (link) => ({ label: link.textContent?.trim(), href: link.getAttribute('href') }),
     );
 
+    // Footer trimmed to Company links + the Cookie Preferences button, which shares the
+    // .footer__nav-link class but is a <button> (no href) rather than a routed <a>.
     expect(links).toEqual([
-      { label: 'Features', href: '/features' },
-      { label: 'Blogs', href: '/blogs' },
-      { label: 'Download the App', href: '/download' },
       { label: 'Contact Us', href: '/contact' },
       { label: 'Terms', href: '/terms' },
       { label: 'Privacy Policy', href: '/privacy' },
+      { label: 'Cookie Preferences', href: null },
     ]);
   });
 

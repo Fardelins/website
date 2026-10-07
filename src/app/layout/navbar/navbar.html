@@ -36,14 +36,21 @@
     }
   </nav>
   <div class="navbar__actions">
-    <a
-      class="navbar__btn navbar__btn--outline navbar__login"
-      href="https://courier.fardelins.com/auth/login"
-      >Log In</a
-    >
-    <a class="navbar__btn navbar__btn--solid" href="https://courier.fardelins.com/auth/register"
-      >Sign Up</a
-    >
+    @if (isAuthenticated()) {
+      <a class="navbar__account" routerLink="/app">
+        <span class="navbar__avatar" aria-hidden="true">
+          @if (avatarUrl()) {
+            <img [src]="avatarUrl()" alt="" width="30" height="30" />
+          } @else {
+            {{ initials() }}
+          }
+        </span>
+        <span class="navbar__account-name">{{ displayName() }}</span>
+      </a>
+    } @else {
+      <a class="navbar__btn navbar__btn--outline navbar__login" routerLink="/login">Log In</a>
+      <a class="navbar__btn navbar__btn--solid" routerLink="/signup">Sign Up</a>
+    }
     <button
       #menuToggle
       class="navbar__menu-toggle"
@@ -53,15 +60,15 @@
       aria-controls="primary-navigation"
       (click)="toggleMenu()"
     >
-      <svg width="24" height="24" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <path
-          d="M8.33334 28.3333H31.6667M8.33334 20H31.6667M8.33334 11.6667H31.6667"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
+      <span
+        class="navbar__menu-icon"
+        [class.navbar__menu-icon--open]="isMenuOpen"
+        aria-hidden="true"
+      >
+        <span class="navbar__menu-line navbar__menu-line--top"></span>
+        <span class="navbar__menu-line navbar__menu-line--middle"></span>
+        <span class="navbar__menu-line navbar__menu-line--bottom"></span>
+      </span>
     </button>
   </div>
   <nav id="primary-navigation" class="navbar__mobile-nav" aria-label="Primary mobile">
@@ -74,17 +81,26 @@
         >{{ link.label }}</a
       >
     }
-    <a
-      class="navbar__btn navbar__btn--outline navbar__mobile-login"
-      href="https://courier.fardelins.com/auth/login"
-      (click)="closeMenu()"
-      >Log In</a
-    >
-    <a
-      class="navbar__btn navbar__btn--solid navbar__mobile-signup"
-      href="https://courier.fardelins.com/auth/register"
-      (click)="closeMenu()"
-      >Sign Up</a
-    >
+    @if (isAuthenticated()) {
+      <a
+        class="navbar__btn navbar__btn--solid navbar__mobile-signup"
+        routerLink="/app"
+        (click)="closeMenu()"
+        >Go to my dashboard</a
+      >
+    } @else {
+      <a
+        class="navbar__btn navbar__btn--outline navbar__mobile-login"
+        routerLink="/login"
+        (click)="closeMenu()"
+        >Log In</a
+      >
+      <a
+        class="navbar__btn navbar__btn--solid navbar__mobile-signup"
+        routerLink="/signup"
+        (click)="closeMenu()"
+        >Sign Up</a
+      >
+    }
   </nav>
 </header>

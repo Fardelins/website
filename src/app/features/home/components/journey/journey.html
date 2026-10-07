@@ -53,7 +53,7 @@
     </div>
   </div>
 
-  <!-- Mobile: a plain, snappy vertical stack — every card is simply scrolled past. -->
+  <!-- Mobile: a plain, snappy vertical stack, every card is simply scrolled past. -->
   <div class="journey__mobile">
     @for (panel of panels; track panel.title) {
       <article
@@ -83,7 +83,7 @@
         @if (panel.cta === 'badges') {
           <app-store-badges />
         } @else {
-          <button class="journey-card__cta" type="button">{{ panel.ctaLabel }}</button>
+          <a class="journey-card__cta" [href]="panel.ctaHref">{{ panel.ctaLabel }}</a>
         }
       </div>
     </div>

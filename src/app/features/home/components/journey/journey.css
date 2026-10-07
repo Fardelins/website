@@ -171,6 +171,10 @@
 }
 
 .journey-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
   min-height: 48px;
   border: 0;
   border-radius: var(--radius-lg);
@@ -179,6 +183,7 @@
   color: var(--color-neutral-white);
   font-size: 14px;
   font-weight: 500;
+  text-decoration: none;
   cursor: pointer;
   transition: background-color 220ms ease;
 }
@@ -368,7 +373,7 @@
   }
 
   /* Swap the desktop sticky scroll-through for a plain, snappy vertical stack:
-     each card is just scrolled past — no sticky, no scroll-driven index, no lag. */
+     each card is just scrolled past, no sticky, no scroll-driven index, no lag. */
   .journey__scroll-shell {
     display: none;
   }
@@ -385,7 +390,7 @@
     min-height: 660px;
     border-radius: 28px;
     /* No bottom padding: the phone bleeds to the rounded edge and is cropped
-       by the card itself — never by an inner box. */
+       by the card itself, never by an inner box. */
     padding: 28px 22px 0;
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
@@ -417,7 +422,7 @@
     margin-top: 18px;
   }
 
-  /* Static stack — drop the entrance reveal so it reads instantly, not animated. */
+  /* Static stack, drop the entrance reveal so it reads instantly, not animated. */
   .journey-card__mask > * {
     animation: none;
   }

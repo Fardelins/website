@@ -22,6 +22,7 @@ interface JourneyPanel {
   phoneAlt: string;
   cta: 'badges' | 'button';
   ctaLabel?: string;
+  ctaHref?: string;
 }
 
 @Component({
@@ -71,6 +72,8 @@ export class Journey implements AfterViewInit, OnDestroy {
       phoneAlt: 'Fardelins courier and dispatcher app',
       cta: 'button',
       ctaLabel: 'Join as a Courier',
+      // Couriers still sign up through the standalone courier portal, not the customer app.
+      ctaHref: 'https://courier.fardelins.com/auth/register',
     },
   ];
 
