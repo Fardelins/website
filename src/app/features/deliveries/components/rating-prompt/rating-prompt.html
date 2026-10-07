@@ -1,0 +1,47 @@
+<dialog
+  #dialog
+  class="prompt"
+  aria-labelledby="rate-title"
+  (cancel)="onCancel($event)"
+  (click)="onBackdrop($event)"
+>
+  <div class="prompt__card" tabindex="-1" autofocus>
+    <header class="prompt__top">
+      <div class="prompt__parcel">
+        @if (parcel().imageUrl; as image) {
+          <img class="prompt__thumb" [src]="image" alt="" width="40" height="40" />
+        } @else {
+          <span class="prompt__thumb prompt__thumb--empty" aria-hidden="true">
+            <ng-icon name="solarBoxBoldDuotone" />
+          </span>
+        }
+        <span class="prompt__meta">
+          <strong>{{ parcel().title }}</strong>
+          <span>{{ parcel().trackingId }}</span>
+        </span>
+      </div>
+      <button type="button" class="prompt__close" aria-label="Not now" (click)="dismiss()">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" /></svg>
+      </button>
+    </header>
+
+    <app-delivery-rating
+      [trackingId]="parcel().trackingId"
+      [shipmentId]="parcel().shipmentId ?? null"
+      [courierName]="parcel().courierName"
+      [deliveredLabel]="parcel().updatedLabel ?? null"
+      (rated)="finish()"
+    />
+
+    <footer class="prompt__foot">
+      <button type="button" class="prompt__link" (click)="dismiss()">Not now</button>
+      <a
+        class="prompt__link"
+        [routerLink]="['/app/deliveries', parcel().trackingId]"
+        (click)="finish()"
+      >
+        Open parcel
+      </a>
+    </footer>
+  </div>
+</dialog>

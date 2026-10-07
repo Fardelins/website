@@ -1,0 +1,142 @@
+<section class="rate" aria-labelledby="rate-title">
+  @switch (phase()) {
+    @case ('loading') {
+      <div class="rate__loading" role="status" aria-label="Loading your rating">
+        <span class="rate__shimmer rate__shimmer--title"></span>
+        <span class="rate__shimmer rate__shimmer--stars"></span>
+      </div>
+    }
+
+    @case ('failed') {
+      <div class="rate__failed">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />
+        <p id="rate-title">We couldn't load your rating.</p>
+        <button type="button" class="btn btn--ghost" (click)="load()">Try again</button>
+      </div>
+    }
+
+    @case ('done') {
+      @if (saved(); as rating) {
+        <div class="rate__done">
+          <header class="rate__top">
+            <div class="rate__head">
+              <span class="rate__eyebrow">
+                <ng-icon name="solarCheckCircleBoldDuotone" aria-hidden="true" />Rating sent
+              </span>
+              <h2 id="rate-title">You rated {{ courier() }} {{ savedVerdict() }}</h2>
+            </div>
+            <button type="button" class="rate__edit" (click)="edit()">
+              <ng-icon name="solarPenBoldDuotone" aria-hidden="true" />Edit rating
+            </button>
+          </header>
+          <div class="rate__stars rate__stars--static" [attr.aria-label]="starLabel(rating.score)">
+            @for (value of stars; track value) {
+              <span class="star" [class.star--on]="value <= rating.score" aria-hidden="true">
+                <ng-icon class="star__empty" name="solarStarLinear" />
+                <ng-icon class="star__full" name="solarStarBold" />
+              </span>
+            }
+          </div>
+          @if (rating.comment) {
+            <p class="rate__quote">{{ rating.comment }}</p>
+          }
+        </div>
+      }
+    }
+
+    @case ('rate') {
+      <header class="rate__head">
+        <span class="rate__eyebrow">
+          <ng-icon name="solarCheckCircleBoldDuotone" aria-hidden="true" />Delivered
+          @if (deliveredLabel()) {
+            <span class="rate__when">{{ deliveredLabel() }}</span>
+          }
+        </span>
+        <h2 id="rate-title">How was your delivery?</h2>
+        <p>Tell us how {{ courier() }} handled your parcel.</p>
+      </header>
+
+      <fieldset class="rate__stars" (mouseleave)="preview.set(0)">
+        <legend class="sr-only">Rate {{ courier() }} from 1 to 5</legend>
+        @for (value of stars; track value) {
+          <label
+            class="star"
+            [class.star--on]="value <= lit()"
+            [class.star--chosen]="value === score()"
+            (mouseenter)="preview.set(value)"
+          >
+            <input
+              class="sr-only"
+              type="radio"
+              [name]="'rating-' + trackingId()"
+              [value]="value"
+              [checked]="value === score()"
+              [attr.aria-label]="starLabel(value)"
+              (change)="pick(value)"
+            />
+            <ng-icon class="star__empty" name="solarStarLinear" aria-hidden="true" />
+            <ng-icon class="star__full" name="solarStarBold" aria-hidden="true" />
+          </label>
+        }
+      </fieldset>
+      <p class="rate__verdict" [class.rate__verdict--set]="verdict()" aria-live="polite">
+        {{ verdict() ?? 'Tap a star to rate' }}
+      </p>
+
+      @if (score()) {
+        <div class="rate__more">
+          <div
+            class="rate__group"
+            role="group"
+            [attr.aria-label]="positive() ? 'What went well' : 'What could be better'"
+          >
+            <p class="rate__question">
+              {{ positive() ? 'What went well?' : 'What could be better?' }}
+            </p>
+            <div class="rate__chips">
+              @for (tag of options(); track tag) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.chip--on]="tags().includes(tag)"
+                  [attr.aria-pressed]="tags().includes(tag)"
+                  (click)="toggleTag(tag)"
+                >
+                  {{ tag }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <label class="field rate__note">
+            <span class="rate__question">Anything else? <em>Optional</em></span>
+            <textarea
+              rows="3"
+              [maxLength]="noteLimit"
+              [value]="note()"
+              (input)="onNote($event)"
+              placeholder="A detail that helps the courier improve"
+            ></textarea>
+            <span class="rate__count" aria-hidden="true">{{ note().length }}/{{ noteLimit }}</span>
+          </label>
+
+          <div class="rate__actions">
+            @if (editing()) {
+              <button
+                type="button"
+                class="btn btn--ghost"
+                [disabled]="saving()"
+                (click)="cancelEdit()"
+              >
+                Cancel
+              </button>
+            }
+            <button type="button" class="btn btn--primary" [disabled]="saving()" (click)="submit()">
+              {{ saving() ? 'Sending...' : editing() ? 'Update rating' : 'Submit rating' }}
+            </button>
+          </div>
+        </div>
+      }
+    }
+  }
+</section>

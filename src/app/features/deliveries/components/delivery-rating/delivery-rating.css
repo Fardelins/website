@@ -1,0 +1,367 @@
+:host {
+  display: block;
+}
+
+.rate {
+  display: grid;
+  gap: 18px;
+}
+
+.rate__head {
+  display: grid;
+  gap: 6px;
+}
+
+.rate__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-feedback-success);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rate__eyebrow ng-icon {
+  font-size: 16px;
+}
+
+.rate__when {
+  color: var(--dashboard-muted);
+  font-weight: 500;
+}
+
+.rate__when::before {
+  content: '·';
+  margin: 0 6px 0 2px;
+}
+
+.rate__head h2 {
+  margin: 0;
+  color: var(--dashboard-text);
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 26px;
+  letter-spacing: -0.01em;
+}
+
+.rate__head p {
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.rate__stars {
+  display: flex;
+  gap: 4px;
+  min-inline-size: 0;
+  margin: 0 0 0 -6px;
+  padding: 0;
+  border: 0;
+}
+
+.star {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  color: var(--dashboard-muted);
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    transform 160ms var(--ease-out);
+}
+
+.star ng-icon {
+  grid-area: 1 / 1;
+  font-size: 36px;
+  transition:
+    opacity 160ms ease,
+    transform 220ms var(--ease-out);
+}
+
+.star__full {
+  color: var(--color-accent-gold);
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+.star--on .star__full {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.star--on .star__empty {
+  opacity: 0;
+}
+
+.star:active {
+  transform: scale(0.92);
+}
+
+.star:has(input:focus-visible) {
+  box-shadow: 0 0 0 3px var(--dashboard-focus);
+}
+
+.rate__stars--static {
+  margin: 0;
+  gap: 2px;
+}
+
+.rate__stars--static .star {
+  width: 26px;
+  height: 26px;
+  cursor: default;
+}
+
+.rate__stars--static .star ng-icon {
+  font-size: 24px;
+}
+
+.rate__verdict {
+  min-height: 20px;
+  margin: -10px 0 0;
+  color: var(--dashboard-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.rate__verdict--set {
+  color: var(--dashboard-text);
+  font-weight: 650;
+}
+
+.rate__more {
+  display: grid;
+  gap: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--dashboard-border);
+  transition:
+    opacity 240ms var(--ease-out),
+    translate 240ms var(--ease-out);
+}
+
+@starting-style {
+  .rate__more {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+.rate__question {
+  margin: 0 0 10px;
+  color: var(--dashboard-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rate__question em {
+  margin-left: 4px;
+  color: var(--dashboard-muted);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.rate__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-100);
+  color: var(--dashboard-text);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms var(--ease-out);
+}
+
+.chip:active {
+  transform: scale(0.97);
+}
+
+.chip--on {
+  border-color: var(--rail-accent);
+  color: var(--rail-accent);
+  background: var(--rail-accent-wash);
+}
+
+.chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--dashboard-focus);
+}
+
+.rate__note {
+  gap: 0;
+}
+
+.rate__note .rate__question {
+  margin-bottom: 8px;
+}
+
+.rate__note textarea {
+  min-height: 92px;
+}
+
+.rate__count {
+  justify-self: end;
+  margin-top: 6px;
+  color: var(--dashboard-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rate__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.rate__done {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+}
+
+.rate__quote {
+  margin: 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--rail-accent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  color: var(--dashboard-text);
+  background: var(--dashboard-control);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.rate__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.rate__edit {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-lg);
+  color: var(--dashboard-text);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    transform 160ms var(--ease-out);
+}
+
+.rate__edit ng-icon {
+  font-size: 16px;
+}
+
+.rate__edit:active {
+  transform: scale(0.97);
+}
+
+.rate__edit:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--dashboard-focus);
+}
+
+.rate__loading {
+  display: grid;
+  gap: 14px;
+}
+
+.rate__shimmer {
+  display: block;
+  border-radius: var(--radius-md);
+  background: var(--dashboard-control);
+}
+
+.rate__shimmer--title {
+  width: 60%;
+  height: 22px;
+}
+
+.rate__shimmer--stars {
+  width: 260px;
+  max-width: 100%;
+  height: 44px;
+}
+
+.rate__failed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  color: var(--dashboard-muted);
+}
+
+.rate__failed p {
+  flex: 1;
+  margin: 0;
+}
+
+.rate__failed ng-icon {
+  color: var(--color-feedback-error);
+  font-size: 20px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rate__stars:not(.rate__stars--static) .star:hover {
+    background: color-mix(in srgb, var(--color-accent-gold) 12%, transparent);
+  }
+  .chip:not(.chip--on):hover,
+  .rate__edit:hover {
+    background: var(--dashboard-control);
+  }
+}
+
+@media (max-width: 640px) {
+  .star {
+    width: 48px;
+    height: 48px;
+  }
+  .rate__actions .btn {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star,
+  .star ng-icon,
+  .chip,
+  .rate__more {
+    transition-property: opacity, background, border-color, color;
+  }
+  .star__full,
+  .star:active,
+  .chip:active {
+    transform: none;
+  }
+}
+
+:host-context(.dashboard-motion-off) .star__full,
+:host-context(.dashboard-motion-off) .star:active,
+:host-context(.dashboard-motion-off) .chip:active {
+  transform: none;
+}
