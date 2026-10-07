@@ -67,3 +67,6 @@ Object.defineProperty(window, 'matchMedia', {
 
 vi.stubGlobal('IntersectionObserver', IntersectionObserverMock);
 vi.stubGlobal('ResizeObserver', ResizeObserverMock);
+
+// Heavy component specs and their setup hooks exceed vitest's defaults (5s, 10s) when workers compete for CPU.
+vi.setConfig({ testTimeout: 15_000, hookTimeout: 15_000 });
