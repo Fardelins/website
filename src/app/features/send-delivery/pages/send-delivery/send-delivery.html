@@ -1,0 +1,641 @@
+<main class="send">
+  <header class="send__head">
+    <button
+      type="button"
+      class="send__back"
+      (click)="back()"
+      [attr.aria-label]="
+        currentStep() === 1 ? 'Leave' : 'Back to ' + steps[currentStep() - 2].label
+      "
+    >
+      <ng-icon name="solarAltArrowLeftBoldDuotone" aria-hidden="true" />
+    </button>
+    <ol class="steps" aria-label="Steps">
+      @for (item of steps; track item.id) {
+        <li>
+          <button
+            type="button"
+            class="steps__item"
+            [class.is-current]="currentStep() === item.id"
+            [class.is-done]="currentStep() > item.id"
+            [disabled]="item.id > maxReachableStep()"
+            [attr.aria-current]="currentStep() === item.id ? 'step' : null"
+            (click)="goToStep(item.id)"
+          >
+            <span class="steps__bar" aria-hidden="true"></span>
+            <span class="steps__label">{{ item.id }}. {{ item.label }}</span>
+          </button>
+        </li>
+      }
+    </ol>
+  </header>
+
+  <div class="send__layout">
+    <section class="send__main" aria-labelledby="step-title">
+      <h1 id="step-title" class="send__title">{{ step().title }}</h1>
+
+      @switch (currentStep()) {
+        @case (1) {
+          <div class="pane">
+            <label
+              class="field"
+              [class.is-missing]="showErrors(1) && !draft().parcel.shortDescription.trim()"
+            >
+              <span class="field__label">What is it?</span>
+              <input
+                type="text"
+                maxlength="120"
+                placeholder="e.g. Pixel 3 phone"
+                [value]="draft().parcel.shortDescription"
+                (input)="patchParcel({ shortDescription: $any($event.target).value })"
+              />
+              @if (showErrors(1) && !draft().parcel.shortDescription.trim()) {
+                <span class="field__error">Tell us what you're sending.</span>
+              }
+            </label>
+
+            <fieldset class="field" [class.is-missing]="showErrors(1) && !draft().parcel.sizeId">
+              <legend class="field__label">Size</legend>
+              @if (loadingSizes()) {
+                <div class="sizes">
+                  @for (n of [1, 2, 3]; track n) {
+                    <app-skeleton height="96px" radius="12px" />
+                  }
+                </div>
+              } @else if (sizesError()) {
+                <p class="inline-error" role="alert">
+                  {{ sizesError() }}
+                  <button type="button" (click)="loadSizes()">Try again</button>
+                </p>
+              } @else {
+                <div class="sizes">
+                  @for (size of sizes(); track size.id; let i = $index) {
+                    <button
+                      type="button"
+                      class="size"
+                      [class.is-selected]="draft().parcel.sizeId === size.id"
+                      [attr.aria-pressed]="draft().parcel.sizeId === size.id"
+                      (click)="selectSize(size.id)"
+                    >
+                      <ng-icon
+                        name="solarBoxBoldDuotone"
+                        [style.fontSize.px]="sizeIconSize(i)"
+                        aria-hidden="true"
+                      />
+                      <span>{{ size.label }}</span>
+                    </button>
+                  }
+                </div>
+              }
+              @if (showErrors(1) && !draft().parcel.sizeId) {
+                <span class="field__error">Pick a size.</span>
+              }
+            </fieldset>
+
+            <fieldset class="field" [class.is-missing]="showErrors(1) && !draft().parcel.type">
+              <legend class="field__label">Type</legend>
+              <div class="segment" role="radiogroup" aria-label="Package type">
+                @for (option of parcelTypes; track option.value) {
+                  <button
+                    type="button"
+                    role="radio"
+                    class="segment__option"
+                    [attr.aria-checked]="draft().parcel.type === option.value"
+                    (click)="selectParcelType(option.value)"
+                  >
+                    {{ option.label }}
+                  </button>
+                }
+              </div>
+              @if (showErrors(1) && !draft().parcel.type) {
+                <span class="field__error">Choose a type.</span>
+              }
+            </fieldset>
+
+            <div class="row row--3">
+              <label class="field" [class.is-missing]="showErrors(1) && !draft().parcel.weight">
+                <span class="field__label">Weight</span>
+                <span class="affix">
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    inputmode="decimal"
+                    placeholder="0.0"
+                    [value]="draft().parcel.weight ?? ''"
+                    (input)="patchParcel({ weight: +$any($event.target).value || null })"
+                  />
+                  <span class="affix__unit">kg</span>
+                </span>
+                @if (showErrors(1) && !draft().parcel.weight) {
+                  <span class="field__error">Add the weight.</span>
+                }
+              </label>
+
+              <div class="field">
+                <span class="field__label" id="quantity-label">Quantity</span>
+                <div class="stepper" role="group" aria-labelledby="quantity-label">
+                  <button
+                    type="button"
+                    aria-label="One fewer"
+                    [disabled]="draft().parcel.quantity <= 1"
+                    (click)="stepQuantity(-1)"
+                  >
+                    −
+                  </button>
+                  <output aria-live="polite">{{ draft().parcel.quantity }}</output>
+                  <button type="button" aria-label="One more" (click)="stepQuantity(1)">+</button>
+                </div>
+              </div>
+
+              <label class="field">
+                <span class="field__label">Value <em>Optional</em></span>
+                <span class="affix">
+                  <span class="affix__unit affix__unit--lead">₦</span>
+                  <input
+                    type="number"
+                    min="0"
+                    inputmode="numeric"
+                    placeholder="0"
+                    [value]="draft().parcel.worth ?? ''"
+                    (input)="patchParcel({ worth: +$any($event.target).value || null })"
+                  />
+                </span>
+              </label>
+            </div>
+
+            <fieldset class="field">
+              <legend class="field__label">Category <em>Optional</em></legend>
+              @if (categoriesError()) {
+                <p class="inline-error" role="alert">
+                  {{ categoriesError() }}
+                  <button type="button" (click)="loadCategories()">Try again</button>
+                </p>
+              } @else {
+                <div class="chips">
+                  @for (category of categories(); track category.id) {
+                    <button
+                      type="button"
+                      class="chip"
+                      [class.is-selected]="draft().parcel.categoryId === category.id"
+                      [attr.aria-pressed]="draft().parcel.categoryId === category.id"
+                      (click)="selectCategory(category.id)"
+                    >
+                      {{ category.label }}
+                    </button>
+                  }
+                </div>
+              }
+            </fieldset>
+
+            <fieldset
+              class="field"
+              [class.is-missing]="showErrors(1) && !draft().parcel.images.length"
+            >
+              <legend class="field__label">Photos</legend>
+              <p class="field__hint">At least one, up to {{ maxImages }}.</p>
+              <div class="photos">
+                @for (image of draft().parcel.images; track image.id) {
+                  <span class="photos__item">
+                    <img [src]="image.link" alt="Parcel photo" width="88" height="88" />
+                    <button type="button" (click)="removeImage(image.id)" aria-label="Remove photo">
+                      <ng-icon name="solarCloseCircleBoldDuotone" aria-hidden="true" />
+                    </button>
+                  </span>
+                }
+                @if (draft().parcel.images.length < maxImages) {
+                  <label class="photos__add" [class.is-busy]="uploading()">
+                    <ng-icon name="solarCameraBoldDuotone" aria-hidden="true" />
+                    <span>{{ uploading() ? 'Uploading' : 'Add' }}</span>
+                    <input
+                      class="sr-only"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      [disabled]="uploading()"
+                      (change)="onFiles($event)"
+                    />
+                  </label>
+                }
+              </div>
+              @if (uploadError()) {
+                <span class="field__error" role="alert">{{ uploadError() }}</span>
+              } @else if (showErrors(1) && !draft().parcel.images.length) {
+                <span class="field__error">Add at least one photo.</span>
+              }
+            </fieldset>
+          </div>
+        }
+
+        @case (2) {
+          <div class="pane route">
+            <section class="leg" aria-labelledby="leg-from">
+              <header class="leg__head">
+                <span class="leg__dot" aria-hidden="true"></span>
+                <h2 id="leg-from">From</h2>
+                <label class="toggle">
+                  <input
+                    type="checkbox"
+                    [checked]="!draft().fromMe"
+                    (change)="setFromMe(!$any($event.target).checked)"
+                  />
+                  <span class="toggle__track" aria-hidden="true"></span>
+                  Someone else is sending it
+                </label>
+              </header>
+
+              @if (draft().fromMe) {
+                <p class="leg__who">
+                  <strong>{{ draft().pickup.fullName || 'You' }}</strong>
+                  <span>{{ draft().pickup.phone || draft().pickup.email }}</span>
+                </p>
+              } @else {
+                <div class="row">
+                  <label
+                    class="field"
+                    [class.is-missing]="showErrors(2) && !draft().pickup.fullName.trim()"
+                  >
+                    <span class="field__label">Sender name</span>
+                    <input
+                      type="text"
+                      autocomplete="off"
+                      [value]="draft().pickup.fullName"
+                      (input)="patchParty('pickup', { fullName: $any($event.target).value })"
+                    />
+                  </label>
+                  <label
+                    class="field"
+                    [class.is-missing]="showErrors(2) && !draft().pickup.phone.trim()"
+                  >
+                    <span class="field__label">Phone</span>
+                    <input
+                      type="tel"
+                      autocomplete="off"
+                      [value]="draft().pickup.phone"
+                      (input)="patchParty('pickup', { phone: $any($event.target).value })"
+                    />
+                  </label>
+                </div>
+                <label
+                  class="field"
+                  [class.is-missing]="showErrors(2) && !draft().pickup.email.trim()"
+                >
+                  <span class="field__label">Email</span>
+                  <input
+                    type="email"
+                    autocomplete="off"
+                    [value]="draft().pickup.email"
+                    (input)="patchParty('pickup', { email: $any($event.target).value })"
+                  />
+                </label>
+              }
+
+              <ng-container
+                *ngTemplateOutlet="
+                  addressFields;
+                  context: { which: 'pickup', label: 'Pickup address' }
+                "
+              />
+            </section>
+
+            <section class="leg leg--to" aria-labelledby="leg-to">
+              <header class="leg__head">
+                <span class="leg__dot leg__dot--to" aria-hidden="true"></span>
+                <h2 id="leg-to">To</h2>
+              </header>
+
+              <label
+                class="field"
+                [class.is-missing]="showErrors(2) && !draft().dropoff.fullName.trim()"
+              >
+                <span class="field__label">Recipient name</span>
+                <input
+                  type="text"
+                  autocomplete="off"
+                  [value]="draft().dropoff.fullName"
+                  (input)="patchParty('dropoff', { fullName: $any($event.target).value })"
+                />
+              </label>
+              <div class="row">
+                <label
+                  class="field"
+                  [class.is-missing]="showErrors(2) && !draft().dropoff.phone.trim()"
+                >
+                  <span class="field__label">Phone</span>
+                  <input
+                    type="tel"
+                    autocomplete="off"
+                    placeholder="0801 234 5678"
+                    [value]="draft().dropoff.phone"
+                    (input)="patchParty('dropoff', { phone: $any($event.target).value })"
+                  />
+                </label>
+                <label
+                  class="field"
+                  [class.is-missing]="showErrors(2) && !draft().dropoff.email.trim()"
+                >
+                  <span class="field__label">Email</span>
+                  <input
+                    type="email"
+                    autocomplete="off"
+                    placeholder="name@example.com"
+                    [value]="draft().dropoff.email"
+                    (input)="patchParty('dropoff', { email: $any($event.target).value })"
+                  />
+                </label>
+              </div>
+
+              <ng-container
+                *ngTemplateOutlet="
+                  addressFields;
+                  context: { which: 'dropoff', label: 'Delivery address' }
+                "
+              />
+            </section>
+
+            @if (showErrors(2) && !routeDone()) {
+              <p class="field__error">Fill in the highlighted details to continue.</p>
+            }
+          </div>
+        }
+
+        @case (3) {
+          <div class="pane">
+            <div class="options">
+              <div class="segment" role="radiogroup" aria-label="Where it ends up">
+                <button
+                  type="button"
+                  role="radio"
+                  class="segment__option"
+                  [attr.aria-checked]="draft().deliveryType === 'user'"
+                  (click)="selectDeliveryType('user')"
+                >
+                  Doorstep
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  class="segment__option"
+                  [attr.aria-checked]="draft().deliveryType === 'office'"
+                  (click)="selectDeliveryType('office')"
+                >
+                  Courier office
+                </button>
+              </div>
+              <div class="segment" role="radiogroup" aria-label="Speed">
+                <button
+                  type="button"
+                  role="radio"
+                  class="segment__option"
+                  [attr.aria-checked]="!draft().priority"
+                  (click)="selectSpeed(false)"
+                >
+                  Standard
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  class="segment__option"
+                  [attr.aria-checked]="draft().priority"
+                  (click)="selectSpeed(true)"
+                >
+                  Priority
+                </button>
+              </div>
+            </div>
+            <p class="field__hint">
+              {{
+                draft().deliveryType === 'office'
+                  ? "The recipient collects it from the courier's office."
+                  : "The courier brings it to the recipient's address."
+              }}
+              {{ draft().priority ? 'Priority is faster, for an extra fee.' : '' }}
+            </p>
+
+            @if (showCourierSearch()) {
+              <label class="field">
+                <span class="sr-only">Search couriers</span>
+                <input
+                  type="search"
+                  placeholder="Search couriers"
+                  [value]="courierQuery()"
+                  (input)="courierQuery.set($any($event.target).value)"
+                />
+              </label>
+            }
+
+            @if (loadingRates()) {
+              <div class="couriers" aria-busy="true" aria-label="Loading couriers">
+                @for (n of [1, 2, 3]; track n) {
+                  <app-skeleton height="76px" radius="12px" />
+                }
+              </div>
+            } @else if (ratesError()) {
+              <div class="empty">
+                <ng-icon name="solarDeliveryBoldDuotone" aria-hidden="true" />
+                <p>{{ ratesError() }}</p>
+                <button type="button" class="btn btn--ghost" (click)="loadRates()">
+                  Try again
+                </button>
+              </div>
+            } @else {
+              <div
+                class="couriers"
+                role="radiogroup"
+                aria-label="Couriers"
+                [class.is-missing]="showErrors(3) && !canPay()"
+              >
+                @for (rate of visibleRates(); track rate.rateId) {
+                  <button
+                    type="button"
+                    role="radio"
+                    class="courier"
+                    [attr.aria-checked]="draft().rateId === rate.rateId"
+                    (click)="selectRate(rate)"
+                  >
+                    <span class="courier__mark" aria-hidden="true">
+                      @if (rate.logoUrl) {
+                        <img [src]="rate.logoUrl" alt="" width="40" height="40" />
+                      } @else {
+                        <ng-icon name="solarDeliveryBoldDuotone" />
+                      }
+                    </span>
+                    <span class="courier__body">
+                      <span class="courier__name">
+                        {{ rate.courierName }}
+                        @if (rate.rateId === cheapestId()) {
+                          <span class="tag">Cheapest</span>
+                        }
+                        @if (rate.rateId === fastestId()) {
+                          <span class="tag">Fastest</span>
+                        }
+                      </span>
+                      <span class="courier__meta">
+                        @if (rate.deliveryWindow) {
+                          <span>{{ rate.deliveryWindow }}</span>
+                        }
+                        @if (rate.rating) {
+                          <span class="courier__rating">
+                            <ng-icon name="solarStarBoldDuotone" aria-hidden="true" />{{
+                              rate.rating
+                            }}
+                          </span>
+                        }
+                      </span>
+                    </span>
+                    <span class="courier__price">{{ rate.priceLabel }}</span>
+                  </button>
+                } @empty {
+                  <p class="field__hint">No courier matches "{{ courierQuery() }}".</p>
+                }
+              </div>
+              @if (showErrors(3) && !canPay()) {
+                <span class="field__error">Pick a courier to continue.</span>
+              }
+            }
+          </div>
+        }
+      }
+
+      <div class="actionbar">
+        @if (currentStep() === 3) {
+          <div class="actionbar__total">
+            <span>Total</span>
+            <strong>{{ selectedRate()?.priceLabel ?? 'Pick a courier' }}</strong>
+          </div>
+          <button
+            type="button"
+            class="btn btn--primary actionbar__cta"
+            [disabled]="submitting()"
+            (click)="submit()"
+          >
+            {{
+              submitting()
+                ? 'Opening Paystack...'
+                : selectedRate()
+                  ? 'Pay ' + selectedRate()!.priceLabel
+                  : 'Pay'
+            }}
+          </button>
+        } @else {
+          <button type="button" class="btn btn--primary actionbar__cta" (click)="continue()">
+            Continue
+          </button>
+        }
+      </div>
+      @if (currentStep() === 3) {
+        <p class="secure">
+          <ng-icon name="solarLockKeyholeBoldDuotone" aria-hidden="true" />You'll finish paying on
+          Paystack's secure page.
+        </p>
+      }
+    </section>
+
+    <aside class="receipt" aria-label="Order summary">
+      <h2 class="receipt__title">Summary</h2>
+      <ol class="receipt__route">
+        <li>
+          <span class="receipt__dot" aria-hidden="true"></span>
+          <span>
+            <strong [class.is-empty]="!draft().pickup.address">{{
+              draft().pickup.address || 'Pickup address'
+            }}</strong>
+            <span>{{ place('pickup') }}</span>
+          </span>
+        </li>
+        <li>
+          <span class="receipt__dot receipt__dot--to" aria-hidden="true"></span>
+          <span>
+            <strong [class.is-empty]="!draft().dropoff.fullName">{{
+              draft().dropoff.fullName || 'Recipient'
+            }}</strong>
+            <span>{{ dropoffLine() }}</span>
+          </span>
+        </li>
+      </ol>
+      <dl class="receipt__lines">
+        <div>
+          <dt>Parcel</dt>
+          <dd [class.is-empty]="!parcelLine()">{{ parcelLine() || 'Not added yet' }}</dd>
+        </div>
+        <div>
+          <dt>Delivery</dt>
+          <dd>{{ deliveryLine() }}</dd>
+        </div>
+        <div>
+          <dt>Courier</dt>
+          <dd [class.is-empty]="!selectedRate()">
+            {{ selectedRate()?.courierName ?? 'Not chosen yet' }}
+          </dd>
+        </div>
+      </dl>
+      <div class="receipt__total">
+        <span>Total</span>
+        <strong [class.is-empty]="!selectedRate()">{{
+          selectedRate()?.priceLabel ?? 'Not priced yet'
+        }}</strong>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<ng-template #addressFields let-which="which" let-label="label">
+  @if (savedAddresses().length) {
+    <div class="chips chips--saved" role="group" [attr.aria-label]="'Saved addresses for ' + label">
+      @for (address of savedAddresses(); track address.id) {
+        <button
+          type="button"
+          class="chip"
+          [class.is-selected]="isSavedAddressUsed(which, address.id)"
+          (click)="useSavedAddress(which, address.id)"
+        >
+          {{ address.label }}
+        </button>
+      }
+    </div>
+  }
+  <label class="field" [class.is-missing]="showErrors(2) && !party(which).address.trim()">
+    <span class="field__label">{{ label }}</span>
+    <input
+      type="text"
+      autocomplete="off"
+      placeholder="Street and house number"
+      [value]="party(which).address"
+      (input)="patchParty(which, { address: $any($event.target).value })"
+    />
+  </label>
+  <div class="row">
+    <label class="field" [class.is-missing]="showErrors(2) && !party(which).state">
+      <span class="field__label">State</span>
+      <select (change)="onStateChange(which, $any($event.target).value)">
+        <option value="" disabled [selected]="!party(which).state">
+          {{ loadingStates() ? 'Loading...' : statesError() ? 'Could not load' : 'Select state' }}
+        </option>
+        @for (state of states(); track state.id) {
+          <option [value]="state.label" [selected]="state.label === party(which).state">
+            {{ state.label }}
+          </option>
+        }
+      </select>
+    </label>
+    <label
+      class="field"
+      [class.is-missing]="showErrors(2) && !party(which).city && citiesFor(which).length > 0"
+    >
+      <span class="field__label">City</span>
+      <select
+        [disabled]="!party(which).state || citiesLoading(which)"
+        (change)="patchParty(which, { city: $any($event.target).value })"
+      >
+        <option value="" disabled [selected]="!party(which).city">
+          {{ citiesLoading(which) ? 'Loading...' : 'Select city' }}
+        </option>
+        @for (city of citiesFor(which); track city.id) {
+          <option [value]="city.label" [selected]="city.label === party(which).city">
+            {{ city.label }}
+          </option>
+        }
+      </select>
+    </label>
+  </div>
+</ng-template>
