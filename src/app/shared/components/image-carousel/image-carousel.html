@@ -1,0 +1,80 @@
+<div class="carousel">
+  <div class="stage">
+    @if (current(); as src) {
+      <button
+        type="button"
+        class="stage__open"
+        [attr.aria-label]="'Open ' + label() + ' ' + (index() + 1) + ' of ' + images().length"
+        (click)="open()"
+      >
+        <img [src]="src" [alt]="label() + ' ' + (index() + 1)" />
+      </button>
+      @if (many()) {
+        <button type="button" class="nav nav--prev" aria-label="Previous photo" (click)="step(-1)">
+          <ng-icon name="solarAltArrowLeftBoldDuotone" aria-hidden="true" />
+        </button>
+        <button type="button" class="nav nav--next" aria-label="Next photo" (click)="step(1)">
+          <ng-icon name="solarAltArrowRightBoldDuotone" aria-hidden="true" />
+        </button>
+      }
+    } @else {
+      <div class="empty">
+        <ng-icon name="solarGalleryBoldDuotone" aria-hidden="true" />
+        <span>No photos added</span>
+      </div>
+    }
+  </div>
+
+  @if (many()) {
+    <ul class="thumbs" aria-label="Photos">
+      @for (src of images(); track src; let i = $index) {
+        <li>
+          <button
+            type="button"
+            class="thumb"
+            [class.thumb--active]="i === index()"
+            [attr.aria-current]="i === index() ? 'true' : null"
+            [attr.aria-label]="'Show photo ' + (i + 1)"
+            (click)="select(i)"
+          >
+            <img [src]="src" alt="" loading="lazy" />
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+  <dialog
+    #lightbox
+    class="lightbox"
+    [attr.aria-label]="label() + ' preview'"
+    (click)="onBackdrop($event)"
+    (keydown)="onKeydown($event)"
+  >
+    @if (current(); as src) {
+      <img class="lightbox__image" [src]="src" [alt]="label() + ' ' + (index() + 1)" />
+    }
+    <button type="button" class="lightbox__close" aria-label="Close preview" (click)="close()">
+      <ng-icon name="solarCloseCircleBoldDuotone" aria-hidden="true" />
+    </button>
+    @if (many()) {
+      <button
+        type="button"
+        class="nav nav--prev lightbox__nav"
+        aria-label="Previous photo"
+        (click)="step(-1)"
+      >
+        <ng-icon name="solarAltArrowLeftBoldDuotone" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        class="nav nav--next lightbox__nav"
+        aria-label="Next photo"
+        (click)="step(1)"
+      >
+        <ng-icon name="solarAltArrowRightBoldDuotone" aria-hidden="true" />
+      </button>
+      <span class="counter lightbox__counter">{{ index() + 1 }} / {{ images().length }}</span>
+    }
+  </dialog>
+</div>

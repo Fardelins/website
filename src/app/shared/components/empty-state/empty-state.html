@@ -1,0 +1,12 @@
+<div class="empty" [class.empty--error]="tone() === 'error'">
+  <span class="empty__icon">
+    <ng-icon [name]="icon()" aria-hidden="true" />
+  </span>
+  <div class="empty__message">
+    <p class="empty__title">{{ title() }}</p>
+    @if (copy()) {
+      <p class="empty__copy">{{ copy() }}</p>
+    }
+  </div>
+  <div class="empty__actions"><ng-content /></div>
+</div>

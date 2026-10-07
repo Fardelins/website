@@ -1,0 +1,10 @@
+<div class="torch" [attr.aria-label]="label() || null" [attr.role]="label() ? 'group' : null">
+  <div class="torch__reveal" aria-hidden="true">
+    <span class="torch__grid"></span>
+    <div class="torch__mark">
+      <pre>{{ logoTexture }}</pre>
+    </div>
+  </div>
+  <span class="torch__flash" aria-hidden="true"></span>
+  <div class="torch__content"><ng-content /></div>
+</div>

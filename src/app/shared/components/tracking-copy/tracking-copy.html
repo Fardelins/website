@@ -1,0 +1,15 @@
+<button
+  type="button"
+  class="tracking-copy"
+  [class.tracking-copy--copied]="copied()"
+  [attr.aria-label]="copied() ? 'Tracking number copied' : 'Copy tracking number ' + trackingId()"
+  (click)="copy()"
+>
+  @if (copied()) {
+    <span class="tracking-copy__text" aria-live="polite">{{ copiedText() }}</span>
+    <ng-icon class="tracking-copy__icon" name="solarCheckCircleBoldDuotone" aria-hidden="true" />
+  } @else {
+    <span class="tracking-copy__text">{{ trackingId() }}</span>
+    <ng-icon class="tracking-copy__icon" name="solarCopyBoldDuotone" aria-hidden="true" />
+  }
+</button>

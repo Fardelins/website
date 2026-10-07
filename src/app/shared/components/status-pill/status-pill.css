@@ -1,0 +1,61 @@
+:host {
+  display: inline-flex;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-100, 999px);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+.pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+/* All consumers share the same semantic tokens. */
+.pill {
+  color: var(--status-color);
+  background: color-mix(in srgb, var(--status-color) 14%, transparent);
+}
+.pill--pending {
+  --status-color: var(--parcel-status-pending);
+}
+.pill--assigned {
+  --status-color: var(--parcel-status-assigned);
+}
+.pill--transit {
+  --status-color: var(--parcel-status-transit);
+}
+.pill--delivered {
+  --status-color: var(--parcel-status-delivered);
+}
+.pill--cancelled {
+  --status-color: var(--parcel-status-cancelled);
+}
+.pill--awaiting {
+  --status-color: var(--dashboard-muted, #8a8a8a);
+}
+.pill--transit .pill__dot,
+.pill--assigned .pill__dot {
+  animation: pill-pulse 2s ease-in-out infinite;
+}
+@keyframes pill-pulse {
+  50% {
+    opacity: 0.5;
+    transform: scale(0.82);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill__dot {
+    animation: none !important;
+  }
+}
+:host-context(.dashboard-motion-off) .pill__dot {
+  animation: none;
+}

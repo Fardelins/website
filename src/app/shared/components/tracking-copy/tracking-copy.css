@@ -1,0 +1,74 @@
+:host {
+  display: inline-grid;
+  min-width: 0;
+  color: var(--tracking-copy-color, var(--color-primary-500, #521c99));
+  font: inherit;
+}
+
+.tracking-copy {
+  display: grid;
+  grid-template-columns: minmax(0, auto) var(--tracking-copy-icon-size, 14px);
+  align-items: center;
+  justify-content: start;
+  gap: var(--tracking-copy-gap, 5px);
+  min-width: 0;
+  min-height: var(--tracking-copy-min-height, 24px);
+  padding: var(--tracking-copy-padding, 0);
+  border: 0;
+  border-radius: var(--tracking-copy-radius, 8px);
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color 180ms cubic-bezier(0.25, 1, 0.5, 1),
+    background-color 180ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.tracking-copy:hover {
+  color: var(--tracking-copy-hover-color, currentColor);
+  background: var(--tracking-copy-hover-background, transparent);
+}
+
+.tracking-copy:focus-visible {
+  outline: 3px solid var(--dashboard-focus, var(--color-focus-ring, rgba(82, 28, 153, 0.25)));
+  outline-offset: 2px;
+}
+
+.tracking-copy__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: tracking-copy-text-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tracking-copy__icon {
+  grid-column: 2;
+  color: var(--tracking-copy-icon-color, currentColor);
+  font-size: var(--tracking-copy-icon-size, 14px);
+  animation: tracking-copy-icon-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes tracking-copy-text-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes tracking-copy-icon-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tracking-copy,
+  .tracking-copy__text,
+  .tracking-copy__icon {
+    animation: none;
+    transition: none;
+  }
+}

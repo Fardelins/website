@@ -1,0 +1,183 @@
+:host {
+  --mx: 50%;
+  --my: 50%;
+  /* Off-white reads as a torch on the dark dashboard; on the light one it would be
+     invisible, so the same beam picks up a brand tint instead. */
+  --flash-core: rgba(255, 251, 235, 0.2);
+  --flash-edge: rgba(170, 112, 255, 0.1);
+  --grid-line: rgba(255, 255, 255, 0.18);
+  /* One mask for everything the torch uncovers, so the layers light as a single pool. */
+  --beam: radial-gradient(
+    circle 190px at var(--mx) var(--my),
+    #000 0%,
+    #000 24%,
+    rgba(0, 0, 0, 0.5) 60%,
+    transparent 100%
+  );
+  display: block;
+}
+
+.torch {
+  position: relative;
+  display: grid;
+  align-content: end;
+  justify-items: center;
+  min-height: 360px;
+  padding: 0 24px 22px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--dashboard-card);
+}
+
+.torch__reveal,
+.torch__flash {
+  position: absolute;
+  pointer-events: none;
+}
+
+.torch__reveal {
+  inset: 0;
+  -webkit-mask-image: var(--beam);
+  mask-image: var(--beam);
+}
+
+.torch__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.32;
+}
+
+.torch__mark {
+  position: absolute;
+  top: 42px;
+  left: 50%;
+  width: calc(100% - 48px);
+  max-width: 570px;
+  aspect-ratio: 236 / 64;
+  margin: 0;
+  overflow: hidden;
+  -webkit-mask: url('/logo.svg') center / contain no-repeat;
+  mask: url('/logo.svg') center / contain no-repeat;
+  transform: translateX(-50%);
+}
+.torch__mark pre {
+  position: absolute;
+  inset: -28%;
+  width: 156%;
+  min-height: 156%;
+  margin: 0;
+  color: var(--color-primary-400);
+  white-space: pre;
+  user-select: none;
+  text-shadow: 0 0 12px rgba(102, 25, 204, 0.24);
+  font:
+    650 4px / 1 ui-monospace,
+    'JetBrains Mono',
+    'SF Mono',
+    Menlo,
+    Consolas,
+    monospace;
+  letter-spacing: 0;
+  animation: ascii-drift 5s ease-in-out infinite alternate;
+}
+@keyframes ascii-drift {
+  from {
+    transform: translate(-2%, -2%);
+  }
+  to {
+    transform: translate(2%, 2%);
+  }
+}
+
+/* The light itself, and the only thing visible before the beam finds anything. */
+.torch__flash {
+  inset: 0;
+  background: radial-gradient(
+    circle 210px at var(--mx) var(--my),
+    var(--flash-core) 0%,
+    var(--flash-edge) 45%,
+    transparent 78%
+  );
+}
+
+.torch__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  width: min(100%, 470px);
+  padding: 14px 18px 10px;
+  text-shadow: none;
+  text-align: center;
+}
+
+:host-context([data-theme='light']) {
+  --flash-core: rgba(102, 25, 204, 0.16);
+  --flash-edge: rgba(102, 25, 204, 0.07);
+  --grid-line: rgba(102, 25, 204, 0.2);
+}
+:host-context([data-theme='light']) .torch {
+  background: #fff;
+}
+:host-context([data-theme='light']) .torch__mark pre {
+  color: var(--color-primary-600);
+}
+
+@media (max-width: 640px) {
+  :host {
+    --beam: radial-gradient(
+      circle 145px at var(--mx) var(--my),
+      #000 0%,
+      #000 24%,
+      rgba(0, 0, 0, 0.5) 60%,
+      transparent 100%
+    );
+  }
+  .torch {
+    min-height: clamp(260px, 48dvh, 330px);
+    padding: 0 12px 14px;
+  }
+  .torch__grid {
+    background-size: 20px 20px;
+  }
+  .torch__mark {
+    top: 28px;
+    width: calc(100% - 24px);
+  }
+  .torch__mark pre {
+    font-size: 3.5px;
+  }
+  .torch__flash {
+    background: radial-gradient(
+      circle 160px at var(--mx) var(--my),
+      var(--flash-core) 0%,
+      var(--flash-edge) 45%,
+      transparent 78%
+    );
+  }
+  .torch__content {
+    width: 100%;
+    padding: 12px 6px 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    /* No sweep to follow, so the logo and grid remain legible at rest. */
+    --beam: none;
+  }
+  .torch__flash {
+    display: none;
+  }
+  .torch__reveal {
+    opacity: 0.55;
+  }
+  .torch__mark pre {
+    animation: none;
+  }
+}
