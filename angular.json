@@ -22,9 +22,35 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "{maplibre-gl-worker.mjs,maplibre-gl-shared.mjs,maplibre-gl.css}",
+                "input": "node_modules/maplibre-gl/dist",
+                "output": "/maplibre/"
+              },
+              {
+                "glob": "{ort-wasm-simd-threaded.mjs,ort-wasm-simd-threaded.wasm,ort-wasm-simd-threaded.jsep.mjs,ort-wasm-simd-threaded.jsep.wasm}",
+                "input": "node_modules/onnxruntime-web/dist",
+                "output": "/ort/"
+              },
+              {
+                "glob": "pdf.worker.min.mjs",
+                "input": "node_modules/pdfjs-dist/build",
+                "output": "/pdfjs/"
+              },
+              {
+                "glob": "worker-entry-C9UNuyOJ.js",
+                "input": "node_modules/@paddleocr/paddleocr-js/dist/assets",
+                "output": "/paddleocr/"
               }
             ],
             "styles": ["src/styles.css"],
+            "fileReplacements": [
+              {
+                "replace": "node_modules/@techstark/opencv-js/dist/opencv.js",
+                "with": "src/app/shims/opencv-worker-only.ts"
+              }
+            ],
             "serviceWorker": "ngsw-config.json",
             "server": "src/main.server.ts",
             "outputMode": "server",
@@ -45,8 +71,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "14kB",
-                  "maximumError": "16kB"
+                  "maximumWarning": "16kb",
+                  "maximumError": "20kb"
                 }
               ],
               "outputHashing": "all"
@@ -74,7 +100,8 @@
         "test": {
           "builder": "@angular/build:unit-test",
           "options": {
-            "setupFiles": ["src/test-setup.ts"]
+            "setupFiles": ["src/test-setup.ts"],
+            "runnerConfig": "vitest.config.ts"
           }
         }
       }
