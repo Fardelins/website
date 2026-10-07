@@ -21,6 +21,10 @@ const SETTLE_THRESHOLD = 0.001;
 export class TiltDirective implements AfterViewInit, OnDestroy {
   @Input('appTilt') maxTiltDeg = 10;
   @Input() appTiltSurface: 'self' | 'parent' = 'self';
+  @Input() appTiltResponse = TILT_EASE;
+  @Input() appTiltPerspective = TILT_PERSPECTIVE_PX;
+  /** Max Z-axis roll in degrees, driven by horizontal position. Opt-in; 0 keeps the original transform. */
+  @Input() appTiltRoll = 0;
 
   private readonly el = inject(ElementRef<HTMLElement>).nativeElement;
   private interactionSurface: HTMLElement | null = null;
@@ -73,12 +77,15 @@ export class TiltDirective implements AfterViewInit, OnDestroy {
       return;
     }
     const step = (): void => {
-      this.current.x += (this.target.x - this.current.x) * TILT_EASE;
-      this.current.y += (this.target.y - this.current.y) * TILT_EASE;
+      const response = Math.min(1, Math.max(0.01, this.appTiltResponse));
+      this.current.x += (this.target.x - this.current.x) * response;
+      this.current.y += (this.target.y - this.current.y) * response;
 
       const rotateY = this.current.x * this.maxTiltDeg;
       const rotateX = -this.current.y * this.maxTiltDeg;
-      this.el.style.transform = `perspective(${TILT_PERSPECTIVE_PX}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      const rotateZ = this.current.x * this.appTiltRoll;
+      const perspective = Math.max(200, this.appTiltPerspective);
+      this.el.style.transform = `perspective(${perspective}px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
 
       const settled =
         Math.abs(this.target.x - this.current.x) < SETTLE_THRESHOLD &&
