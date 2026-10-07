@@ -1,0 +1,72 @@
+<section class="recent-card">
+  <header>
+    <h2>Recent parcels</h2>
+    <a routerLink="/app/deliveries"
+      >View all <ng-icon name="solarArrowRightBoldDuotone" aria-hidden="true"
+    /></a>
+  </header>
+
+  @if (!parcels().length) {
+    <app-empty-state title="No parcels yet" copy="Your deliveries will be found here.">
+    </app-empty-state>
+  } @else {
+    <div class="recent-card__table-wrap">
+      <table>
+        <caption class="sr-only">
+          Recent parcels
+        </caption>
+        <colgroup>
+          <col class="col-parcel" />
+          <col class="col-dest" />
+          <col class="col-status" />
+          <col class="col-amount" />
+          <col class="col-go" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Parcel</th>
+            <th>Destination</th>
+            <th>Status</th>
+            <th>Amount</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (parcel of parcels(); track parcel.trackingId; let i = $index) {
+            <tr class="row-in" [style.--row-index]="i">
+              <td>
+                <strong>{{ parcel.title }}</strong
+                ><span>{{ parcel.trackingId }}</span>
+              </td>
+              <td>{{ parcel.dropOff ?? 'Destination pending' }}</td>
+              <td><app-status-pill [status]="parcel.status" /></td>
+              <td>{{ parcel.amountLabel ?? 'Not available' }}</td>
+              <td>
+                <a
+                  [routerLink]="['/app/deliveries', parcel.trackingId]"
+                  [attr.aria-label]="'View ' + parcel.title"
+                  ><ng-icon name="solarArrowRightBoldDuotone" aria-hidden="true"
+                /></a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="recent-card__mobile">
+      @for (parcel of parcels(); track parcel.trackingId) {
+        <a class="parcel-row" [routerLink]="['/app/deliveries', parcel.trackingId]">
+          <span class="parcel-row__icon"
+            ><ng-icon name="solarBoxBoldDuotone" aria-hidden="true"
+          /></span>
+          <span class="parcel-row__copy">
+            <strong>{{ parcel.title }}</strong>
+            <span>{{ parcel.dropOff ?? parcel.trackingId }}</span>
+          </span>
+          <app-status-pill [status]="parcel.status" />
+        </a>
+      }
+    </div>
+  }
+</section>

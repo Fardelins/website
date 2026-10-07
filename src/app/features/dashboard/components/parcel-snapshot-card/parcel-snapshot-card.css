@@ -1,0 +1,244 @@
+:host {
+  display: block;
+}
+
+.snapshot {
+  --metric-accent: #a78bfa;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+  min-height: 168px;
+  padding: 20px 22px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  background:
+    radial-gradient(
+      ellipse at top right,
+      color-mix(in srgb, var(--metric-accent) 13%, transparent),
+      transparent 75%
+    ),
+    var(--dashboard-card);
+  box-shadow: var(--dashboard-shadow);
+}
+.snapshot[data-metric='delivered'] {
+  --metric-accent: #2dd4bf;
+}
+.snapshot[data-metric='spend'] {
+  --metric-accent: #fbbf24;
+}
+.snapshot[data-metric='total'] {
+  --metric-accent: #a78bfa;
+}
+
+.snapshot header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.snapshot__chip {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: var(--metric-accent);
+  background: color-mix(in srgb, var(--metric-accent) 15%, transparent);
+  font-size: 16px;
+}
+.snapshot__label {
+  color: var(--dashboard-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.snapshot__figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: auto;
+}
+/* The number is the card. Everything else stays quiet around it. */
+.snapshot__value {
+  color: var(--dashboard-text);
+  font-family: var(--font-heading);
+  font-size: clamp(30px, 3vw, 40px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.snapshot__trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  border-radius: var(--radius-100);
+  color: var(--color-feedback-success);
+  background: color-mix(in srgb, var(--color-feedback-success) 16%, transparent);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.snapshot__trend ng-icon {
+  font-size: 13px;
+}
+.snapshot__trend--down {
+  color: var(--color-feedback-error);
+  background: color-mix(in srgb, var(--color-feedback-error) 16%, transparent);
+}
+
+.snapshot__caption {
+  color: var(--dashboard-muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Split bar: every parcel sits in exactly one segment, so the row is the total ---- */
+.snapshot__split {
+  display: grid;
+  gap: 8px;
+  margin-top: 0;
+}
+.snapshot__bar {
+  display: flex;
+  gap: 3px;
+  height: 40px;
+}
+.snapshot__seg {
+  position: relative;
+  flex-grow: 0;
+  flex-shrink: 1;
+  min-width: 5px;
+  border-radius: 4px;
+  cursor: default;
+  transition: filter 120ms ease;
+}
+.snapshot__seg:hover,
+.snapshot__seg:focus-visible {
+  filter: brightness(1.12);
+  outline: none;
+}
+.snapshot__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    repeating-linear-gradient(-45deg, #ffffff29 0 1px, transparent 1px 5px), var(--seg-color);
+  transform-origin: left;
+  animation: segment-fill var(--segment-duration) linear var(--segment-delay) both;
+}
+@keyframes segment-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.snapshot__seg--delivered {
+  --seg-color: var(--parcel-status-delivered);
+}
+.snapshot__seg--transit {
+  --seg-color: var(--parcel-status-transit);
+}
+.snapshot__seg--pending {
+  --seg-color: var(--parcel-status-pending);
+}
+.snapshot__seg--cancelled {
+  --seg-color: var(--parcel-status-cancelled);
+}
+.snapshot__total {
+  margin-left: auto;
+}
+.snapshot__figure--delivered {
+  margin-top: 0;
+}
+.snapshot__figure--delivered .snapshot__total {
+  margin-left: auto;
+}
+.snapshot[data-metric='delivered'] .snapshot__split {
+  margin-top: -6px;
+}
+.snapshot:not([data-metric='delivered']) .snapshot__figure {
+  order: 1;
+  margin-top: auto;
+}
+.snapshot:not([data-metric='delivered']) .snapshot__caption {
+  order: 2;
+  margin-top: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .snapshot__fill {
+    animation: none;
+  }
+}
+:host-context(.dashboard-motion-off) .snapshot__fill {
+  animation: none;
+}
+
+/* A floating tip per segment, shown on hover/focus, replaces the static legend. */
+.snapshot__tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 5;
+  padding: 5px 9px;
+  border-radius: 8px;
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+  box-shadow: var(--dashboard-shadow-hover);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+  pointer-events: none;
+}
+.snapshot__seg:hover .snapshot__tip,
+.snapshot__seg:focus-visible .snapshot__tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.snapshot__total {
+  color: var(--dashboard-muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.snapshot__privacy {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 50%;
+  color: var(--dashboard-muted);
+  background: var(--dashboard-control);
+  font-size: 15px;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+.snapshot__privacy:hover {
+  color: var(--dashboard-text);
+}
+.snapshot__privacy:focus-visible {
+  outline: 3px solid var(--dashboard-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snapshot__privacy,
+  .snapshot__seg,
+  .snapshot__tip {
+    transition: none;
+  }
+}

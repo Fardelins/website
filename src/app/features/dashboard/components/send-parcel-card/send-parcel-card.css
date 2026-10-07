@@ -1,0 +1,166 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.send-card {
+  /* Stacked stage: copy and CTA up top, art fills the space left below it. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  height: 100%;
+  min-height: 340px;
+  overflow: hidden;
+  padding: 34px 30px 30px;
+  border-radius: var(--dashboard-radius);
+  /* Literals, not theme tokens: this card's ground is the same purple in both themes,
+     so themed text/surface colours would invert against a background that never does. */
+  color: #ffffff;
+  /* The lighter lobe on the right sits behind the art, the way the reference banner
+     lifts the product off the flat purple. */
+  background:
+    radial-gradient(85% 65% at 78% 82%, #7b3fd4 0%, rgba(123, 63, 212, 0) 62%),
+    linear-gradient(150deg, #4c1d95 0%, #5b21b6 52%, #6d28d9 100%);
+}
+
+.send-card__copy {
+  /* Above the absolutely-positioned shader stage. */
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 36ch;
+}
+.send-card__copy h2 {
+  font-size: clamp(24px, 2vw, 30px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+.send-card__copy p {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 14.5px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.send-card__cta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 300px;
+  margin-top: 32px;
+  white-space: nowrap;
+  padding: 15px 30px;
+  /* Real CTA, matches .btn / .navbar__btn's radius, not the pill. */
+  border-radius: var(--radius-lg);
+  color: #4c1d95;
+  background: #ffffff;
+  text-decoration: none;
+  font-size: 14.5px;
+  font-weight: 600;
+  box-shadow: 0 10px 26px rgba(12, 3, 32, 0.34);
+  transition:
+    gap 180ms var(--ease-out, ease),
+    transform 180ms var(--ease-out, ease);
+}
+.send-card:hover .send-card__cta {
+  gap: 12px;
+  transform: translateY(-2px);
+}
+.send-card__cta ng-icon {
+  font-size: 17px;
+}
+
+.send-card__art {
+  /* Takes the slack between copy and CTA so the art always sits centred. Owns
+     only the static "down and right" offset, [appTilt] and the float keyframes
+     each need their own element or their transforms fight (see about.css). */
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 240px;
+  margin: 4px 0 14px;
+  transform: translate(24px, 20px);
+}
+.send-card__art-float {
+  width: clamp(180px, 76%, 300px);
+  flex-shrink: 0;
+  aspect-ratio: 350 / 302;
+  animation: send-card-float 5.5s ease-in-out infinite;
+}
+.send-card__art-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 26px 42px rgba(16, 4, 40, 0.55));
+}
+.send-card__art-inner > app-shader-background {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.send-card__fallback {
+  /* A persistent underlay protects artwork while the GPU texture is loading. */
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  line-height: 0;
+  opacity: 1;
+  pointer-events: none;
+}
+.send-card__fallback img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@keyframes send-card-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate3d(-6px, -16px, 0) rotate(2.5deg);
+  }
+}
+
+@media (max-width: 720px) {
+  .send-card {
+    padding: 28px 24px 26px;
+  }
+  .send-card__art-float {
+    width: 175px;
+  }
+}
+@media (max-width: 520px) {
+  .send-card {
+    min-height: 300px;
+  }
+  .send-card__art-float {
+    width: 140px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .send-card__cta {
+    transition: none;
+  }
+  .send-card__art-float {
+    animation: none;
+  }
+}

@@ -1,0 +1,66 @@
+<article class="track">
+  <h2 class="track__title">Live delivery</h2>
+  <app-route-map
+    class="track__map"
+    [points]="routeState().points"
+    [route]="routeState().line"
+    [marker]="routeState().marker"
+    [overview]="overview()"
+    [bottomInset]="selected() ? 275 : 48"
+    [topFade]="true"
+  />
+  @if (selected(); as parcel) {
+    <div class="sheet" aria-live="polite" aria-atomic="true">
+      <div class="sheet__heading">
+        <h3>{{ parcel.recipientName }}</h3>
+        <app-status-pill [status]="parcel.status" />
+      </div>
+      <div class="sheet__item">
+        <strong>{{ parcel.title }}</strong
+        ><span>{{ routeState().orderDate }}</span>
+      </div>
+      <dl class="sheet__addresses">
+        <div>
+          <dt><i class="from-dot"></i>From</dt>
+          <dd [title]="routeState().origin">{{ routeState().origin }}</dd>
+        </div>
+        <div>
+          <dt><i class="to-dot"></i>To</dt>
+          <dd [title]="routeState().destination">{{ routeState().destination }}</dd>
+        </div>
+      </dl>
+      <footer class="sheet__footer">
+        <nav class="sheet__nav" aria-label="Active parcels">
+          <button
+            type="button"
+            (click)="previous()"
+            [disabled]="navigationIndex() === 0"
+            aria-label="Previous parcel"
+          >
+            <ng-icon name="solarAltArrowLeftBoldDuotone" />
+          </button>
+          <span>{{ selectedIndex() + 1 }} / {{ deliveries().length }}</span>
+          <button
+            type="button"
+            (click)="next()"
+            [disabled]="navigationIndex() === deliveries().length - 1"
+            aria-label="Next parcel"
+          >
+            <ng-icon name="solarAltArrowRightBoldDuotone" />
+          </button>
+        </nav>
+        <a class="sheet__link" [routerLink]="['/app/deliveries', parcel.trackingId]"
+          >View parcel <span aria-hidden="true">↗</span></a
+        >
+      </footer>
+    </div>
+  } @else {
+    <div class="track__empty">
+      <h3>Track your delivery</h3>
+      <p>No parcels on the move. Send something today.</p>
+      <a class="sheet__link" routerLink="/app/send"
+        >Create delivery <span aria-hidden="true">↗</span></a
+      >
+    </div>
+  }
+</article>

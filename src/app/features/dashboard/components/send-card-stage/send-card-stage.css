@@ -1,0 +1,11 @@
+/* Fills the card behind its content; the card's own overflow clips the corners.
+   Scaled 120%: keeps the canvas's real edge (and the ripple's edge-of-canvas
+   artifact) permanently outside the visible card, so no resize/shake reveals it. */
+:host {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform: scale(1.2);
+  transform-origin: center;
+  pointer-events: none;
+}

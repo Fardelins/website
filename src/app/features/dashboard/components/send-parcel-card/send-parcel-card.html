@@ -1,0 +1,42 @@
+<article class="send-card">
+  <app-send-card-stage />
+
+  <div class="send-card__copy">
+    <h2>{{ firstParcel() ? 'Your first delivery starts here' : 'What are we moving today?' }}</h2>
+    <p>Compare couriers, pick your price, track it door to door.</p>
+  </div>
+
+  <a class="send-card__cta" routerLink="/app/send">
+    Create delivery
+    <ng-icon name="solarArrowRightBoldDuotone" aria-hidden="true" />
+  </a>
+
+  <div class="send-card__art">
+    <div class="send-card__art-float">
+      <div
+        class="send-card__art-inner"
+        role="img"
+        aria-label="A parcel taking flight"
+        [appTilt]="9"
+        (pointerenter)="setArtHover(true)"
+        (pointerleave)="setArtHover(false)"
+      >
+        <app-shader-background #artShader [preset]="artPreset" />
+
+        <!-- Keep the image underneath: renderer readiness does not mean its async texture painted. -->
+        <picture class="send-card__fallback">
+          <source srcset="/app/package-box-wings-350.avif" type="image/avif" />
+          <img
+            src="/app/package-box-wings-350.webp"
+            alt=""
+            aria-hidden="true"
+            width="350"
+            height="302"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+    </div>
+  </div>
+</article>

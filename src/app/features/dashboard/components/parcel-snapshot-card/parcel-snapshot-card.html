@@ -1,0 +1,112 @@
+<article class="snapshot" [attr.data-metric]="metric().key">
+  <header>
+    <span class="snapshot__chip" aria-hidden="true">
+      <ng-icon [name]="metric().icon" />
+    </span>
+    <span class="snapshot__label">{{ metric().label }}</span>
+
+    @if (metric().key === 'spend') {
+      <button
+        type="button"
+        class="snapshot__privacy"
+        (click)="spendVisibleChange.emit(!spendVisible())"
+        [attr.aria-label]="spendVisible() ? 'Hide delivery spend' : 'Show delivery spend'"
+      >
+        <ng-icon
+          [name]="spendVisible() ? 'solarEyeBoldDuotone' : 'solarEyeClosedBoldDuotone'"
+          aria-hidden="true"
+        />
+      </button>
+    }
+  </header>
+
+  @if (metric().key === 'delivered') {
+    <div class="snapshot__figure snapshot__figure--delivered">
+      <strong
+        class="snapshot__value"
+        [appCountUp]="metric().value"
+        [appCountUpPrefix]="parts().prefix"
+        [appCountUpSuffix]="parts().suffix"
+        [appCountUpDecimals]="parts().decimals"
+      ></strong>
+      @if (metric().breakdown; as breakdown) {
+        <span class="snapshot__total">{{ breakdown.caption }}</span>
+      }
+    </div>
+  }
+
+  @if (metric().key !== 'delivered' && metric().caption; as caption) {
+    @if (metric().key !== 'spend' || spendVisible()) {
+      <p class="snapshot__caption">{{ caption }}</p>
+    }
+  }
+  @if (metric().breakdown) {
+    <div class="snapshot__split">
+      @for (key of [animationKey()]; track key) {
+        <span class="snapshot__bar" aria-label="Parcel status breakdown">
+          @for (segment of segments(); track segment.key) {
+            <span
+              class="snapshot__seg"
+              [class]="'snapshot__seg--' + segment.key"
+              [style.flex-basis.%]="segment.percent"
+              [style.--segment-delay]="segment.delay + 'ms'"
+              [style.--segment-duration]="segment.duration + 'ms'"
+              tabindex="0"
+              [attr.aria-label]="
+                segment.label +
+                ': ' +
+                segment.count +
+                ' parcels, ' +
+                segment.percent.toFixed(0) +
+                '%'
+              "
+            >
+              <span class="snapshot__fill" aria-hidden="true"></span>
+              <span class="snapshot__tip">{{ segment.label }} · {{ segment.count }}</span>
+            </span>
+          }
+        </span>
+      }
+    </div>
+  }
+  @if (metric().key !== 'delivered') {
+    <div class="snapshot__figure">
+      @if (metric().key === 'spend' && !spendVisible()) {
+        <strong class="snapshot__value" aria-label="Delivery spend hidden">••••</strong>
+      } @else {
+        <strong
+          class="snapshot__value"
+          [appCountUp]="metric().value"
+          [appCountUpPrefix]="parts().prefix"
+          [appCountUpSuffix]="parts().suffix"
+          [appCountUpDecimals]="parts().decimals"
+        ></strong>
+      }
+
+      @if (metric().key !== 'delivered' && metric().trend; as trend) {
+        <span
+          class="snapshot__trend"
+          [class.snapshot__trend--down]="trend.direction === 'down'"
+          [attr.aria-label]="
+            trend.percent +
+            '% ' +
+            (trend.direction === 'up' ? 'up' : 'down') +
+            ' versus the previous period'
+          "
+        >
+          <ng-icon
+            [name]="
+              trend.direction === 'up'
+                ? 'solarArrowRightUpBoldDuotone'
+                : 'solarArrowRightDownBoldDuotone'
+            "
+            aria-hidden="true"
+          />{{ trend.percent }}%
+        </span>
+      }
+      @if (metric().breakdown; as breakdown) {
+        <span class="snapshot__total">{{ breakdown.caption }}</span>
+      }
+    </div>
+  }
+</article>
