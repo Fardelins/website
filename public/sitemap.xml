@@ -36,38 +36,50 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://fardelins.com/blogs/courier-management-software</loc>
+    <lastmod>2026-08-13T09:24:14.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://fardelins.com/blogs/the-5-stages-of-waiting-for-a-package</loc>
+    <lastmod>2026-08-05T19:25:11.000Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://fardelins.com/blogs/last-mile-delivery</loc>
-    <lastmod>2026-07-28T12:25:44.000Z</lastmod>
+    <lastmod>2026-07-28T14:25:44.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fardelins.com/blogs/easy-10-checklist</loc>
-    <lastmod>2026-07-21T16:52:36.000Z</lastmod>
+    <lastmod>2026-07-21T18:52:36.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fardelins.com/blogs/courier-myths-vs-facts-nigeria</loc>
-    <lastmod>2026-07-21T16:49:53.000Z</lastmod>
+    <lastmod>2026-07-21T18:49:53.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fardelins.com/blogs/speed-vs-safety-in-courier-business</loc>
-    <lastmod>2026-07-01T06:28:36.000Z</lastmod>
+    <lastmod>2026-07-01T08:28:36.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fardelins.com/blogs/why-most-courier-businesses-are-losing-money</loc>
-    <lastmod>2026-07-01T06:27:01.000Z</lastmod>
+    <lastmod>2026-07-01T08:27:01.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://fardelins.com/blogs/manual-dispatch-vs-smart-dispatch</loc>
-    <lastmod>2026-07-01T06:22:12.000Z</lastmod>
+    <lastmod>2026-07-01T08:22:12.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
