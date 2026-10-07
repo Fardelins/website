@@ -1,0 +1,130 @@
+<app-auth-shell
+  heading="Create an account"
+  art="chrome-ribbon"
+  panelLead="Ready to send your first package? Join"
+  panelTail=" today."
+  [panelProof]="panelProof"
+>
+  <form class="signup" (submit)="submit($event)" novalidate>
+    @if (error()) {
+      <p class="form-error" role="alert">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />{{ error() }}
+      </p>
+    }
+
+    <div class="field__row">
+      <label class="field"
+        >First Name
+        <input
+          type="text"
+          name="firstName"
+          autocomplete="given-name"
+          maxlength="25"
+          placeholder="First name"
+          required
+        />
+      </label>
+      <label class="field"
+        >Last Name
+        <input
+          type="text"
+          name="lastName"
+          autocomplete="family-name"
+          maxlength="25"
+          placeholder="Surname"
+          required
+        />
+      </label>
+    </div>
+
+    <label class="field"
+      >Email Address
+      <input
+        type="email"
+        name="email"
+        autocomplete="email"
+        maxlength="254"
+        placeholder="Enter your email address..."
+        required
+        (change)="checkEmail($any($event.target).value)"
+      />
+      @if (emailTaken()) {
+        <span class="field__hint field__hint--error"
+          >That email already has an account. <a routerLink="/login">Log in instead</a>.</span
+        >
+      }
+    </label>
+
+    <label class="field"
+      >Mobile Number
+      <app-phone-input name="phone" [(country)]="country" [(value)]="phone" />
+      <span class="field__hint">We will send all delivery updates here.</span>
+    </label>
+
+    <label class="field"
+      >Password
+      <span class="field__affix">
+        <input
+          [type]="showPassword() ? 'text' : 'password'"
+          name="password"
+          autocomplete="new-password"
+          placeholder="Create a password..."
+          required
+          [value]="password()"
+          (input)="password.set($any($event.target).value)"
+          (focus)="passwordTouched.set(true)"
+        />
+        <button
+          type="button"
+          class="field__reveal"
+          (click)="showPassword.set(!showPassword())"
+          [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+        >
+          <ng-icon
+            [name]="showPassword() ? 'solarEyeClosedBoldDuotone' : 'solarEyeBoldDuotone'"
+            aria-hidden="true"
+          />
+        </button>
+      </span>
+
+      @if (passwordTouched() && password()) {
+        <div class="password-strength" [class]="'password-strength--' + strengthTier()">
+          <div class="password-strength__bars" aria-hidden="true">
+            @for (bar of [0, 1, 2, 3]; track bar) {
+              <span
+                class="password-strength__bar"
+                [class.password-strength__bar--filled]="bar < strengthLevel()"
+              ></span>
+            }
+          </div>
+          <span class="password-strength__label">{{ strengthTier() }}</span>
+        </div>
+      }
+    </label>
+
+    <button
+      type="submit"
+      class="btn btn--primary btn--block"
+      [disabled]="submitting() || googleSubmitting()"
+    >
+      {{ submitting() ? 'Creating account…' : 'Create account' }}
+    </button>
+
+    <p class="form-divider"><span>or</span></p>
+
+    <div class="google-btn" [class.google-btn--busy]="googleSubmitting()">
+      <span class="btn btn--ghost btn--block google-btn__face" aria-hidden="true">
+        <img src="/auth/google.svg" alt="" width="18" height="18" />
+        {{ googleSubmitting() ? 'Connecting…' : 'Continue with Google' }}
+      </span>
+      <div #googleButtonSlot class="google-btn__real"></div>
+    </div>
+
+    <p class="signup__legal">
+      By creating an account, you agree to Fardelins's <a routerLink="/terms">Terms of Use</a> and
+      <a routerLink="/privacy">Privacy Policy</a>.
+    </p>
+
+    <p class="form-note">Already have an account? <a routerLink="/login">Log in</a></p>
+  </form>
+</app-auth-shell>

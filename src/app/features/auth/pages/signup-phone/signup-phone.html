@@ -1,0 +1,27 @@
+<app-auth-shell
+  heading="One more thing"
+  art="glass-spiral"
+  [subheading]="
+    displayName() + ', add a phone number so we can reach you about your deliveries.'
+  "
+  panelLead="Almost there. Set your number and you are in"
+  panelTail="."
+>
+  <form class="signup-phone" (submit)="submit($event)" novalidate>
+    @if (error()) {
+      <p class="form-error" role="alert">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />{{ error() }}
+      </p>
+    }
+
+    <label class="field"
+      >Mobile Number
+      <app-phone-input name="phone" [(country)]="country" [(value)]="phone" />
+      <span class="field__hint">We'll only use this for delivery updates on your account.</span>
+    </label>
+
+    <button type="submit" class="btn btn--primary btn--block" [disabled]="submitting()">
+      {{ submitting() ? 'Saving…' : 'Continue' }}
+    </button>
+  </form>
+</app-auth-shell>

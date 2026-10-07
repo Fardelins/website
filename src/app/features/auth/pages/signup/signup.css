@@ -1,0 +1,83 @@
+.signup {
+  display: grid;
+  gap: 16px;
+}
+.signup__switch {
+  margin-top: -8px;
+  text-align: left;
+}
+.signup__legal {
+  color: var(--color-styles-label);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.signup__legal a {
+  color: var(--color-styles-title);
+  font-weight: 600;
+  text-decoration: underline;
+}
+.field__hint--error a {
+  color: inherit;
+  font-weight: 600;
+}
+
+.password-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+  --strength-color: var(--color-styles-stroke);
+}
+.password-strength--weak {
+  --strength-color: var(--color-feedback-error);
+}
+.password-strength--fair {
+  --strength-color: #c9860a;
+}
+.password-strength--good {
+  --strength-color: var(--color-primary-500);
+}
+.password-strength--strong {
+  --strength-color: var(--color-accent-green);
+}
+.password-strength__bars {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+}
+.password-strength__bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-styles-stroke);
+  transition: background-color 200ms ease;
+}
+.password-strength__bar--filled {
+  background: var(--strength-color);
+}
+.password-strength__label {
+  flex: none;
+  color: var(--strength-color);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+@media (prefers-reduced-motion: reduce) {
+  .password-strength__bar {
+    transition: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .field__row {
+    grid-template-columns: 1fr;
+  }
+  .password-checks {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .password-checks li {
+    transition: none;
+  }
+}

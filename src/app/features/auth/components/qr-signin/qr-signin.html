@@ -1,0 +1,167 @@
+<div class="qr">
+  <div
+    class="qr__frame"
+    [class.qr__frame--expired]="expired()"
+    [class.qr__frame--revealing]="revealing()"
+    [style.--reveal-ms.ms]="revealMs"
+    [style.--reveal-stagger-ms.ms]="revealStaggerMs"
+  >
+    <div
+      class="qr__plate"
+      [appTilt]="16"
+      [appTiltResponse]="0.22"
+      [appTiltPerspective]="620"
+      appTiltSurface="parent"
+      appQrSpotlight
+      appQrSpotlightSurface="parent"
+    >
+      @if (loading()) {
+        <div class="qr__skeleton" aria-label="Generating a sign-in code" role="status"></div>
+      } @else {
+        <span class="qr__layers">
+          <svg
+            class="qr__code qr__code--base"
+            [attr.viewBox]="viewBox()"
+            role="img"
+            aria-label="Sign-in QR code"
+          >
+            @for (module of modules(); track $index) {
+              <rect
+                class="qr__module"
+                [attr.x]="module.x + 0.08"
+                [attr.y]="module.y + 0.08"
+                width="0.84"
+                height="0.84"
+                rx="0.28"
+                [style.--d]="module.delay"
+              />
+            }
+            @for (finder of finders(); track $index) {
+              <g class="qr__finder" [style.--d]="finder.delay">
+                <rect [attr.x]="finder.x" [attr.y]="finder.y" width="7" height="7" rx="1.5" />
+                <rect
+                  class="qr__finder-gap"
+                  [attr.x]="finder.x + 1"
+                  [attr.y]="finder.y + 1"
+                  width="5"
+                  height="5"
+                  rx="1"
+                />
+                <circle [attr.cx]="finder.x + 3.5" [attr.cy]="finder.y + 3.5" r="1.5" />
+              </g>
+            }
+          </svg>
+
+          <svg class="qr__code qr__code--rainbow" [attr.viewBox]="viewBox()" aria-hidden="true">
+            <defs>
+              <linearGradient
+                id="qr-rainbow"
+                gradientUnits="userSpaceOnUse"
+                x1="0"
+                y1="0"
+                [attr.x2]="span()"
+                [attr.y2]="span()"
+              >
+                <stop offset="0%" stop-color="#ff3b6b" />
+                <stop offset="16%" stop-color="#ff8a34" />
+                <stop offset="32%" stop-color="#ffd93d" />
+                <stop offset="49%" stop-color="#39dd91" />
+                <stop offset="65%" stop-color="#25c7f5" />
+                <stop offset="82%" stop-color="#4f70ff" />
+                <stop offset="100%" stop-color="#b64cff" />
+              </linearGradient>
+            </defs>
+            @for (module of modules(); track $index) {
+              <rect
+                class="qr__module"
+                [attr.x]="module.x + 0.08"
+                [attr.y]="module.y + 0.08"
+                width="0.84"
+                height="0.84"
+                rx="0.28"
+                [style.--d]="module.delay"
+              />
+            }
+            @for (finder of finders(); track $index) {
+              <g class="qr__finder" [style.--d]="finder.delay">
+                <rect [attr.x]="finder.x" [attr.y]="finder.y" width="7" height="7" rx="1.5" />
+                <rect
+                  class="qr__finder-gap"
+                  [attr.x]="finder.x + 1"
+                  [attr.y]="finder.y + 1"
+                  width="5"
+                  height="5"
+                  rx="1"
+                />
+                <circle [attr.cx]="finder.x + 3.5" [attr.cy]="finder.y + 3.5" r="1.5" />
+              </g>
+            }
+          </svg>
+
+          <svg class="qr__code qr__code--spotlight" [attr.viewBox]="viewBox()" aria-hidden="true">
+            @for (module of modules(); track $index) {
+              <rect
+                class="qr__module"
+                [attr.x]="module.x + 0.08"
+                [attr.y]="module.y + 0.08"
+                width="0.84"
+                height="0.84"
+                rx="0.28"
+                [style.--d]="module.delay"
+              />
+            }
+            @for (finder of finders(); track $index) {
+              <g class="qr__finder" [style.--d]="finder.delay">
+                <rect [attr.x]="finder.x" [attr.y]="finder.y" width="7" height="7" rx="1.5" />
+                <rect
+                  class="qr__finder-gap"
+                  [attr.x]="finder.x + 1"
+                  [attr.y]="finder.y + 1"
+                  width="5"
+                  height="5"
+                  rx="1"
+                />
+                <circle [attr.cx]="finder.x + 3.5" [attr.cy]="finder.y + 3.5" r="1.5" />
+              </g>
+            }
+          </svg>
+
+          <span class="qr__logo" aria-hidden="true">
+            <img src="/home/app-icon.svg" alt="" width="34" height="34" />
+          </span>
+        </span>
+      }
+    </div>
+
+    @if (expired()) {
+      <div class="qr__expired">
+        <p>This code expired</p>
+        <button type="button" class="qr__refresh" (click)="refresh()">
+          <ng-icon name="solarRefreshBoldDuotone" aria-hidden="true" />Get a new one
+        </button>
+      </div>
+    }
+  </div>
+
+  <p class="qr__status" role="status">
+    @if (loading()) {
+      Generating a code.
+    } @else if (expired()) {
+      Waiting for a new code.
+    } @else {
+      <span class="qr__pulse" aria-hidden="true"></span>Waiting for a scan. Expires in
+      {{ countdown() }}.
+    }
+  </p>
+
+  <ol class="qr__steps">
+    <li>Open your mobile app on your device</li>
+    <li>Tap the scan icon at the top corner of your profile</li>
+    <li>Fit this code in the scanning area and you are in!</li>
+  </ol>
+
+  <!-- <p class="qr__note">
+    Phone sign-in isn't connected yet. Scanning this code opens the app download page, and the
+    handshake goes live with the next app release.
+  </p> -->
+</div>

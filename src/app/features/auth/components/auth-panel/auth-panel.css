@@ -1,0 +1,250 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.panel {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--auth-panel-radius);
+  /* Fallback for gated devices and the pre-ready window, matched to the graded imagery. */
+  background: linear-gradient(165deg, #241041 0%, #16091f 55%, #0b0410 100%);
+}
+
+/* Keeps the logo, pill and copy legible over bright art (the horizon shot washes
+   out the top edge without it). Sits above the shader, below the content. */
+.panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 4, 18, 0.58) 0%,
+    rgba(10, 4, 18, 0) 24%,
+    rgba(10, 4, 18, 0) 44%,
+    rgba(10, 4, 18, 0.74) 100%
+  );
+  pointer-events: none;
+}
+
+.panel__still,
+.panel__shader {
+  position: absolute;
+  inset: 0;
+}
+.panel__still {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Brand grade for the no-shader path (gated device, WebGPU unavailable). The
+   canvas covers this whenever the shader is live, so the two never double up. */
+.panel__still-grade {
+  position: absolute;
+  inset: 0;
+  background: var(--color-primary-600);
+  mix-blend-mode: color;
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.panel__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  height: 100%;
+  padding: 32px 32px 32px;
+  color: var(--color-neutral-white);
+  pointer-events: none;
+}
+.panel__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.panel__logo {
+  line-height: 0;
+  pointer-events: auto;
+}
+.panel__logo img {
+  width: auto;
+  height: 28px;
+}
+.panel__home {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 15px;
+  border-radius: var(--radius-100);
+  color: var(--color-neutral-white);
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(10px);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  pointer-events: auto;
+  transition:
+    background 180ms ease,
+    gap 180ms ease;
+}
+.panel__home:hover {
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.panel__foot {
+  display: grid;
+  gap: 28px;
+  padding-bottom: 0;
+}
+.panel__copy {
+  max-width: 22ch;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: clamp(28px, 2.7vw, 40px);
+  font-weight: 500;
+  line-height: 1.14;
+  letter-spacing: -0.022em;
+  text-shadow: 0 1px 24px rgba(6, 2, 12, 0.4);
+  text-wrap: balance;
+}
+/* Real text for screen readers; the word-by-word fold below is a decorative aria-hidden copy. */
+.panel__copy-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+.panel__copy-visual {
+  display: inline;
+}
+
+/* Each word hinges open from its own top edge, like a flap folding down into place.
+   `perspective` has to sit on the parent of the rotated element, hence the two-level nesting. */
+.fold-word {
+  /* inline-flex, not inline-block: a word and its clinging punctuation are two
+     spans, and flex drops the whitespace between them so "Fardelins." closes up. */
+  display: inline-flex;
+  margin-inline-end: 0.28em;
+  perspective: 700px;
+}
+.fold-word__piece {
+  position: relative;
+  display: inline-block;
+  transform-origin: 50% 0%;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  animation: fold-word-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+.fold-word__piece--accent {
+  color: var(--color-neutral-white);
+  font-weight: 700;
+}
+/* The crease: a shadow across the fold line that flashes as the panel swings past
+   90° and fades once it lies flat, so the fold reads as a physical piece of paper. */
+.fold-word__piece::after {
+  content: '';
+  position: absolute;
+  inset: -0.08em -0.03em;
+  pointer-events: none;
+  border-radius: 0.08em;
+  mix-blend-mode: multiply;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.18) 45%,
+    rgba(255, 255, 255, 0.22) 100%
+  );
+  animation: fold-crease-out 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+@keyframes fold-word-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: rotateX(-92deg);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: rotateX(0deg);
+  }
+}
+@keyframes fold-crease-out {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.panel__proof {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  animation: panel-proof-in 560ms cubic-bezier(0.22, 1, 0.36, 1) 180ms both;
+}
+@keyframes panel-proof-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.panel__avatars {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.panel__avatars li:not(:first-child) {
+  margin-left: -13px;
+}
+.panel__avatars img {
+  display: block;
+  width: 38px;
+  height: 38px;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  object-fit: cover;
+}
+.panel__proof p {
+  max-width: 22ch;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel__home {
+    transition: none;
+  }
+  .panel__proof {
+    animation: none;
+    opacity: 1;
+  }
+  .fold-word__piece,
+  .fold-word__piece::after {
+    animation: none;
+  }
+  .fold-word__piece {
+    opacity: 1;
+    transform: none;
+  }
+  .fold-word__piece::after {
+    opacity: 0;
+  }
+}

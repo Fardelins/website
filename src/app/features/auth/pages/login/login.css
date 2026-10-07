@@ -1,0 +1,15 @@
+.login {
+  display: grid;
+  gap: 16px;
+}
+.login__forgot {
+  justify-self: start;
+  margin-top: -6px;
+  color: var(--color-primary-600);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.login__forgot:hover {
+  text-decoration: underline;
+}

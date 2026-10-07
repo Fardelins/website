@@ -1,0 +1,60 @@
+<div class="panel" (pointerenter)="setHover(true)" (pointerleave)="setHover(false)">
+  <img
+    class="panel__still"
+    [src]="src() + '-900.webp'"
+    [srcset]="src() + '-600.webp 600w, ' + src() + '-900.webp 900w'"
+    sizes="42vw"
+    [alt]="alt()"
+    width="900"
+    height="1200"
+  />
+  <span class="panel__still-grade" aria-hidden="true"></span>
+  <app-shader-background #shader class="panel__shader" [preset]="preset()" />
+
+  <div class="panel__content">
+    <header class="panel__top">
+      <a routerLink="/" class="panel__logo" aria-label="Fardelins home">
+        <img src="/home/logo-white-512.webp" alt="Fardelins" width="118" height="32" />
+      </a>
+      <a routerLink="/" class="panel__home">
+        Back to website<ng-icon name="solarArrowRightBoldDuotone" aria-hidden="true" />
+      </a>
+    </header>
+
+    <div class="panel__foot">
+      <h2 class="panel__copy">
+        <span class="panel__copy-sr">{{ copyText() }}</span>
+        <span class="panel__copy-visual" aria-hidden="true">
+          @for (token of copyTokens(); track $index) {
+            <span class="fold-word" [style.--i]="$index">
+              <span class="fold-word__piece" [class.fold-word__piece--accent]="token.accent">{{
+                token.text
+              }}</span>
+              @if (token.suffix) {
+                <span class="fold-word__piece">{{ token.suffix }}</span>
+              }
+            </span>
+          }
+        </span>
+      </h2>
+
+      @if (proof()) {
+        <div class="panel__proof">
+          <ul class="panel__avatars" aria-hidden="true">
+            @for (n of avatars; track n) {
+              <li>
+                <img
+                  [src]="'/auth/avatar/member-' + n + '-96.webp'"
+                  alt=""
+                  width="96"
+                  height="96"
+                />
+              </li>
+            }
+          </ul>
+          <p>{{ proof() }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

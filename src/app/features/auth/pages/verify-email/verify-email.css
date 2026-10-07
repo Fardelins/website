@@ -1,0 +1,39 @@
+.verify {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.verify__badge {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  color: var(--color-primary-600);
+  background: var(--color-primary-50);
+  font-size: 28px;
+}
+.verify__lede {
+  color: var(--color-styles-label);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.verify__lede strong {
+  color: var(--color-styles-title);
+}
+.verify__resend {
+  border: 0;
+  padding: 0;
+  color: var(--color-primary-600);
+  background: none;
+  font: 600 13px/1 var(--font-body);
+  cursor: pointer;
+}
+.verify__resend:hover:not(:disabled) {
+  text-decoration: underline;
+}
+.verify__resend:disabled {
+  color: var(--color-styles-label);
+  cursor: not-allowed;
+}

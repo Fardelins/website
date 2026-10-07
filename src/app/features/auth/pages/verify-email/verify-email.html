@@ -1,0 +1,36 @@
+<app-auth-shell
+  heading="Check your inbox"
+  art="glass-spiral"
+  panelLead="Almost there. One click and you are inside"
+  panelTail="."
+>
+  <div class="verify">
+    @if (error()) {
+      <p class="form-error" role="alert">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />{{ error() }}
+      </p>
+    }
+
+    <span class="verify__badge" aria-hidden="true">
+      <ng-icon name="solarLetterUnreadBoldDuotone" />
+    </span>
+
+    <p class="verify__lede">
+      We sent a verification link to <strong>{{ maskedEmail }}</strong
+      >. Open it to activate your account, then come back and log in.
+    </p>
+
+    <p class="form-note">
+      @if (cooldown() > 0) {
+        You can resend the email in {{ cooldown() }}s.
+      } @else {
+        Didn't get it?
+        <button type="button" class="verify__resend" [disabled]="resending()" (click)="resend()">
+          {{ resending() ? 'Sending…' : 'Resend email' }}
+        </button>
+      }
+    </p>
+
+    <a class="btn btn--soft btn--block" routerLink="/login">Back to log in</a>
+  </div>
+</app-auth-shell>

@@ -1,0 +1,39 @@
+<div class="auth">
+  @if (wide()) {
+    <app-auth-panel
+      class="auth__panel"
+      [art]="art()"
+      [lead]="panelLead()"
+      [accent]="panelAccent()"
+      [tail]="panelTail()"
+      [proof]="panelProof()"
+    />
+  }
+
+  <div class="auth__column">
+    <div class="auth__form">
+      <header class="auth__top">
+        @if (showBack()) {
+          <button type="button" class="auth__back" (click)="goBack()" aria-label="Go back">
+            <ng-icon name="solarAltArrowLeftBoldDuotone" aria-hidden="true" />
+          </button>
+        }
+        @if (!wide()) {
+          <a routerLink="/" class="auth__logo" aria-label="Fardelins home">
+            <img src="/home/logo.svg" alt="Fardelins" width="120" height="24" />
+          </a>
+        }
+      </header>
+
+      <main class="auth__body" #body>
+        <div class="auth__intro">
+          <h1>{{ heading() }}</h1>
+          @if (subheading()) {
+            <p>{{ subheading() }}</p>
+          }
+        </div>
+        <ng-content />
+      </main>
+    </div>
+  </div>
+</div>
