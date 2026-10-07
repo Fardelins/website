@@ -1,0 +1,76 @@
+<div class="edit">
+  <header class="edit__top">
+    <button type="button" class="edit__back" (click)="goBack()" aria-label="Go back">
+      <ng-icon name="solarAltArrowLeftBoldDuotone" aria-hidden="true" />
+    </button>
+  </header>
+
+  <div class="edit__form">
+    @if (error()) {
+      <p class="form-error" role="alert">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />{{ error() }}
+      </p>
+    }
+
+    <label class="field"
+      >Document Type
+      <select [value]="selectedType()" (change)="selectedType.set($any($event.target).value)">
+        @for (type of docTypes; track type) {
+          <option [value]="type">{{ type }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="field"
+      >Document Number
+      <input
+        type="text"
+        autocomplete="off"
+        placeholder="Enter the number on your document"
+        [value]="uniqueIdentifier()"
+        (input)="uniqueIdentifier.set($any($event.target).value)"
+      />
+    </label>
+
+    <label class="upload">
+      <ng-icon name="solarUploadBoldDuotone" aria-hidden="true" />
+      <span class="upload__title">{{ uploading() ? 'Uploading…' : 'Choose a file' }}</span>
+      <span class="upload__hint">JPG, PNG or PDF. Make sure the whole document is visible.</span>
+      <input
+        type="file"
+        accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+        hidden
+        [disabled]="uploading()"
+        (change)="onFile($event)"
+      />
+    </label>
+
+    <section class="docs">
+      <h2>Uploaded</h2>
+      @if (loading()) {
+        <app-skeleton height="58px" radius="12px" />
+        <app-skeleton height="58px" radius="12px" />
+      } @else if (!docs().length) {
+        <app-empty-state
+          icon="solarInboxBoldDuotone"
+          title="Nothing uploaded yet"
+          copy="Verified accounts get higher sending limits."
+        />
+      } @else {
+        <ul class="docs__list">
+          @for (doc of docs(); track doc.id) {
+            <li class="docs__item">
+              <span class="docs__text">
+                <strong>{{ doc.type }}</strong>
+                @if (doc.uploadedLabel) {
+                  <span>{{ doc.uploadedLabel }}</span>
+                }
+              </span>
+              <app-status-pill [status]="doc.status" />
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+</div>

@@ -1,0 +1,75 @@
+<div class="edit">
+  <header class="edit__top">
+    <button type="button" class="edit__back" (click)="goBack()" aria-label="Go back">
+      <ng-icon name="solarAltArrowLeftBoldDuotone" aria-hidden="true" />
+    </button>
+  </header>
+
+  <form class="edit__form" (submit)="submit($event)" novalidate>
+    @if (error()) {
+      <p class="form-error" role="alert">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />{{ error() }}
+      </p>
+    }
+    @if (saved()) {
+      <p class="form-saved" role="status">
+        <ng-icon name="solarCheckCircleBoldDuotone" aria-hidden="true" />Changes saved.
+      </p>
+    }
+
+    <label class="edit__avatar">
+      <span class="edit__avatar-img" aria-hidden="true">
+        @if (user()?.avatarUrl) {
+          <img [src]="user()!.avatarUrl" alt="" width="88" height="88" />
+        } @else {
+          {{ initials() }}
+        }
+      </span>
+      <span class="edit__avatar-badge" aria-hidden="true">
+        <ng-icon name="solarCameraBoldDuotone" />
+      </span>
+      <input type="file" accept="image/*" hidden (change)="onAvatar($event)" />
+      <span class="edit__avatar-label">{{ uploading() ? 'Uploading…' : 'Change photo' }}</span>
+    </label>
+
+    <div class="field__row">
+      <label class="field"
+        >First Name
+        <input
+          type="text"
+          name="firstName"
+          [value]="user()?.firstName ?? ''"
+          maxlength="80"
+          required
+        />
+      </label>
+      <label class="field"
+        >Last Name
+        <input
+          type="text"
+          name="lastName"
+          [value]="user()?.lastName ?? ''"
+          maxlength="80"
+          required
+        />
+      </label>
+    </div>
+
+    <label class="field"
+      >Phone Number
+      <input type="tel" name="phone" [value]="user()?.phone ?? ''" placeholder="080..." />
+    </label>
+
+    <label class="field"
+      >Email Address
+      <input type="email" [value]="user()?.email ?? ''" disabled />
+      <span class="field__hint"
+        >Email changes go through a confirmation step. Contact support.</span
+      >
+    </label>
+
+    <button type="submit" class="btn btn--primary btn--block" [disabled]="saving()">
+      {{ saving() ? 'Saving…' : 'Save changes' }}
+    </button>
+  </form>
+</div>

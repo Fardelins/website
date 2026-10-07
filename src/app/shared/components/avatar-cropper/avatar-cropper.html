@@ -1,0 +1,90 @@
+<div class="cropper-backdrop" (click)="backdropClick($event)">
+  <section
+    #dialog
+    class="cropper"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="avatar-crop-title"
+    tabindex="-1"
+    (keydown.escape)="cancel()"
+  >
+    <header class="cropper__header">
+      <h2 id="avatar-crop-title">Position and Crop</h2>
+      <button
+        type="button"
+        class="cropper__close"
+        aria-label="Cancel photo crop"
+        (click)="cancel()"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </header>
+
+    <div class="cropper__workspace">
+      <div
+        #viewport
+        class="cropper__viewport"
+        role="application"
+        aria-label="Photo crop area. Drag to reposition. Use arrow keys for precise movement."
+        tabindex="0"
+        (pointerdown)="startDrag($event)"
+        (pointermove)="drag($event)"
+        (pointerup)="endDrag($event)"
+        (pointercancel)="endDrag($event)"
+        (wheel)="onWheel($event)"
+        (keydown)="nudge($event)"
+      >
+        @if (source()) {
+          <img
+            [src]="source()"
+            [style.width.px]="renderedWidth()"
+            [style.height.px]="renderedHeight()"
+            [style.transform]="imageTransform()"
+            alt=""
+            draggable="false"
+            (load)="imageLoaded($event)"
+            (error)="imageFailed()"
+          />
+        }
+        <span class="cropper__guide" aria-hidden="true"></span>
+        @if (ready()) {
+          <span class="cropper__drag-hint">Drag to reposition image</span>
+          <div class="cropper__overlay" (pointerdown)="$event.stopPropagation()">
+            <label class="cropper__zoom">
+              <span>Zoom</span>
+              <input
+                type="range"
+                min="1"
+                max="4"
+                step="0.01"
+                [value]="zoom()"
+                [disabled]="!ready()"
+                (input)="setZoom(+$any($event.target).value)"
+              />
+              <output>{{ zoomLabel() }}</output>
+            </label>
+          </div>
+        }
+        @if (!ready() && !error()) {
+          <span class="cropper__loading" role="status">Opening photo...</span>
+        }
+      </div>
+    </div>
+
+    @if (error()) {
+      <p class="cropper__error" role="alert">{{ error() }}</p>
+    }
+
+    <footer class="cropper__actions">
+      <button type="button" class="btn btn--secondary" (click)="cancel()">Cancel</button>
+      <button
+        type="button"
+        class="btn btn--primary"
+        [disabled]="!ready() || exporting()"
+        (click)="usePhoto()"
+      >
+        {{ exporting() ? 'Preparing...' : 'Use Photo' }}
+      </button>
+    </footer>
+  </section>
+</div>

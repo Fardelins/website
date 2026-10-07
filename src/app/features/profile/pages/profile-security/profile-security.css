@@ -1,0 +1,4 @@
+/* Layout comes from profile-edit.css; only security-specific tweaks live here. */
+.edit__form .field__affix input {
+  padding-right: 46px;
+}

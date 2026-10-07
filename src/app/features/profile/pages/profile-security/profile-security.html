@@ -1,0 +1,72 @@
+<div class="edit">
+  <header class="edit__top">
+    <button type="button" class="edit__back" (click)="goBack()" aria-label="Go back">
+      <ng-icon name="solarAltArrowLeftBoldDuotone" aria-hidden="true" />
+    </button>
+  </header>
+
+  <form class="edit__form" (submit)="submit($event)" novalidate>
+    @if (error()) {
+      <p class="form-error" role="alert">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />{{ error() }}
+      </p>
+    }
+    @if (saved()) {
+      <p class="form-saved" role="status">
+        <ng-icon name="solarCheckCircleBoldDuotone" aria-hidden="true" />Password updated.
+      </p>
+    }
+
+    <label class="field"
+      >Current Password
+      <span class="field__affix">
+        <input
+          [type]="showPassword() ? 'text' : 'password'"
+          name="currentPassword"
+          autocomplete="current-password"
+          required
+        />
+        <button
+          type="button"
+          class="field__reveal"
+          (click)="showPassword.set(!showPassword())"
+          [attr.aria-label]="showPassword() ? 'Hide passwords' : 'Show passwords'"
+        >
+          <ng-icon
+            [name]="showPassword() ? 'solarEyeClosedBoldDuotone' : 'solarEyeBoldDuotone'"
+            aria-hidden="true"
+          />
+        </button>
+      </span>
+    </label>
+
+    <label class="field"
+      >New Password
+      <input
+        #newPassword
+        [type]="showPassword() ? 'text' : 'password'"
+        name="newPassword"
+        autocomplete="new-password"
+        minlength="8"
+        required
+        (input)="newPassword.setCustomValidity('')"
+        (invalid)="setPasswordValidity(newPassword)"
+      />
+      <span class="field__hint">At least 8 characters.</span>
+    </label>
+
+    <label class="field"
+      >Confirm New Password
+      <input
+        [type]="showPassword() ? 'text' : 'password'"
+        name="confirmPassword"
+        autocomplete="new-password"
+        required
+      />
+    </label>
+
+    <button type="submit" class="btn btn--primary btn--block" [disabled]="saving()">
+      {{ saving() ? 'Saving…' : 'Update password' }}
+    </button>
+  </form>
+</div>

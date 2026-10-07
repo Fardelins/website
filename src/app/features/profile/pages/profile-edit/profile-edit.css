@@ -1,0 +1,94 @@
+.edit {
+  width: 100%;
+  max-width: var(--page-max-form);
+  margin-inline: auto;
+  padding: var(--page-pad);
+}
+.edit__top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.edit__back {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  color: var(--color-styles-title);
+  background: var(--color-neutral-white);
+  font-size: 18px;
+  cursor: pointer;
+}
+.edit__form {
+  display: grid;
+  gap: 16px;
+  padding: 20px 16px 22px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  background: var(--color-neutral-white);
+}
+.edit__avatar {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  justify-self: center;
+  cursor: pointer;
+}
+.edit__avatar-img {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  color: var(--color-primary-700);
+  background: var(--color-primary-100);
+  font-size: 28px;
+  font-weight: 700;
+  overflow: hidden;
+}
+.edit__avatar-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.edit__avatar-badge {
+  position: absolute;
+  top: 60px;
+  right: calc(50% - 46px);
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--color-neutral-white);
+  border-radius: 50%;
+  color: #fff;
+  background: var(--color-primary-500);
+  font-size: 14px;
+}
+.edit__avatar-label {
+  color: var(--color-primary-600);
+  font-size: 13px;
+  font-weight: 600;
+}
+.form-saved {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 14px;
+  border-radius: var(--radius-md);
+  color: #1a7f4b;
+  background: rgba(26, 127, 75, 0.14);
+  font-size: 13.5px;
+}
+.form-saved ng-icon {
+  font-size: 18px;
+}
+@media (max-width: 480px) {
+  .field__row {
+    grid-template-columns: 1fr;
+  }
+}

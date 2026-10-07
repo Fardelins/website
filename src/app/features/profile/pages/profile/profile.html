@@ -1,0 +1,824 @@
+<main class="settings">
+  <header class="settings__intro">
+    <div>
+      <h1>Settings</h1>
+      <p>Update your details, saved places, account security and dashboard preferences.</p>
+    </div>
+  </header>
+
+  <nav #tabsNav class="settings__tabs" aria-label="Settings sections">
+    @for (tab of tabs; track tab.key) {
+      <a
+        [routerLink]="tab.path"
+        [class.settings__tab--active]="activeTab() === tab.key"
+        [attr.aria-current]="activeTab() === tab.key ? 'page' : null"
+        (click)="tapTab()"
+      >
+        {{ tab.label }}
+      </a>
+    }
+  </nav>
+
+  <section class="settings__surface">
+    <header class="settings__section-head">
+      <div>
+        <h2>{{ tabCopy().title }}</h2>
+      </div>
+      <div class="settings__head-actions">
+        @if (activeTab() === 'profile') {
+          <button
+            type="submit"
+            form="profile-settings-form"
+            class="btn btn--primary"
+            [disabled]="!profileDirty() || savingProfile()"
+          >
+            {{ savingProfile() ? 'Saving...' : profileSaved() ? 'Saved' : 'Save Changes' }}
+          </button>
+        } @else if (activeTab() === 'addresses') {
+          <button type="button" class="btn btn--primary" (click)="toggleAddressForm()">
+            {{ addressFormOpen() ? 'Cancel' : 'Add Address' }}
+          </button>
+        } @else if (activeTab() === 'storefront' && storefrontPage()?.hasStorefronts()) {
+          <button type="button" class="btn btn--primary" (click)="storefrontPage()?.openCreate()">
+            Add Storefront
+          </button>
+        } @else if (activeTab() === 'security') {
+          @if (passwordSaved()) {
+            <span class="save-confirmation" role="status">Updated</span>
+          }
+          <button
+            type="submit"
+            form="password-settings-form"
+            class="btn btn--primary"
+            [disabled]="savingPassword()"
+          >
+            {{ savingPassword() ? 'Updating...' : 'Update Password' }}
+          </button>
+        }
+      </div>
+    </header>
+
+    @if (error()) {
+      <p class="form-error settings__message" role="alert">
+        <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />{{ error() }}
+      </p>
+    }
+
+    <div class="settings__view" [attr.data-tab]="activeTab()">
+      @switch (activeTab()) {
+        @case ('profile') {
+          <form
+            id="profile-settings-form"
+            class="settings-form"
+            (submit)="saveProfile($event)"
+            novalidate
+          >
+            <div class="setting-row setting-row--photo">
+              <div class="setting-row__label">
+                <strong>Profile Photo</strong>
+                <span>Shown across your Fardelins account.</span>
+              </div>
+              <div class="profile-photo">
+                <span class="profile-photo__image" aria-hidden="true">
+                  @if (user()?.avatarUrl) {
+                    <img [src]="user()!.avatarUrl" alt="" width="76" height="76" />
+                  } @else {
+                    {{ initials() }}
+                  }
+                </span>
+                <label
+                  #avatarTrigger
+                  class="profile-photo__action"
+                  tabindex="0"
+                  (keydown.enter)="avatarInput.click()"
+                  (keydown.space)="$event.preventDefault(); avatarInput.click()"
+                >
+                  <ng-icon name="solarCameraBoldDuotone" aria-hidden="true" />
+                  @if (uploadingAvatar()) {
+                    Uploading...
+                  } @else if (avatarUploaded()) {
+                    Uploaded
+                  } @else {
+                    Change Photo
+                  }
+                  <input
+                    #avatarInput
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    hidden
+                    [disabled]="uploadingAvatar()"
+                    (change)="onAvatar($event)"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-row__label">
+                <strong>Your Name</strong>
+                <span>Used on deliveries and account messages.</span>
+              </div>
+              <div class="field__row">
+                <label class="field"
+                  >First name
+                  <input
+                    type="text"
+                    name="firstName"
+                    [value]="user()?.firstName ?? ''"
+                    maxlength="80"
+                    autocomplete="given-name"
+                    required
+                    (input)="markProfileDirty()"
+                  />
+                </label>
+                <label class="field"
+                  >Last name
+                  <input
+                    type="text"
+                    name="lastName"
+                    [value]="user()?.lastName ?? ''"
+                    maxlength="80"
+                    autocomplete="family-name"
+                    required
+                    (input)="markProfileDirty()"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-row__label">
+                <strong>Phone Number</strong>
+                <span
+                  >Used to reach out or follow up with you about your account and deliveries.</span
+                >
+              </div>
+              <label class="field">
+                <span class="sr-only">Phone number</span>
+                <input
+                  type="tel"
+                  name="phone"
+                  [value]="user()?.phone ?? ''"
+                  autocomplete="tel"
+                  placeholder="080..."
+                  (input)="markProfileDirty()"
+                />
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-row__label">
+                <strong>Email Address</strong>
+                <span>Your sign-in address and where we send important account messages.</span>
+              </div>
+              <div class="email-field">
+                <label class="field field--verified">
+                  <span class="sr-only">Email address</span>
+                  <input type="email" [value]="user()?.email ?? ''" autocomplete="email" disabled />
+                  @if (user()?.emailVerified) {
+                    <ng-icon
+                      class="email-field__check"
+                      name="solarCheckCircleBoldDuotone"
+                      aria-label="Verified email"
+                    />
+                  }
+                </label>
+                @if (user() && !user()!.emailVerified) {
+                  <button
+                    type="button"
+                    class="email-field__resend"
+                    [disabled]="resendingEmail() || verificationEmailSent()"
+                    (click)="resendVerification()"
+                  >
+                    @if (verificationEmailSent()) {
+                      Verification Sent
+                    } @else {
+                      {{ resendingEmail() ? 'Sending...' : 'Resend Verification' }}
+                    }
+                  </button>
+                }
+              </div>
+            </div>
+          </form>
+
+          <div class="mobile-signout">
+            <button
+              type="button"
+              class="mobile-signout__btn"
+              [disabled]="signingOut()"
+              (click)="signOut()"
+            >
+              <ng-icon name="solarLogout2BoldDuotone" aria-hidden="true" />
+              {{ signingOut() ? 'Signing out…' : 'Sign Out' }}
+            </button>
+          </div>
+        }
+
+        @case ('addresses') {
+          <div class="address-book">
+            @if (addressFormOpen()) {
+              <form class="address-form" (submit)="saveAddress($event)" novalidate>
+                <div class="address-form__heading">
+                  <h3>{{ editingAddress() ? 'Edit Address' : 'Add A New Address' }}</h3>
+                  <p>Identify this address for easy reference when booking a parcel.</p>
+                </div>
+                <label class="field">
+                  Address Name
+                  <input
+                    name="label"
+                    type="text"
+                    placeholder="Home, Office, Mum's Place"
+                    [value]="editingValue('label')"
+                    required
+                  />
+                </label>
+                <label class="field">
+                  Street Address
+                  <input
+                    name="address"
+                    type="text"
+                    placeholder="12 Admiralty Way"
+                    [value]="editingValue('address')"
+                    required
+                  />
+                </label>
+                <div class="field__row">
+                  <label class="field" for="address-state">
+                    State
+                    <app-combobox
+                      id="address-state"
+                      name="state"
+                      [options]="states()"
+                      [strict]="true"
+                      [required]="true"
+                      [loading]="loadingStates()"
+                      [value]="editingValue('state')"
+                      loadingLabel="Loading States..."
+                      placeholder="Search for a state"
+                      emptyLabel="No matching state"
+                      (selected)="onStateSelected($event)"
+                    />
+                  </label>
+                  <label class="field" for="address-city">
+                    City
+                    <app-combobox
+                      id="address-city"
+                      name="city"
+                      [options]="cities()"
+                      [loading]="loadingCities()"
+                      [value]="editingValue('city')"
+                      loadingLabel="Loading Cities..."
+                      placeholder="Type a city"
+                      emptyLabel="No matching city"
+                    />
+                  </label>
+                </div>
+                <div class="address-form__actions">
+                  <button type="submit" class="btn btn--primary">
+                    {{ editingAddress() ? 'Update Address' : 'Save Address' }}
+                  </button>
+                </div>
+              </form>
+            }
+
+            @if (savedAddresses().length) {
+              <ul class="address-grid">
+                @for (address of savedAddresses(); track address.id) {
+                  <li class="address-card">
+                    <picture class="address-card__icon">
+                      <source srcset="/app/location-240.avif" type="image/avif" />
+                      <img src="/app/location-240.webp" alt="" aria-hidden="true" />
+                    </picture>
+                    <div class="address-card__body">
+                      <div class="address-card__head">
+                        <strong class="address-card__label">{{ address.label }}</strong>
+                        <div class="address-card__actions">
+                          <button
+                            type="button"
+                            class="address-card__action"
+                            [attr.aria-label]="'Edit ' + address.label"
+                            (click)="startEditAddress(address)"
+                          >
+                            <ng-icon name="solarPenBoldDuotone" aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            class="address-card__action address-card__action--danger"
+                            [attr.aria-label]="'Remove ' + address.label"
+                            (click)="pendingRemoval.set(address)"
+                          >
+                            <ng-icon name="solarTrashBinTrashBoldDuotone" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
+                      <div class="address-card__meta">
+                        <p class="address-card__street">{{ addressSummary(address) }}</p>
+                      </div>
+                    </div>
+                  </li>
+                }
+              </ul>
+            } @else if (!addressFormOpen()) {
+              <app-empty-state
+                icon="solarMapPointWaveBoldDuotone"
+                title="No Saved Addresses"
+                copy="You can add a new address at any time and reuse when sending parcels."
+              >
+                <button type="button" class="btn btn--primary" (click)="addressFormOpen.set(true)">
+                  Add Address
+                </button>
+              </app-empty-state>
+            }
+          </div>
+        }
+
+        @case ('storefront') {
+          <app-storefront-settings />
+        }
+
+        @case ('security') {
+          <form
+            id="password-settings-form"
+            class="settings-form"
+            (submit)="savePassword($event)"
+            novalidate
+          >
+            <div class="setting-row">
+              <div class="setting-row__label">
+                <strong>Current Password</strong>
+                <span>For security purpose, Please verify it is you.</span>
+              </div>
+              <label class="field">
+                <span class="field__affix">
+                  <input
+                    [type]="showPassword() ? 'text' : 'password'"
+                    name="currentPassword"
+                    autocomplete="current-password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    class="field__reveal"
+                    (click)="showPassword.set(!showPassword())"
+                    [attr.aria-label]="showPassword() ? 'Hide passwords' : 'Show passwords'"
+                  >
+                    <ng-icon
+                      [name]="showPassword() ? 'solarEyeClosedBoldDuotone' : 'solarEyeBoldDuotone'"
+                      aria-hidden="true"
+                    />
+                  </button>
+                </span>
+              </label>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-row__label">
+                <strong>New Password</strong>
+                <span>Minimum of 8 characters.</span>
+              </div>
+              <div class="field__row">
+                <label class="field">
+                  <span>New password</span>
+                  <input
+                    #newPassword
+                    [type]="showPassword() ? 'text' : 'password'"
+                    name="newPassword"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                    (input)="newPassword.setCustomValidity('')"
+                    (invalid)="setPasswordValidity(newPassword)"
+                  />
+                </label>
+                <label class="field">
+                  <span>Confirm password</span>
+                  <input
+                    [type]="showPassword() ? 'text' : 'password'"
+                    name="confirmPassword"
+                    autocomplete="new-password"
+                    required
+                  />
+                </label>
+              </div>
+            </div>
+          </form>
+        }
+
+        @case ('verification') {
+          <div class="kyc">
+            @if (loadingDocuments()) {
+              <app-skeleton height="320px" radius="18px" />
+            } @else if (docs().length) {
+              <section class="kyc-status" [class.kyc-status--rejected]="documentRejected()">
+                <span class="kyc-status__icon" aria-hidden="true">
+                  @if (documentVerified()) {
+                    <picture>
+                      <source srcset="/app/verified-badge-120.avif" type="image/avif" />
+                      <img src="/app/verified-badge-120.webp" alt="" />
+                    </picture>
+                  } @else if (documentRejected()) {
+                    <picture>
+                      <source srcset="/app/rejected-badge-120.avif" type="image/avif" />
+                      <img src="/app/rejected-badge-120.webp" alt="" />
+                    </picture>
+                  } @else {
+                    <picture>
+                      <source srcset="/app/pending-badge-120.avif" type="image/avif" />
+                      <img src="/app/pending-badge-120.webp" alt="" />
+                    </picture>
+                  }
+                </span>
+                <div class="kyc-status__body">
+                  <h3>
+                    @if (documentVerified()) {
+                      Your Identity Is Verified.
+                    } @else if (documentRejected()) {
+                      We Couldn't Verify Your Document.
+                    } @else {
+                      Your Document Is Under Review.
+                    }
+                  </h3>
+                  <p>
+                    @if (documentVerified()) {
+                      You're all set. You can now freely use our app and access all features.
+                    } @else if (documentRejected()) {
+                      Something didn't check out. Please upload a clear photo of a valid document
+                      and try again.
+                    } @else {
+                      We will notify you immediately once the review is complete, your data is safe
+                      and encrypted.
+                    }
+                  </p>
+                  <div class="kyc-status__meta">
+                    <span class="kyc-status__meta-item">
+                      <ng-icon [name]="docTypeIcon(docs()[0].type)" aria-hidden="true" />
+                      <strong>{{ docs()[0].type }}</strong>
+                    </span>
+                    <span class="kyc-status__meta-item">
+                      <ng-icon name="solarCalendarBoldDuotone" aria-hidden="true" />
+                      Submitted on {{ docs()[0].uploadedLabel || 'recently' }}
+                    </span>
+                    @if (!documentRejected()) {
+                      <span class="kyc-status__meta-item">
+                        <ng-icon name="solarClockCircleBoldDuotone" aria-hidden="true" />
+                        {{ documentVerified() ? 'Review complete' : 'Usually takes 24-48 hours' }}
+                      </span>
+                    }
+                  </div>
+                  @if (documentRejected()) {
+                    <button
+                      type="button"
+                      class="btn btn--primary kyc-status__resubmit"
+                      (click)="resubmitDocument()"
+                    >
+                      Upload Again
+                    </button>
+                  }
+                </div>
+              </section>
+            } @else {
+              <header class="kyc-head">
+                <span class="kyc-head__icon" aria-hidden="true">
+                  <ng-icon name="solarShieldCheckBoldDuotone" />
+                </span>
+                <div class="kyc-head__copy">
+                  <h3>Verify Your Identity</h3>
+                  <p>A quick, one-time check to keep your account and deliveries secure.</p>
+                </div>
+              </header>
+
+              <div class="kyc-form">
+                <div class="kyc-doc-types" role="group" aria-label="Document type">
+                  @for (docType of docTypeOptions; track docType.value) {
+                    <button
+                      type="button"
+                      class="kyc-doc-type"
+                      [class.kyc-doc-type--selected]="selectedType() === docType.value"
+                      [attr.aria-pressed]="selectedType() === docType.value"
+                      (click)="selectDocumentType(docType.value)"
+                    >
+                      <ng-icon [name]="docType.icon" aria-hidden="true" />
+                      {{ docType.value }}
+                    </button>
+                  }
+                </div>
+
+                @if (selectedDocument(); as document) {
+                  <div class="upload-zone upload-zone--selected">
+                    <span class="upload-zone__preview" aria-hidden="true">
+                      @if (documentPreviewUrl(); as previewUrl) {
+                        <img [src]="previewUrl" alt="" />
+                      } @else {
+                        <picture class="upload-zone__preview-pdf">
+                          <source srcset="/app/pdf-120.avif" type="image/avif" />
+                          <img src="/app/pdf-120.webp" alt="" />
+                        </picture>
+                      }
+                    </span>
+                    <div class="upload-zone__file">
+                      <strong>{{ document.name }}</strong>
+                      <span>{{ formatDocumentSize(document) }}</span>
+                    </div>
+                    <div class="upload-zone__actions">
+                      <label class="btn btn--ghost">
+                        Replace
+                        <input
+                          type="file"
+                          accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                          hidden
+                          [disabled]="uploadingDocument()"
+                          (change)="onDocument($event)"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        class="btn btn--ghost"
+                        [disabled]="uploadingDocument()"
+                        (click)="removeDocument()"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <label class="upload-zone">
+                    <span class="upload-zone__icon" aria-hidden="true">
+                      <ng-icon name="solarCloudUploadBoldDuotone" />
+                    </span>
+                    <strong>Choose Your Document</strong>
+                    <span>JPG, PNG or PDF, up to 10 MB</span>
+                    <small>Make sure your name, photo and every corner are clearly visible.</small>
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                      hidden
+                      (change)="onDocument($event)"
+                    />
+                  </label>
+                }
+
+                @if (selectedDocument()) {
+                  @if (readingDocument()) {
+                    <div class="document-scan-status" role="status" aria-live="polite">
+                      <strong>Reading and confirming document</strong>
+                      <span>Checking the document type and number.</span>
+                      <span class="document-scan-status__track" aria-hidden="true">
+                        <span></span>
+                      </span>
+                    </div>
+                  } @else {
+                    <label class="field">
+                      Document Number
+                      <input
+                        type="text"
+                        autocomplete="off"
+                        spellcheck="false"
+                        [attr.inputmode]="selectedType() === 'NIN' ? 'numeric' : 'text'"
+                        [attr.maxlength]="documentIdentifierRule().maxLength"
+                        [attr.aria-invalid]="documentIdentifierError() ? 'true' : null"
+                        [attr.aria-describedby]="'document-number-help'"
+                        [placeholder]="documentIdentifierRule().hint"
+                        [value]="documentIdentifier()"
+                        (input)="onDocumentIdentifierInput($event)"
+                      />
+                    </label>
+
+                    <div id="document-number-help" class="document-read-note" aria-live="polite">
+                      @if (documentReadState() === 'mismatch') {
+                        <p class="document-read-note__error" role="alert">
+                          This looks like {{ detectedDocumentType() }}, but {{ selectedType() }} is
+                          selected. Choose the matching type or replace the document.
+                        </p>
+                      } @else if (
+                        documentReadState() === 'manual' && !documentIdentifier().trim()
+                      ) {
+                        <p>We could not extract your document number. Enter it manually.</p>
+                      } @else if (documentIdentifierError(); as identifierError) {
+                        <p class="document-read-note__error" role="alert">{{ identifierError }}</p>
+                      } @else if (documentReadState() === 'found') {
+                        <p>We have found your document number. Check it before submitting.</p>
+                      }
+                    </div>
+                  }
+                }
+
+                @if (selectedType() === 'NIN') {
+                  <p class="kyc-hint">
+                    <ng-icon name="solarInfoCircleBoldDuotone" aria-hidden="true" />
+                    <span
+                      >Can't remember your NIN? Dial <strong>*346#</strong> on the phone number
+                      linked to it to retrieve your number.</span
+                    >
+                  </p>
+                }
+
+                <button
+                  type="button"
+                  class="btn btn--primary kyc-form__submit"
+                  [disabled]="!canSubmitDocument()"
+                  (click)="submitDocument()"
+                >
+                  {{ uploadingDocument() ? 'Submitting...' : 'Submit Document' }}
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        @case ('appearance') {
+          <section class="appearance-section">
+            <div class="appearance-section__copy">
+              <h3>Dashboard Theme</h3>
+              <p>Choose a look for your dashboard</p>
+            </div>
+            <div class="theme-grid" role="group" aria-label="Dashboard theme">
+              <button
+                type="button"
+                class="theme-option theme-option--light"
+                [class.theme-option--selected]="preferences.theme() === 'light'"
+                [attr.aria-pressed]="preferences.theme() === 'light'"
+                (click)="selectTheme('light')"
+              >
+                <span class="theme-preview" aria-hidden="true">
+                  <span class="theme-preview__frame">
+                    <span class="theme-preview__window">
+                      <span class="theme-preview__chrome">
+                        <i class="theme-preview__dot"></i>
+                        <i class="theme-preview__dot"></i>
+                        <i class="theme-preview__dot"></i>
+                      </span>
+                      <span class="theme-preview__body">
+                        <span class="theme-preview__rail">
+                          <span class="theme-preview__mark">Aa</span>
+                        </span>
+                        <span class="theme-preview__main">
+                          <span class="theme-preview__head">
+                            <span class="theme-preview__avatar"></span>
+                            <span class="theme-preview__line"></span>
+                          </span>
+                          <span class="theme-preview__line"></span>
+                          <span class="theme-preview__line"></span>
+                          <span class="theme-preview__line"></span>
+                        </span>
+                      </span>
+                    </span>
+                    <span class="theme-preview__badge">
+                      <ng-icon name="solarCheckCircleBoldDuotone" />
+                    </span>
+                  </span>
+                </span>
+                <span class="theme-option__label">Light</span>
+              </button>
+              <button
+                type="button"
+                class="theme-option theme-option--dark"
+                [class.theme-option--selected]="preferences.theme() === 'dark'"
+                [attr.aria-pressed]="preferences.theme() === 'dark'"
+                (click)="selectTheme('dark')"
+              >
+                <span class="theme-preview" aria-hidden="true">
+                  <span class="theme-preview__frame">
+                    <span class="theme-preview__window">
+                      <span class="theme-preview__chrome">
+                        <i class="theme-preview__dot"></i>
+                        <i class="theme-preview__dot"></i>
+                        <i class="theme-preview__dot"></i>
+                      </span>
+                      <span class="theme-preview__body">
+                        <span class="theme-preview__rail">
+                          <span class="theme-preview__mark">Aa</span>
+                        </span>
+                        <span class="theme-preview__main">
+                          <span class="theme-preview__head">
+                            <span class="theme-preview__avatar"></span>
+                            <span class="theme-preview__line"></span>
+                          </span>
+                          <span class="theme-preview__line"></span>
+                          <span class="theme-preview__line"></span>
+                          <span class="theme-preview__line"></span>
+                        </span>
+                      </span>
+                    </span>
+                    <span class="theme-preview__badge">
+                      <ng-icon name="solarCheckCircleBoldDuotone" />
+                    </span>
+                  </span>
+                </span>
+                <span class="theme-option__label">Dark</span>
+              </button>
+              <button
+                type="button"
+                class="theme-option theme-option--system"
+                [class.theme-option--selected]="preferences.theme() === 'system'"
+                [attr.aria-pressed]="preferences.theme() === 'system'"
+                (click)="selectTheme('system')"
+              >
+                <span class="theme-preview" aria-hidden="true">
+                  <span class="theme-preview__frame">
+                    <span class="theme-preview__window">
+                      <span class="theme-preview__chrome">
+                        <i class="theme-preview__dot"></i>
+                        <i class="theme-preview__dot"></i>
+                        <i class="theme-preview__dot"></i>
+                      </span>
+                      <span class="theme-preview__body">
+                        <span class="theme-preview__rail">
+                          <span class="theme-preview__mark">Aa</span>
+                        </span>
+                        <span class="theme-preview__main">
+                          <span class="theme-preview__head">
+                            <span class="theme-preview__avatar"></span>
+                            <span class="theme-preview__line"></span>
+                          </span>
+                          <span class="theme-preview__line"></span>
+                          <span class="theme-preview__line"></span>
+                          <span class="theme-preview__line"></span>
+                        </span>
+                      </span>
+                    </span>
+                    <span class="theme-preview__badge">
+                      <ng-icon name="solarCheckCircleBoldDuotone" />
+                    </span>
+                  </span>
+                </span>
+                <span class="theme-option__label">System</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="preference-list">
+            <div class="preference-row">
+              <div>
+                <strong>Interface Motion</strong>
+                <span>Animate charts, cards and feedback moments.</span>
+              </div>
+              <button
+                type="button"
+                class="switch"
+                role="switch"
+                [class.switch--on]="preferences.motionEnabled()"
+                [attr.aria-checked]="preferences.motionEnabled()"
+                aria-label="Interface motion"
+                (click)="toggleMotion()"
+              >
+                <span></span>
+              </button>
+            </div>
+            <div class="preference-row">
+              <div>
+                <strong>Show Spending Totals</strong>
+                <span>Display delivery spend on dashboard cards.</span>
+              </div>
+              <button
+                type="button"
+                class="switch"
+                role="switch"
+                [class.switch--on]="preferences.spendVisible()"
+                [attr.aria-checked]="preferences.spendVisible()"
+                aria-label="Show spending totals"
+                (click)="toggleSpendVisibility()"
+              >
+                <span></span>
+              </button>
+            </div>
+          </section>
+        }
+      }
+    </div>
+  </section>
+</main>
+
+@if (cropSource(); as avatar) {
+  <app-avatar-cropper
+    [file]="avatar"
+    (cancelled)="cancelAvatarCrop()"
+    (cropped)="uploadCroppedAvatar($event)"
+  />
+}
+
+@if (pendingRemoval(); as address) {
+  <div class="confirm-backdrop" (click)="pendingRemoval.set(null)">
+    <section
+      class="confirm-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="remove-address-title"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="pendingRemoval.set(null)"
+    >
+      <h2 id="remove-address-title">Remove This Address?</h2>
+      <p>
+        <strong>{{ address.label }}</strong> will be removed from your saved addresses. This can't
+        be undone.
+      </p>
+      <div class="confirm-dialog__actions">
+        <button type="button" class="btn btn--ghost" (click)="pendingRemoval.set(null)">
+          Cancel
+        </button>
+        <button type="button" class="btn btn--danger" (click)="confirmRemoveAddress()">
+          Remove Address
+        </button>
+      </div>
+    </section>
+  </div>
+}
