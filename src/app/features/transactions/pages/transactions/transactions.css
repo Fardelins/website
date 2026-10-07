@@ -1,0 +1,486 @@
+.txns {
+  display: grid;
+  gap: 20px;
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding: var(--page-pad);
+}
+.txns__head h1 {
+  font-size: clamp(25px, 3vw, 36px);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+.txns__head p {
+  margin-top: 8px;
+  color: var(--color-styles-label);
+  font-size: 13.5px;
+}
+
+.txns__panel {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  background: var(--color-neutral-white);
+}
+
+.txns__filter {
+  display: inline-flex;
+  gap: 4px;
+  width: fit-content;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--color-styles-off-white);
+}
+.txns__filter-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 14px;
+  color: var(--color-styles-label);
+  background: none;
+  font: 600 12px/1 var(--font-body);
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease;
+}
+.txns__filter-btn--active {
+  color: #fff;
+  background: var(--color-primary-500);
+}
+
+.txns__no-results {
+  padding: 24px 4px;
+  color: var(--color-styles-label);
+  font-size: 13px;
+  text-align: center;
+}
+
+.txns__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.txn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--dashboard-radius);
+  background: var(--color-neutral-white);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease;
+}
+.txn:hover,
+.txn:focus-visible {
+  border-color: color-mix(in srgb, var(--color-primary-500) 40%, var(--dashboard-border));
+  background: color-mix(in srgb, var(--color-primary-500) 3%, var(--color-neutral-white));
+}
+.txn:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+.txn__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  color: var(--color-primary-600);
+  background: color-mix(in srgb, var(--color-primary-500) 12%, transparent);
+  font-size: 17px;
+}
+.txn__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.txn__text strong {
+  overflow: hidden;
+  color: var(--color-styles-title);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.txn__text span {
+  color: var(--color-styles-label);
+  font-size: 12px;
+}
+.txn__end {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  margin-left: auto;
+  text-align: right;
+}
+.txn__amount {
+  color: var(--color-styles-title);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.txn__amount--in {
+  color: #1a7f4b;
+}
+
+@media (min-width: 640px) {
+  .txn {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 130px 130px;
+    align-items: center;
+    gap: 14px;
+  }
+  .txn__end {
+    display: contents;
+  }
+  .txn__amount {
+    justify-self: end;
+  }
+  .txn app-status-pill {
+    justify-self: end;
+  }
+}
+
+.receipt-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgb(10 7 17 / 72%);
+  backdrop-filter: blur(10px);
+  animation: receipt-backdrop-in 200ms ease-out both;
+}
+
+/* Modelled on opensourceui.in's Thermal Receipt (tight scale, dashed dividers, cream paper
+   in light mode only, dark mode keeps the dashboard's own card color rather than an
+   off-brand hand-tint) plus the torn-edge technique from uiverse.io/dexter-st's
+   receipt-printer: two opposing diagonal gradients tiled into a jagged tear, not a masked
+   scallop, simpler, and it reads as actually torn rather than hole-punched. Runs the
+   brand's own type (DM Sans / Parkinsans) rather than a borrowed monospace stack. */
+.receipt {
+  --receipt-paper: var(--dashboard-card);
+  /* Fine fiber grain, a tiled feTurbulence tile at very low alpha, not an external asset. */
+  --receipt-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch' result='t'/%3E%3CfeColorMatrix in='t' type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  position: relative;
+  width: 100%;
+  padding: 10px 0;
+  font-family: var(--font-body);
+  filter: drop-shadow(0 28px 80px rgb(10 7 17 / 34%));
+  transform-origin: top center;
+  animation: receipt-in 950ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+:host-context([data-theme='light']) .receipt {
+  --receipt-paper: #faf8f2;
+}
+.receipt__body {
+  position: relative;
+  padding: 28px 22px 18px;
+  color: var(--dashboard-text);
+  background-color: var(--receipt-paper);
+  background-image: var(--receipt-texture);
+}
+/* Real elements, not ::before/::after, html-to-image can only freeze a resolved style onto
+   something it can get a node reference to, and these torn-edge gradients depend on
+   --receipt-paper resolving correctly to survive the PNG export (see prepareReceiptCapture in
+   the component). Siblings of .receipt__body, not children of it: .receipt__body paints an
+   opaque paper fill, so a "transparent" tooth cut into ITS background would just reveal that
+   same paper color behind it and disappear. Living in .receipt's own 10px top/bottom padding
+   instead, a band with no background of its own, lets the transparent teeth genuinely show
+   what's behind the card (the modal backdrop on screen, true alpha in the export). That padding
+   is real box height, not overflow, so html-to-image's bounding-box capture includes it. */
+.receipt__edge {
+  --angle: 45deg;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background:
+    linear-gradient(calc(var(--angle) * -1), var(--receipt-paper) 5px, transparent 0),
+    linear-gradient(var(--angle), var(--receipt-paper) 5px, transparent 0);
+  background-position: 5px 0;
+  background-repeat: repeat-x;
+  background-size: 10px 10px;
+}
+.receipt__edge--top {
+  top: 0;
+}
+.receipt__edge--bottom {
+  bottom: 0;
+  background-position: 0 100%;
+  --angle: 225deg;
+}
+.receipt__watermark {
+  /* No display rule, [hidden] must stay in control (an author display rule beats it), and
+     this only ever needs to show for the PNG export (prepareReceiptCapture flips it on). */
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* One line through the card's vertical center, oversized well past the card's own width and
+   rotated, so the repeated labels read edge to edge rather than a single centered stamp; the
+   outer .receipt__watermark clips it back down to the card. */
+.receipt__watermark-grid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 64px;
+  transform: translate(-50%, -50%) rotate(-28deg);
+}
+.receipt__watermark-grid span {
+  color: var(--dashboard-text);
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+  opacity: 0.08;
+}
+.receipt__hero {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding-bottom: 18px;
+  text-align: center;
+}
+.receipt__hero-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 5px;
+  border-radius: 50%;
+  color: #1a7f4b;
+  background: rgba(26, 127, 75, 0.14);
+  font-size: 23px;
+  animation: receipt-icon-in 460ms cubic-bezier(0.34, 1.56, 0.64, 1) 620ms both;
+}
+.receipt__hero--pending .receipt__hero-icon {
+  color: var(--color-primary-600);
+  background: color-mix(in srgb, var(--color-primary-500) 14%, transparent);
+}
+.receipt__hero--failed .receipt__hero-icon {
+  color: var(--color-feedback-error);
+  background: color-mix(in srgb, var(--color-feedback-error) 12%, transparent);
+}
+.receipt__hero-label {
+  color: var(--dashboard-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.receipt__hero-amount {
+  font-family: var(--font-heading);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.receipt__hero-amount.receipt__hero-amount--in {
+  color: #1a7f4b;
+}
+.receipt__divider {
+  margin: 5px 0;
+  border-top: 1px dashed var(--dashboard-border);
+}
+.receipt__divider--inset {
+  margin: 4px 0;
+}
+.receipt__rows {
+  display: grid;
+  gap: 9px;
+  margin: 16px 0;
+}
+.receipt__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.receipt__row--wrap {
+  align-items: flex-start;
+}
+.receipt__row dt {
+  flex: none;
+  color: var(--dashboard-muted);
+  font-size: 11.5px;
+}
+.receipt__row dd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.receipt__row--wrap dd {
+  display: -webkit-box;
+  max-width: 65%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+}
+.receipt__tracking {
+  --tracking-copy-color: var(--dashboard-text);
+  --tracking-copy-icon-size: 12px;
+  --tracking-copy-min-height: 20px;
+  --tracking-copy-hover-background: color-mix(in srgb, var(--color-primary-500) 12%, transparent);
+  --tracking-copy-padding: 2px 4px;
+}
+.receipt__footer {
+  margin-top: 20px;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  text-align: center;
+}
+.receipt__footer-logo {
+  --logo-ink: var(--dashboard-muted);
+  --logo-accent: var(--dashboard-muted);
+  --logo-word: var(--dashboard-muted);
+  opacity: 0.85;
+}
+/* Swapped in only for the PNG export, the logo's nested <svg> can't survive that capture
+   technique (see prepareReceiptCapture in the component). No `display` rule here on purpose:
+   the [hidden] attribute must stay in control, or it'd render on screen too. */
+.receipt__footer-wordmark {
+  color: var(--dashboard-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  opacity: 0.85;
+}
+.receipt__footer p {
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-size: 9px;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.receipt-close {
+  position: absolute;
+  top: 32px;
+  right: 32px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: rgb(255 255 255 / 85%);
+  background: rgb(255 255 255 / 8%);
+  font: 600 12.5px/1 var(--font-body);
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+.receipt-close:hover {
+  border-color: rgb(255 255 255 / 30%);
+  background: rgb(255 255 255 / 14%);
+}
+.receipt-close ng-icon {
+  font-size: 15px;
+}
+.receipt-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 380px);
+  gap: 40px;
+}
+.receipt-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 999px;
+  padding: 10px 20px;
+  color: #fff;
+  background: rgb(255 255 255 / 10%);
+  font: 600 13px/1 var(--font-body);
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease;
+}
+.receipt-download:hover {
+  border-color: rgb(255 255 255 / 30%);
+  background: rgb(255 255 255 / 16%);
+}
+.receipt-download:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.receipt-download ng-icon {
+  font-size: 16px;
+}
+
+@keyframes receipt-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+/* Mimics the printer feeding the paper out (top-down clip-path reveal), then the bounce
+   easing on the whole animation carries it past 100% and settles it into place, same two
+   beats as uiverse.io/dexter-st's receipt-printer "print" + "display" keyframes, without
+   needing an actual printer prop since this opens as a modal, not an inline card. */
+@keyframes receipt-in {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-14px) scale(0.96);
+  }
+  55% {
+    opacity: 1;
+    /* -10px top/bottom, not 0, matches the torn-edge pseudo-elements' own overflow, so the
+       clip-path this animation leaves behind (fill-mode: both) never crops the zigzag teeth. */
+    clip-path: inset(-10px 0 -10px 0);
+  }
+}
+@keyframes receipt-icon-in {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .receipt-backdrop,
+  .receipt,
+  .receipt__hero-icon {
+    animation: none;
+  }
+}
+:host-context(.dashboard-motion-off) .receipt-backdrop,
+:host-context(.dashboard-motion-off) .receipt,
+:host-context(.dashboard-motion-off) .receipt__hero-icon {
+  animation: none;
+}
