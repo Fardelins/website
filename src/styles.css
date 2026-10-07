@@ -78,20 +78,24 @@
   --color-primary-100: #dcd1ea;
   --color-primary-200: #b9a4d6;
   --color-primary-300: #9776c1;
+  --color-primary-400: #7449ad;
   --color-primary-500: #521c99;
   --color-primary-600: #41167a;
   --color-primary-700: #31105b;
   --color-primary-800: #200b3d;
-  --color-primary-900: #150726;
+  --color-primary-900: #10051e;
   --color-styles-body: #333333;
   --color-styles-title: #151515;
-  --color-styles-label: #707070;
-  --color-styles-placeholder: #707070;
+  --color-styles-label: #797979;
+  --color-styles-placeholder: #b2b2b2;
   --color-styles-off-white: #f9f9f9;
   --color-styles-stroke: #eaeaea;
   --color-accent-green: #29cc6a;
   --color-accent-charcoal: #222222;
   --color-accent-blue: #0099ff;
+  --color-accent-purple: #7b61ff;
+  /* Ratings only. Not in the Figma accent group yet; the brightest gold that clears 3:1 on both themes' cards. */
+  --color-accent-gold: #b8860b;
   --color-neutral-black: #000000;
   --color-2: #d9d9d9;
   --color-3: #c4c4c4;
@@ -102,11 +106,19 @@
   --color-8: #adadad;
   --color-1: #8a38f5;
 
-  /* Semantic aliases — reuse the primitives above so recurring UI roles
+  /* Semantic aliases, reuse the primitives above so recurring UI roles
      (form borders, focus rings, feedback states) stay consistent. */
   --color-border-input: #c9c4ce;
   --color-focus-ring: rgba(82, 28, 153, 0.1); /* --color-primary-500 @ 10% */
-  --color-feedback-error: #a52828;
+  --color-feedback-error: #991c24;
+  --color-feedback-success: #63991c;
+  --color-feedback-info: #494fad;
+  /* Shared by status chips, the activity chart and the delivered breakdown. */
+  --parcel-status-delivered: var(--color-feedback-success);
+  --parcel-status-transit: var(--color-primary-500);
+  --parcel-status-assigned: var(--color-feedback-info);
+  --parcel-status-pending: #b892f6;
+  --parcel-status-cancelled: var(--color-feedback-error);
   --color-surface-veil: var(--color-6); /* rgba(211, 214, 216, 0.17) */
 
   /* Spacing */
@@ -147,6 +159,52 @@
     sans-serif;
   --font-body:
     'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  /* Three planes: the sidebar/gutter is the brightest, the dashboard body sits one
+     step back inside its rounded container, and cards lift off that body again.
+     Values are the Figma dark-mode spec exactly (Off-White #1A1A1A, Neutral-White
+     #0E0E0E, Stroke #2A2A2A), those are genuinely neutral by design, not a flaw.
+     Color lives in the Primary ramp for interactive/active states, not the base planes. */
+  --dashboard-canvas: #1a1a1a;
+  --dashboard-sidebar: #1a1a1a;
+  --dashboard-surface: #0e0e0e;
+  --dashboard-card: #1a1a1a;
+  --dashboard-control: #232323;
+  --dashboard-selected: #2c2c2c;
+  --dashboard-account: #232323;
+  --dashboard-border: #2a2a2a;
+  --dashboard-text: #f1f1f1;
+  --dashboard-muted: #8b8b8b;
+  /* Figma Accent > Purple (#7B61FF), fixed across themes, unlike the Primary ramp. */
+  --dashboard-focus: rgba(123, 97, 255, 0.4);
+  --dashboard-map: #0d1012;
+  --dashboard-road: #3d4348;
+  --dashboard-radius: 18px;
+  --dashboard-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+  --dashboard-shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.24);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --dashboard-canvas: #f9f9f9;
+  --dashboard-sidebar: #f9f9f9;
+  --dashboard-surface: #ffffff;
+  --dashboard-card: #ffffff;
+  --dashboard-control: #f0f0f0;
+  --dashboard-selected: #eaeaea;
+  --dashboard-account: #f9f9f9;
+  --dashboard-border: #eaeaea;
+  --dashboard-text: #151515;
+  --dashboard-muted: #6f6f6f;
+  --dashboard-focus: rgba(123, 97, 255, 0.28);
+  --dashboard-map: #e9ecee;
+  --dashboard-road: #aab0b5;
+  --dashboard-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --dashboard-shadow-hover: 0 2px 7px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
 }
 
 * {
@@ -161,11 +219,23 @@ body {
   color: var(--color-styles-body);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
-/* Set by the tracking page while empty — see track.ts — so the footer's rounded top
+/* Set by the tracking page while empty, see track.ts, so the footer's rounded top
    corners (which reveal body's own background) show black instead of a white patch. */
 body.track-page--empty {
   background: var(--color-neutral-black);
@@ -297,5 +367,66 @@ p {
     float: none;
     margin: 24px 0 0;
     max-width: 100%;
+  }
+}
+
+app-app-shell .topbar .topbar__mobile-search {
+  border-color: transparent;
+  border-radius: 14px;
+  color: var(--color-primary-600);
+  background: var(--rail-accent-wash);
+  box-shadow: none;
+}
+:root[data-theme='light'] app-app-shell .topbar__search--attention span {
+  background-image: linear-gradient(
+    100deg,
+    var(--dashboard-muted) 12%,
+    var(--color-primary-600) 40%,
+    var(--color-primary-300) 50%,
+    var(--color-primary-600) 60%,
+    var(--dashboard-muted) 88%
+  );
+}
+app-app-shell .notifications__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+app-app-shell .notifications__close {
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--dashboard-text);
+  background: var(--dashboard-control);
+  font-size: 22px;
+  cursor: pointer;
+}
+app-app-shell .notifications__close:focus-visible {
+  outline: 3px solid var(--dashboard-focus);
+  outline-offset: 2px;
+}
+@media (max-width: 900px) {
+  app-app-shell .topbar .notifications__menu {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overscroll-behavior: contain;
+  }
+  app-app-shell .notifications__head {
+    padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+  }
+  app-app-shell .notifications__list {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  app-app-shell .notifications__close {
+    display: grid;
   }
 }
