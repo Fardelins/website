@@ -1,10 +1,20 @@
 <a class="skip-link" href="#main-content" (click)="focusMainContent($event)"
   >Skip to main content</a
 >
-<app-navbar />
-<main id="main-content" class="app-shell" tabindex="-1" aria-label="Main content">
+@if (!hideChrome()) {
+  <app-navbar />
+}
+<main
+  id="main-content"
+  class="app-shell"
+  [class.app-shell--bare]="hideChrome()"
+  tabindex="-1"
+  aria-label="Main content"
+>
   <router-outlet />
 </main>
-<app-footer />
-<app-download-prompt />
+@if (!hideChrome()) {
+  <app-footer />
+  <app-download-prompt />
+}
 <app-cookie-consent />

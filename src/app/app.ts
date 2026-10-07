@@ -1,5 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Component, DestroyRef, PLATFORM_ID, inject } from '@angular/core';
+import { Component, DestroyRef, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
@@ -7,6 +7,8 @@ import { Navbar } from './layout/navbar/navbar';
 import { Footer } from './layout/footer/footer';
 import { DownloadPrompt } from './layout/download-prompt/download-prompt';
 import { CookieConsent } from './layout/cookie-consent/cookie-consent';
+
+const OWN_CHROME = /^\/(app|login|signup|forgot-password|reset-password)(\/|$)/;
 
 @Component({
   selector: 'app-root',
@@ -21,13 +23,24 @@ export class App {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private previousRouteUrl: string | null = null;
 
+  // The app and auth sections carry their own chrome, the marketing nav/footer would fight it.
+  // Seeded from the browser's URL, not `router.url`, which is still '/' on first paint because
+  // initial navigation hasn't resolved yet, that lag was flashing the marketing nav.
+  private readonly currentUrl = signal(
+    this.isBrowser ? this.document.location.pathname : this.router.url.split(/[?#]/, 1)[0],
+  );
+  protected readonly hideChrome = computed(() => OWN_CHROME.test(this.currentUrl()));
+
   constructor() {
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((event) => this.handleNavigationEnd(event));
+      .subscribe((event) => {
+        this.currentUrl.set(event.urlAfterRedirects.split(/[?#]/, 1)[0]);
+        this.handleNavigationEnd(event);
+      });
   }
 
   protected focusMainContent(event?: Event): void {

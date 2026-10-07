@@ -11,5 +11,14 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'download', renderMode: RenderMode.Prerender },
   { path: 'blogs', renderMode: RenderMode.Server },
   { path: 'blogs/:slug', renderMode: RenderMode.Server },
+  // Auth-gated and auth routes read browser storage, so they can only render client-side.
+  { path: 'app/**', renderMode: RenderMode.Client },
+  { path: 'signup', renderMode: RenderMode.Client },
+  { path: 'signup/verify', renderMode: RenderMode.Client },
+  { path: 'signup/phone', renderMode: RenderMode.Client },
+  { path: 'login', renderMode: RenderMode.Client },
+  { path: 'forgot-password', renderMode: RenderMode.Client },
+  { path: 'reset-password', renderMode: RenderMode.Client },
+  { path: 'payment/verify-paystack', renderMode: RenderMode.Client },
   { path: '**', renderMode: RenderMode.Server },
 ];

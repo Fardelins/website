@@ -33,9 +33,16 @@
   min-height: 100vh;
 }
 
+/* The auth and /app sections size themselves to 100dvh. On iOS Safari 100vh is the
+   URL-bar-hidden height, so keeping it here makes those pages taller than the screen
+   and the whole document scrolls behind them. */
+.app-shell--bare {
+  min-height: 0;
+}
+
 /* Keyboard/skip-link focus only. Plain `:focus` also fires when a mouse click
    lands on the `tabindex="-1"` main, drawing this outline around the whole
-   content area — whose bottom edge then reads as a stray line above the footer.
+   content area, whose bottom edge then reads as a stray line above the footer.
    `:focus-visible` keeps the indicator for keyboard users without that artifact. */
 .app-shell:focus-visible,
 .app-shell h1[tabindex='-1']:focus-visible {
