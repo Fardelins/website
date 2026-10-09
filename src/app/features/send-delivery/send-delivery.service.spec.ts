@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { isDevMode } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { AuthService } from '@core/auth/auth.service';
 import { MOCK_COURIERS } from '../../dev/mock-couriers';
 import { emptyDraft, toInternationalPhone } from './send-delivery.model';
@@ -48,7 +49,9 @@ describe('SendDeliveryService', () => {
     const file = new File(['parcel'], 'parcel.png', { type: 'image/png' });
     const files = { 0: file, length: 1, item: () => file } as unknown as FileList;
     const pending = service.uploadImages(files);
-    const request = http.expectOne('/v1/upload/multiple-images/shipments');
+    const request = await vi.waitFor(() =>
+      http.expectOne('/v1/upload/multiple-images/shipments'),
+    );
 
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toBeInstanceOf(FormData);
@@ -148,13 +151,21 @@ describe('SendDeliveryService', () => {
     const file = new File(['parcel'], 'parcel.png', { type: 'image/png' });
     const files = { 0: file, length: 1, item: () => file } as unknown as FileList;
     const pending = service.uploadImages(files);
-    const request = http.expectOne('/v1/upload/multiple-images/shipments');
+    const request = await vi.waitFor(() =>
+      http.expectOne('/v1/upload/multiple-images/shipments'),
+    );
     request.flush(
       { message: 'Image storage unavailable.' },
       { status: 502, statusText: 'Bad Gateway' },
     );
 
     await expect(pending).rejects.toThrow('Image storage unavailable.');
+  });
+
+  it('refuses a photo over 10 MB without calling the API', async () => {
+    const huge = new File([new Uint8Array(11 * 1024 * 1024)], 'huge.png', { type: 'image/png' });
+    await expect(service.uploadImages([huge])).rejects.toThrow('too large');
+    http.expectNone('/v1/upload/multiple-images/shipments');
   });
 
   it('reads the courier name and logo from the nested courier object in a rate', async () => {

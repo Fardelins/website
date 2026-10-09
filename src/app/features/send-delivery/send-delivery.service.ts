@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthService } from '@core/auth/auth.service';
 import { injectLogisticsApiUrl } from '@core/services/logistics-api.config';
 import { parseApiError } from '@core/auth/auth.models';
+import { compressImage } from '@shared/utils/compress-image';
 import { MOCK_COURIERS } from '../../dev/mock-couriers';
 import {
   asBag,
@@ -22,6 +23,8 @@ import {
   SendDraft,
   toInternationalPhone,
 } from './send-delivery.model';
+
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 @Injectable({ providedIn: 'root' })
 export class SendDeliveryService {
@@ -163,8 +166,12 @@ export class SendDeliveryService {
   }
 
   async uploadImages(files: FileList | File[]): Promise<ParcelImage[]> {
+    const prepared = await Promise.all(Array.from(files).map(compressImage));
+    if (prepared.some((file) => file.size > MAX_IMAGE_BYTES)) {
+      throw new Error('One of those photos is too large. Please pick one under 10 MB.');
+    }
     const form = new FormData();
-    Array.from(files).forEach((file) => form.append('images', file, file.name));
+    prepared.forEach((file) => form.append('images', file, file.name));
 
     let body: unknown;
     try {
