@@ -20,7 +20,7 @@ interface PasswordCheck {
   test: (value: string) => boolean;
 }
 
-// Backend rejects with "password is not strong enough" but never says what strong means, 
+// Backend rejects with "password is not strong enough" but never says what strong means,
 // this is our best-guess rule set, shown live so the 400 doesn't come as a surprise.
 const PASSWORD_CHECKS: PasswordCheck[] = [
   { label: 'At least 8 characters', test: (v) => v.length >= 8 },
@@ -64,7 +64,7 @@ export class Signup {
   );
   protected readonly passwordValid = computed(() => this.passwordChecks().every(Boolean));
 
-  // 5 rules collapse to a 4-bar meter, with the first rule met not yet worth a bar, 
+  // 5 rules collapse to a 4-bar meter, with the first rule met not yet worth a bar,
   // met 0/1/2/3/4/5 -> 0/0/1/2/3/4 bars.
   protected readonly strengthLevel = computed(() => {
     const met = this.passwordChecks().filter(Boolean).length;

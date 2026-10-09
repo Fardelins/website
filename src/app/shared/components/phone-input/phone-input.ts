@@ -36,7 +36,7 @@ export const COUNTRIES: CountryOption[] = getCountries()
 
 /**
  * The flag + calling-code picker and formatted number field used across signup and
- * anywhere else that needs a phone number. `[(country)]`/`[(value)]` are two-way, 
+ * anywhere else that needs a phone number. `[(country)]`/`[(value)]` are two-way,
  * `value` is the national number only, live-formatted as you type.
  */
 @Component({

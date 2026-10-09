@@ -53,7 +53,7 @@ export class AuthShell {
     });
   }
 
-  // Every auth route is its own lazy component, so this plays fresh on each switch, 
+  // Every auth route is its own lazy component, so this plays fresh on each switch,
   // the same fade-up spring the login/QR pane toggle uses, reused as a page entrance.
   private playEntrance(): void {
     const element = this.body()?.nativeElement;

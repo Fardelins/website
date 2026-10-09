@@ -1,9 +1,5 @@
 export type AppPromoTrigger =
-  | 'first-signin'
-  | 'order-success'
-  | 'profile-saved'
-  | 'milestone'
-  | 'manual';
+  'first-signin' | 'order-success' | 'profile-saved' | 'milestone' | 'manual';
 
 export interface AppPromoCopy {
   eyebrow: string;
@@ -40,7 +36,9 @@ export function appPromoCopy(trigger: AppPromoTrigger, firstName: string | null)
       };
     case 'milestone':
       return {
-        eyebrow: firstName ? `${firstName}, you're one of our regulars` : "You're one of our regulars",
+        eyebrow: firstName
+          ? `${firstName}, you're one of our regulars`
+          : "You're one of our regulars",
         title: "You've clearly got the hang of this",
         body: 'Reuse a saved address, repeat a past delivery and track it all from your phone.',
       };

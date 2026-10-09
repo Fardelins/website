@@ -12,7 +12,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { TiltDirective } from '@shared/directives/tilt.directive';
-import { ComponentConfig, ShaderBackground } from '@shared/components/shader-background/shader-background';
+import {
+  ComponentConfig,
+  ShaderBackground,
+} from '@shared/components/shader-background/shader-background';
 
 const FEATURE_DURATION_MS = 5000;
 
@@ -108,7 +111,8 @@ export class FeatureShowcase implements OnInit, AfterViewInit, OnDestroy {
   /** Responsive `srcset` for the asset, or null when it has no smaller variant. */
   protected srcset(asset: FeatureShowcaseVisualAsset, format: 'webp' | 'avif'): string | null {
     if (!asset.smallWidth) return null;
-    const url = (w: number) => (format === 'avif' ? this.avif(this.atWidth(asset, w)) : this.atWidth(asset, w));
+    const url = (w: number) =>
+      format === 'avif' ? this.avif(this.atWidth(asset, w)) : this.atWidth(asset, w);
     return `${url(asset.smallWidth)} ${asset.smallWidth}w, ${url(asset.width)} ${asset.width}w`;
   }
 

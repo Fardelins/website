@@ -1,6 +1,9 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { ComponentConfig, ShaderBackground } from '@shared/components/shader-background/shader-background';
+import {
+  ComponentConfig,
+  ShaderBackground,
+} from '@shared/components/shader-background/shader-background';
 
 const LOGO_URL = '/home/logo.svg';
 const STAGE_INTERVAL_MS = 1400;

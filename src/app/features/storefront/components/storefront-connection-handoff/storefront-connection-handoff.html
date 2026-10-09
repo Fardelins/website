@@ -32,7 +32,9 @@
           <code>{{ store.id }}</code>
           <button
             type="button"
-            [attr.aria-label]="copied() === 'property-id' ? 'Property ID copied' : 'Copy property ID'"
+            [attr.aria-label]="
+              copied() === 'property-id' ? 'Property ID copied' : 'Copy property ID'
+            "
             (click)="copyValue.emit({ value: store.id, target: 'property-id' })"
           >
             <ng-icon

@@ -227,11 +227,7 @@ export class RouteMap implements OnDestroy {
   }
 
   // One persistent marker instance so a moved rider tweens instead of popping.
-  private updateRiderMarker(
-    map: LibreMap,
-    rider: [number, number] | null,
-    bearing: number,
-  ): void {
+  private updateRiderMarker(map: LibreMap, rider: [number, number] | null, bearing: number): void {
     if (!this.library) return;
     cancelAnimationFrame(this.riderFrame);
     if (!rider) {
@@ -265,7 +261,10 @@ export class RouteMap implements OnDestroy {
     const tick = (now: number): void => {
       const t = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
-      marker.setLngLat([from[0] + (rider[0] - from[0]) * eased, from[1] + (rider[1] - from[1]) * eased]);
+      marker.setLngLat([
+        from[0] + (rider[0] - from[0]) * eased,
+        from[1] + (rider[1] - from[1]) * eased,
+      ]);
       if (t < 1) this.riderFrame = requestAnimationFrame(tick);
     };
     this.riderFrame = requestAnimationFrame(tick);

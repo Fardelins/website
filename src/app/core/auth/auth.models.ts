@@ -121,7 +121,7 @@ export function parseSession(body: unknown): AuthSession | null {
 /**
  * Forgot-password returns a `resetToken` that has to travel through OTP-verify and
  * change-password. The API has been seen returning it two ways: as a bare string directly
- * under `data` (the whole reset JWT, no wrapper object), or nested under a named key, 
+ * under `data` (the whole reset JWT, no wrapper object), or nested under a named key,
  * so a bare string envelope is checked before falling back to `unwrap` + key search.
  */
 export function parseResetToken(body: unknown): string | null {

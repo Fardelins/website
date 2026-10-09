@@ -108,8 +108,20 @@ export class FeaturesPage {
 
   protected readonly trackingVisual: FeatureShowcaseLayeredVisual = {
     variant: 'tracking',
-    background: { src: '/features/realtime-bg-1600.webp', width: 1600, height: 900, smallWidth: 800, sizes: BG_SIZES },
-    mockup: { src: '/features/realtime-mockup-1000.webp', width: 1000, height: 2040, smallWidth: 500, sizes: PHONE_MOCKUP_SIZES },
+    background: {
+      src: '/features/realtime-bg-1600.webp',
+      width: 1600,
+      height: 900,
+      smallWidth: 800,
+      sizes: BG_SIZES,
+    },
+    mockup: {
+      src: '/features/realtime-mockup-1000.webp',
+      width: 1000,
+      height: 2040,
+      smallWidth: 500,
+      sizes: PHONE_MOCKUP_SIZES,
+    },
     firstLayer: { src: '/features/realtime-accepted-760.webp', width: 760, height: 335 },
     secondLayer: { src: '/features/realtime-details-760.webp', width: 760, height: 390 },
     thirdLayer: { src: '/features/realtime-in_transit-760.webp', width: 760, height: 335 },
@@ -118,8 +130,20 @@ export class FeaturesPage {
 
   protected readonly dispatcherVisual: FeatureShowcaseLayeredVisual = {
     variant: 'dispatcher',
-    background: { src: '/features/dispatcher-operations-bg-1600.webp', width: 1600, height: 900, smallWidth: 800, sizes: BG_SIZES },
-    mockup: { src: '/features/dispatcher-operations-mockup-1000.webp', width: 1000, height: 2039, smallWidth: 500, sizes: PHONE_MOCKUP_SIZES },
+    background: {
+      src: '/features/dispatcher-operations-bg-1600.webp',
+      width: 1600,
+      height: 900,
+      smallWidth: 800,
+      sizes: BG_SIZES,
+    },
+    mockup: {
+      src: '/features/dispatcher-operations-mockup-1000.webp',
+      width: 1000,
+      height: 2039,
+      smallWidth: 500,
+      sizes: PHONE_MOCKUP_SIZES,
+    },
     firstLayer: { src: '/features/dispatcher-operations-order-760.webp', width: 760, height: 274 },
     secondLayer: {
       src: '/features/dispatcher-operations-delivery-760.webp',
@@ -136,8 +160,20 @@ export class FeaturesPage {
 
   protected readonly courierVisual: FeatureShowcaseLayeredVisual = {
     variant: 'courier',
-    background: { src: '/features/courier-management-bg-1600.webp', width: 1600, height: 900, smallWidth: 800, sizes: BG_SIZES },
-    mockup: { src: '/features/courier-management-mockup-1800.webp', width: 1800, height: 1013, smallWidth: 900, sizes: DESKTOP_MOCKUP_SIZES },
+    background: {
+      src: '/features/courier-management-bg-1600.webp',
+      width: 1600,
+      height: 900,
+      smallWidth: 800,
+      sizes: BG_SIZES,
+    },
+    mockup: {
+      src: '/features/courier-management-mockup-1800.webp',
+      width: 1800,
+      height: 1013,
+      smallWidth: 900,
+      sizes: DESKTOP_MOCKUP_SIZES,
+    },
     firstLayer: { src: '/features/courier-management-admin-760.webp', width: 760, height: 325 },
     secondLayer: {
       src: '/features/courier-management-dispatcher-760.webp',
@@ -149,8 +185,20 @@ export class FeaturesPage {
 
   protected readonly merchantVisual: FeatureShowcaseLayeredVisual = {
     variant: 'merchant',
-    background: { src: '/features/merchant-storefront-bg-1600.webp', width: 1600, height: 900, smallWidth: 800, sizes: BG_SIZES },
-    mockup: { src: '/features/merchant-storefront-mockup-1000.webp', width: 1000, height: 2040, smallWidth: 500, sizes: PHONE_MOCKUP_SIZES },
+    background: {
+      src: '/features/merchant-storefront-bg-1600.webp',
+      width: 1600,
+      height: 900,
+      smallWidth: 800,
+      sizes: BG_SIZES,
+    },
+    mockup: {
+      src: '/features/merchant-storefront-mockup-1000.webp',
+      width: 1000,
+      height: 2040,
+      smallWidth: 500,
+      sizes: PHONE_MOCKUP_SIZES,
+    },
     firstLayer: { src: '/features/merchant-storefront-default-760.webp', width: 760, height: 293 },
     secondLayer: { src: '/features/merchant-storefront-setup-760.webp', width: 760, height: 317 },
     alt: 'Fardelins storefront integration showing default courier assignment and store setup',
@@ -158,8 +206,20 @@ export class FeaturesPage {
 
   protected readonly deliveryVisual: FeatureShowcaseLayeredVisual = {
     variant: 'delivery',
-    background: { src: '/features/delivery-bg-1600.webp', width: 1600, height: 900, smallWidth: 800, sizes: BG_SIZES },
-    mockup: { src: '/features/delivery-mockup-1000.webp', width: 1000, height: 2039, smallWidth: 500, sizes: PHONE_MOCKUP_SIZES },
+    background: {
+      src: '/features/delivery-bg-1600.webp',
+      width: 1600,
+      height: 900,
+      smallWidth: 800,
+      sizes: BG_SIZES,
+    },
+    mockup: {
+      src: '/features/delivery-mockup-1000.webp',
+      width: 1000,
+      height: 2039,
+      smallWidth: 500,
+      sizes: PHONE_MOCKUP_SIZES,
+    },
     firstLayer: { src: '/features/delivery-proof-760.webp', width: 760, height: 1059 },
     alt: 'Fardelins proof-of-delivery confirmation with a delivery photo and confirm action',
   };

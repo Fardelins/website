@@ -49,9 +49,7 @@ describe('SendDeliveryService', () => {
     const file = new File(['parcel'], 'parcel.png', { type: 'image/png' });
     const files = { 0: file, length: 1, item: () => file } as unknown as FileList;
     const pending = service.uploadImages(files);
-    const request = await vi.waitFor(() =>
-      http.expectOne('/v1/upload/multiple-images/shipments'),
-    );
+    const request = await vi.waitFor(() => http.expectOne('/v1/upload/multiple-images/shipments'));
 
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toBeInstanceOf(FormData);
@@ -151,9 +149,7 @@ describe('SendDeliveryService', () => {
     const file = new File(['parcel'], 'parcel.png', { type: 'image/png' });
     const files = { 0: file, length: 1, item: () => file } as unknown as FileList;
     const pending = service.uploadImages(files);
-    const request = await vi.waitFor(() =>
-      http.expectOne('/v1/upload/multiple-images/shipments'),
-    );
+    const request = await vi.waitFor(() => http.expectOne('/v1/upload/multiple-images/shipments'));
     request.flush(
       { message: 'Image storage unavailable.' },
       { status: 502, statusText: 'Bad Gateway' },
@@ -258,7 +254,10 @@ describe('SendDeliveryService', () => {
       ],
       ...overrides,
     });
-    const ask = async (options: { deliveryType: 'user' | 'office'; priority: boolean }, rows: unknown[]) => {
+    const ask = async (
+      options: { deliveryType: 'user' | 'office'; priority: boolean },
+      rows: unknown[],
+    ) => {
       const draft = { ...emptyDraft(), ...options };
       draft.parcel.sizeId = 2;
       const pending = service.rates(draft);

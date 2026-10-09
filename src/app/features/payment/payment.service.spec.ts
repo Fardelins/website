@@ -31,17 +31,19 @@ describe('PaymentService', () => {
     const http = TestBed.inject(HttpTestingController);
 
     const pending = service.verifyPaystack('T029103440697589');
-    http.expectOne((req) => req.url === '/v1/payment/verify-paystack').flush({
-      message: 'Transaction updated sucessfully.',
-      code: 200,
-      data: {
-        reference: 'T029103440697589',
-        status: 'success',
-        amount: 2600,
-        order_id: 'da9563fa',
-        tracking_id: 'FDL-8814796241816',
-      },
-    });
+    http
+      .expectOne((req) => req.url === '/v1/payment/verify-paystack')
+      .flush({
+        message: 'Transaction updated sucessfully.',
+        code: 200,
+        data: {
+          reference: 'T029103440697589',
+          status: 'success',
+          amount: 2600,
+          order_id: 'da9563fa',
+          tracking_id: 'FDL-8814796241816',
+        },
+      });
 
     await expect(pending).resolves.toBe('success');
   });
@@ -77,17 +79,24 @@ describe('PaymentService', () => {
     const pending = service.verifyPaystack('T662937065188922');
     verifyFails(http);
     await settle();
-    http.expectOne((req) => req.url === '/v1/user/transactions').flush({
-      data: [
-        {
-          id: 'o-1',
-          shipment_id: 's-1',
-          status: 'paid',
-          transaction: { transaction_id: 'T662937065188922' },
-        },
-        { id: 'o-2', shipment_id: 's-2', status: 'failed', transaction: { transaction_id: 'T111' } },
-      ],
-    });
+    http
+      .expectOne((req) => req.url === '/v1/user/transactions')
+      .flush({
+        data: [
+          {
+            id: 'o-1',
+            shipment_id: 's-1',
+            status: 'paid',
+            transaction: { transaction_id: 'T662937065188922' },
+          },
+          {
+            id: 'o-2',
+            shipment_id: 's-2',
+            status: 'failed',
+            transaction: { transaction_id: 'T111' },
+          },
+        ],
+      });
 
     await expect(pending).resolves.toBe('success');
   });
@@ -109,7 +118,9 @@ describe('PaymentService', () => {
     const http = TestBed.inject(HttpTestingController);
 
     const pending = service.resume('order-1');
-    const request = http.expectOne('/v1/customer-shipment/pending-payment-request/paystack/order-1');
+    const request = http.expectOne(
+      '/v1/customer-shipment/pending-payment-request/paystack/order-1',
+    );
     expect(request.request.method).toBe('GET');
     request.flush({
       message: 'Order updated sucessfully.',

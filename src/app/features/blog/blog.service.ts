@@ -124,7 +124,10 @@ export class BlogService {
     const mapped = this.mapPost(post);
     // Crawlers still need a description even when the post has no excerpt; fall
     // back to the body's opening text so the meta tag is never empty.
-    const metaDescription = (mapped.excerpt || stripHtml(post.content?.rendered ?? '')).slice(0, 300);
+    const metaDescription = (mapped.excerpt || stripHtml(post.content?.rendered ?? '')).slice(
+      0,
+      300,
+    );
     return {
       ...mapped,
       contentHtml: normalizeContent(post.content?.rendered ?? '', mapped.image),

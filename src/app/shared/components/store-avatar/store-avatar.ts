@@ -6,7 +6,12 @@ const PALETTE = ['#521c99', '#7449ad', '#9776c1', '#b9a4d6', '#dcd1ea'];
 
 @Component({
   selector: 'app-store-avatar',
-  template: `<span class="avatar" role="img" [attr.aria-label]="name() + ' avatar'" [innerHTML]="svg()"></span>`,
+  template: `<span
+    class="avatar"
+    role="img"
+    [attr.aria-label]="name() + ' avatar'"
+    [innerHTML]="svg()"
+  ></span>`,
   styles: `
     :host {
       display: block;
@@ -29,7 +34,13 @@ export class StoreAvatar {
   // Generated locally from our own palette and a hash of the name, so the markup is safe to trust.
   protected readonly svg = computed(() =>
     this.sanitizer.bypassSecurityTrustHtml(
-      boring({ name: this.name().trim() || 'Store', variant: 'beam', size: '100%', square: true, colors: PALETTE }),
+      boring({
+        name: this.name().trim() || 'Store',
+        variant: 'beam',
+        size: '100%',
+        square: true,
+        colors: PALETTE,
+      }),
     ),
   );
 }

@@ -47,7 +47,9 @@ export class PaymentService {
     try {
       body = await firstValueFrom(
         this.http.get(
-          this.apiUrl(`/customer-shipment/pending-payment-request/paystack/${encodeURIComponent(orderId)}`),
+          this.apiUrl(
+            `/customer-shipment/pending-payment-request/paystack/${encodeURIComponent(orderId)}`,
+          ),
         ),
       );
     } catch (error) {

@@ -51,10 +51,7 @@ export class RoutingService {
     const spans: number[] = [];
     let total = 0;
     for (let i = 1; i < points.length; i++) {
-      const span = Math.hypot(
-        points[i][0] - points[i - 1][0],
-        points[i][1] - points[i - 1][1],
-      );
+      const span = Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]);
       spans.push(span);
       total += span;
     }

@@ -120,7 +120,7 @@ export class OtpInput {
     }
   }
 
-  // Force-reflow restart so the pop animation replays even if the same box already ran it, 
+  // Force-reflow restart so the pop animation replays even if the same box already ran it,
   // a paste cascades this across boxes with a staggered delay via the `--i` custom property.
   private pop(index: number, stagger: number): void {
     const el = this.boxes()[index]?.nativeElement;

@@ -48,7 +48,7 @@ export class Login {
   protected readonly mode = signal<'password' | 'qr'>('password');
 
   private readonly pane = viewChild<ElementRef<HTMLElement>>('pane');
-  // Lives inside the password-mode branch, so it unmounts/remounts with the QR toggle, 
+  // Lives inside the password-mode branch, so it unmounts/remounts with the QR toggle,
   // the effect re-renders Google's button each time it comes back, not just once.
   private readonly googleButtonSlot = viewChild<ElementRef<HTMLElement>>('googleButtonSlot');
 

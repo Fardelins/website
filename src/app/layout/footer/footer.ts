@@ -13,7 +13,10 @@ import { RouterLink } from '@angular/router';
 import { NewsletterService } from '@core/services/newsletter.service';
 import { HapticsService } from '@core/services/haptics.service';
 import { ConsentService } from '@core/services/consent.service';
-import { ComponentConfig, ShaderBackground } from '@shared/components/shader-background/shader-background';
+import {
+  ComponentConfig,
+  ShaderBackground,
+} from '@shared/components/shader-background/shader-background';
 
 // Fog scratch-off: a haze (blur + mist) over the scene. Swiping thins it, and past
 // ~ACTIVATION_SWIPES it latches and melts for good; give up early and it re-fogs.
@@ -247,7 +250,9 @@ export class Footer implements AfterViewInit, OnDestroy {
     this.subscriptionState.set('submitting');
     try {
       const result = await this.newsletter.subscribe(email);
-      this.subscriptionState.set(result === 'already_subscribed' ? 'already_subscribed' : 'success');
+      this.subscriptionState.set(
+        result === 'already_subscribed' ? 'already_subscribed' : 'success',
+      );
       form.reset();
       this.haptics.success();
     } catch (error) {

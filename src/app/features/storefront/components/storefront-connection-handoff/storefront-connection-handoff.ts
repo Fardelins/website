@@ -46,6 +46,8 @@ export class StorefrontConnectionHandoff {
   readonly openStorefront = output<void>();
 
   protected titleCase(name: string): string {
-    return name.trim().replace(/(^|\s)(\S)/g, (_, space: string, first: string) => space + first.toUpperCase());
+    return name
+      .trim()
+      .replace(/(^|\s)(\S)/g, (_, space: string, first: string) => space + first.toUpperCase());
   }
 }
