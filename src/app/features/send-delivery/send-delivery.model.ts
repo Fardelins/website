@@ -65,7 +65,6 @@ export interface SendDraft extends DeliveryOptions {
   dropoff: PartyStep;
   fromMe: boolean;
   rateId: string | null;
-  paymentMedium: string;
 }
 
 /** What placing an order returns: a payment reference and, when the medium supports it, a URL to pay at. */
@@ -73,13 +72,6 @@ export interface OrderResult {
   reference: string | null;
   authorizationUrl: string | null;
 }
-
-export const PAYMENT_MEDIUMS = [
-  { value: 'paystack', label: 'Paystack' },
-  { value: 'card', label: 'Card' },
-  { value: 'flutterwave', label: 'Flutterwave' },
-  { value: 'squad', label: 'Squad' },
-];
 
 /** BE rejects local formats ("0815…") with "should be in international phone format"; Nigeria is the default country. */
 export function toInternationalPhone(value: string): string {
@@ -119,6 +111,5 @@ export function emptyDraft(): SendDraft {
     deliveryType: 'user',
     priority: false,
     rateId: null,
-    paymentMedium: 'paystack',
   };
 }

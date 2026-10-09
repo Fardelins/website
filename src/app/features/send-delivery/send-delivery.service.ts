@@ -141,7 +141,6 @@ export class SendDeliveryService {
             images: draft.parcel.images.map(({ id }) => ({ id })),
           },
           shipment_size_id: draft.parcel.sizeId ?? undefined,
-          payment_medium: draft.paymentMedium,
           pickup_type: 'user',
           delivery_type: draft.deliveryType,
           priority: draft.priority,

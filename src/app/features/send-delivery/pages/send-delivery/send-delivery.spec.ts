@@ -154,7 +154,7 @@ describe('SendDelivery', () => {
     fixture.detectChanges();
     await press('Pay ₦3,100');
     expect(api.order).toHaveBeenCalledWith(
-      expect.objectContaining({ rateId: 'b', paymentMedium: 'paystack' }),
+      expect.objectContaining({ rateId: 'b' }),
       expect.anything(),
     );
   });

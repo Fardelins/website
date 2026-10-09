@@ -415,10 +415,10 @@ export class SendDelivery {
     this.submitting.set(true);
     this.haptics.light();
     try {
-      const result = await this.api.order(
-        { ...this.draft(), paymentMedium: 'paystack' },
-        { pickup: this.locationIds('pickup'), dropoff: this.locationIds('dropoff') },
-      );
+      const result = await this.api.order(this.draft(), {
+        pickup: this.locationIds('pickup'),
+        dropoff: this.locationIds('dropoff'),
+      });
       this.haptics.success();
       this.clearDraft();
       if (result.authorizationUrl) {
