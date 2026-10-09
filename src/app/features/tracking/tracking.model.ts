@@ -38,7 +38,7 @@ export interface TrackingResult {
   currentPhaseProgress: number;
   /** True once the final phase is reached, the journey is finished, not in-progress. */
   delivered: boolean;
-  /** True once a courier has accepted the job (`assigned`), which completes the first step. */
+  /** True once a dispatcher is assigned (`assigned`), which completes the first step. */
   accepted: boolean;
   /** True only on the terminal `completed` status, which is what a receipt may be issued against. */
   completed: boolean;
@@ -75,7 +75,7 @@ const STATUS_LABELS: Record<string, string> = {
   failed: 'Failed',
 };
 
-/** The first step reads "Confirming" until a courier accepts the job (`assigned`). */
+/** The first step reads "Confirming" until a dispatcher is assigned (`assigned`). */
 export function phaseLabel(phase: TrackingPhase, status: string | null | undefined): string {
   return phase.key === 'confirmed' && status === 'pending' ? 'Confirming' : phase.label;
 }

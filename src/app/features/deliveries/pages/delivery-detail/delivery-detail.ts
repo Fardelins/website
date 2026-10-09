@@ -296,7 +296,7 @@ export class DeliveryDetail implements OnDestroy {
   }
 
   protected phaseDone(index: number): boolean {
-    // A courier accepting the job (`assigned`) completes the first step; `pending` is still confirming.
+    // A dispatcher being assigned (`assigned`) completes the first step; `pending` is still confirming.
     const accepted = index === 0 && this.statusKey() === 'assigned';
     return (
       accepted || index < this.currentPhase() || this.currentPhase() === this.phases.length - 1

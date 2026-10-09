@@ -249,9 +249,9 @@ const MOCK_DETAILS: Record<string, DeliveryDetail> = {
       },
       {
         id: '2',
-        description: 'Courier has confirmed your order',
+        description: 'A dispatcher has been assigned to your order',
         status: 'assigned',
-        statusLabel: 'Order Accepted',
+        statusLabel: 'Assigned',
         location: null,
         order: 2,
         dateLabel: 'Jan 30, 2026',
@@ -389,9 +389,9 @@ const MOCK_DETAILS: Record<string, DeliveryDetail> = {
       },
       {
         id: '2',
-        description: 'Courier has confirmed your order',
+        description: 'A dispatcher has been assigned to your order',
         status: 'assigned',
-        statusLabel: 'Order Accepted',
+        statusLabel: 'Assigned',
         location: null,
         order: 2,
         dateLabel: 'Sep 5, 2026',
@@ -544,9 +544,9 @@ const MOCK_DETAILS: Record<string, DeliveryDetail> = {
       },
       {
         id: '2',
-        description: 'Courier has confirmed your order',
+        description: 'A dispatcher has been assigned to your order',
         status: 'assigned',
-        statusLabel: 'Order Accepted',
+        statusLabel: 'Assigned',
         location: null,
         order: 2,
         dateLabel: 'Aug 30, 2026',
@@ -579,9 +579,9 @@ const MOCK_DETAILS: Record<string, DeliveryDetail> = {
     events: [
       {
         id: '1',
-        description: 'Courier has confirmed your order',
+        description: 'A dispatcher has been assigned to your order',
         status: 'assigned',
-        statusLabel: 'Order Accepted',
+        statusLabel: 'Assigned',
         location: null,
         order: 1,
         dateLabel: 'Aug 27, 2026',
