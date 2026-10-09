@@ -50,22 +50,17 @@ describe('DeliveryRatingService', () => {
     await expect(pending).rejects.toThrow();
   });
 
-  it('creates a rating with the DTO fields the spec requires', async () => {
-    const pending = service.save('FDL-1', 'uuid-1', { score: 5, comment: 'On time' }, false);
+  it('creates a rating keyed by the tracking code in the path, with no id in the body', async () => {
+    const pending = service.save('FDL-1', { score: 5, comment: 'On time' }, false);
     const req = http.expectOne((r) => r.url.endsWith('/v1/shipment-rating/FDL-1'));
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toEqual({
-      id: 'uuid-1',
-      score: 5,
-      comment: 'On time',
-      anonymous: false,
-    });
+    expect(req.request.body).toEqual({ score: 5, comment: 'On time', anonymous: false });
     req.flush({ message: 'ok' });
     await expect(pending).resolves.toEqual({ score: 5, comment: 'On time' });
   });
 
   it('updates an existing rating with PATCH', async () => {
-    const pending = service.save('FDL-1', 'uuid-1', { score: 2, comment: '' }, true);
+    const pending = service.save('FDL-1', { score: 2, comment: '' }, true);
     const req = http.expectOne((r) => r.url.endsWith('/v1/shipment-rating/FDL-1'));
     expect(req.request.method).toBe('PATCH');
     req.flush({});

@@ -13,7 +13,7 @@ describe('DeliveryRatingCard', () => {
 
   async function render(existing: { score: number; comment: string } | null = null) {
     api.get.mockResolvedValue(existing);
-    api.save.mockImplementation(async (_t: string, _s: string, rating: unknown) => rating);
+    api.save.mockImplementation(async (_t: string, rating: unknown) => rating);
     await TestBed.configureTestingModule({
       imports: [DeliveryRatingCard],
       providers: [
@@ -27,7 +27,6 @@ describe('DeliveryRatingCard', () => {
     }).compileComponents();
     fixture = TestBed.createComponent(DeliveryRatingCard);
     fixture.componentRef.setInput('trackingId', 'FDL-1');
-    fixture.componentRef.setInput('shipmentId', 'uuid-1');
     fixture.componentRef.setInput('courierName', 'Swift Riders');
     root = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
@@ -92,7 +91,6 @@ describe('DeliveryRatingCard', () => {
 
     expect(api.save).toHaveBeenCalledWith(
       'FDL-1',
-      'uuid-1',
       { score: 4, comment: 'On time, Friendly courier. Called before arriving' },
       false,
     );
@@ -110,12 +108,7 @@ describe('DeliveryRatingCard', () => {
     (root.querySelector('.btn--primary') as HTMLButtonElement).click();
     await fixture.whenStable();
 
-    expect(api.save).toHaveBeenCalledWith(
-      'FDL-1',
-      'uuid-1',
-      { score: 3, comment: 'Arrived late' },
-      true,
-    );
+    expect(api.save).toHaveBeenCalledWith('FDL-1', { score: 3, comment: 'Arrived late' }, true);
   });
 
   it('keeps the form and offers a retry when sending fails', async () => {

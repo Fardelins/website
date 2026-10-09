@@ -28,23 +28,13 @@ export class DeliveryRatingService {
     }
   }
 
-  async save(
-    trackingId: string,
-    shipmentId: string | null,
-    rating: DeliveryRating,
-    update: boolean,
-  ): Promise<DeliveryRating> {
+  async save(trackingId: string, rating: DeliveryRating, update: boolean): Promise<DeliveryRating> {
     if (this.auth.isMockSession()) {
       this.mockRatings.set(trackingId, rating);
       return rating;
     }
-    // The DTO requires `id` without saying which; the shipment UUID is our best reading (BE to confirm).
-    const body = {
-      id: shipmentId ?? trackingId,
-      score: rating.score,
-      comment: rating.comment,
-      anonymous: false,
-    };
+    // The tracking code in the path identifies the shipment; BE rejects the UUID and wants no `id` in the body.
+    const body = { score: rating.score, comment: rating.comment, anonymous: false };
     try {
       await firstValueFrom(
         update

@@ -27,7 +27,6 @@
 
     <app-delivery-rating
       [trackingId]="parcel().trackingId"
-      [shipmentId]="parcel().shipmentId ?? null"
       [courierName]="parcel().courierName"
       [deliveredLabel]="parcel().updatedLabel ?? null"
       (rated)="finish()"

@@ -62,7 +62,6 @@ export class DeliveryRatingCard {
   private readonly haptics = inject(HapticsService);
 
   readonly trackingId = input.required<string>();
-  readonly shipmentId = input<string | null>(null);
   readonly courierName = input<string | null>(null);
   readonly deliveredLabel = input<string | null>(null);
   readonly rated = output<DeliveryRating>();
@@ -149,7 +148,6 @@ export class DeliveryRatingCard {
     try {
       const rating = await this.api.save(
         this.trackingId(),
-        this.shipmentId(),
         { score: this.score(), comment },
         this.editing(),
       );
