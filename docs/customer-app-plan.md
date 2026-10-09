@@ -555,20 +555,23 @@ Grouped by who can answer.
 **Backend (Joseph)**
 
 1. ⚠️ **Blocking Phase 0.** Login response body — tokens as JSON or httpOnly cookie?
-   Token lifetimes? Refresh contract? (2.7)
+   Token lifetimes? Refresh contract? (2.7) **Resolved in practice (2026-10-09):** login and refresh have
+   worked on dev since the browser tests of 2026-10-06; not asked of BE, so lifetimes are undocumented.
 2. ⚠️ **Blocking registration entirely.** Fix the `currency.connect` crash — skip it when
-   `currency_id` is absent, or make the field required and validated. (2.6)
+   `currency_id` is absent, or make the field required and validated. (2.6) **Resolved in practice
+   (2026-10-09):** a real test account was registered on 2026-09-28.
 3. ~~Allowed values for `pickup_type`, `source`, `mode` on `CreateCustomerShipmentDto`~~
-   Answered 2026-09-28. Still open: which of `API`/`Manual` fits a web app. (3.5)
+   Answered 2026-09-28. **Closed 2026-10-06:** BE ignores `source` and stores every order as `Mobile`. (3.5)
 4. Does the rates response include courier identity, logo, rating and review count? Courier
    identity and logo answered 2026-09-28 (`hub.courier_business`); rating/review count are not
    returned at all. (3.3)
 5. ~~Does `GET /v1/user/transactions` paginate, and what are its fields?~~ Answered 2026-09-28.
-   Still open: the `transaction` object's fields, and `tracking_id` per row. (3.6)
+   **Closed 2026-10-07:** rows carry `tracking_id` and `transaction.transaction_id`. (3.6)
 6. ~~Is `sender_details` optional?~~ Yes. Answered 2026-09-28: BE uses the profile's saved
    address when it's omitted. (3.5)
 7. Does the authenticated shipment detail have the same timeline quirks as the public one? (3.4)
-8. Is there a saved-addresses concept distinct from properties/storefronts? (3.2)
+   **Moot (2026-10-09):** customers get 403 on the authenticated detail (see 17); the app builds its timeline from the list row's `tracking[]`.
+8. Is there a saved-addresses concept distinct from properties/storefronts? (3.2) **2026-10-03:** not built; on Joseph's missing-endpoints list.
 9. ~~Does the plain `customer-shipment/pending-payment-request` return the same shape as the
    storefront variant, and does the order response return an `order_id` or a `tracking_id`?~~
    Answered 2026-09-28: the order response IS the payment init data, no separate id at all. Still
@@ -578,15 +581,15 @@ Grouped by who can answer.
     which status can a customer cancel, and does cancelling refund to the wallet?~~ Answered
     2026-09-28: it's the shipment UUID (not the tracking id), pending only, no refund. (2.9)
 11. ⚠️ **Blocking all order creation.** Fix `Argument record_id is missing` on the order
-    endpoint's audit-log write. (2.10)
+    endpoint's audit-log write. (2.10) **Fixed:** orders have succeeded on dev since 2026-10-06.
 12. ⚠️ **Security.** Find and fix why that same error response contains unrelated phone
-    numbers and emails. (2.10)
+    numbers and emails. (2.10) **Fixed:** the leak stopped reproducing on 2026-10-03.
 13. Does `recipient_username` on an order need a recipient-facing notification or approval step
     before it silently overwrites the typed receiver details with the saved ones? (3.5)
 14. ⚠️ **Customers cannot download an invoice.** Both invoice endpoints answer 403 for a customer
-    token. Open one to customers, or add a customer path. (3.4)
+    token. Open one to customers, or add a customer path. (3.4) **2026-10-09:** BE is opening one to the owner only; waiting to hear which and when.
 15. Should a customer be able to download a shipping label? `download-shipping-label` answers 403.
-    Open it, or confirm it is courier-only. (3.4)
+    Open it, or confirm it is courier-only. (3.4) **2026-10-09:** BE is checking with the team.
 16. `GET /shipment-extras/delivery-proof/{tracking_id}` is in the spec but not deployed (404 "Cannot
     GET" on staging). When does it ship, and may a customer read it? (3.4) **Answered 2026-10-09:** no GET endpoint exists and `delivery_proof`
     isn't in the shipment includes, so the 404 is expected. Unbuilt; ship date and who may read it are team decisions.
@@ -597,16 +600,38 @@ Grouped by who can answer.
     to a live server): what is the required `id` in the body (we send the shipment UUID)? May
     `comment` be an empty string? What does `anonymous` change (we always send `false`)? From which
     shipment status is rating allowed (we show it at `received`/`completed` only)? (3.4) **Partly answered 2026-10-09:** `comment` may be
-    empty; `anonymous` is stored only and changes nothing; there are no tags and no status gate. Still open: what `id` in the body is.
+    empty; `anonymous` is stored only and changes nothing; there are no tags and no status gate. **Fixed and merged
+    2026-10-09:** tracking code in the path, no `id` in the body; the app is updated but untested against dev (needs a `received` parcel).
 19. The old send flow had a "Delivery instruction (optional)" box that was never sent: the order DTO has
     no field for it. The 2026-10-07 rebuild removed it. Can BE add a receiver note (or should it ride in
-    `parcel.long_description`)? (3.5)
+    `parcel.long_description`)? (3.5) **2026-10-09:** BE is confirming with the team; if added, it arrives as a receiver note on the order request.
 20. Status meaning for the first step (2026-10-07): the app now reads `pending` as "Confirming" (waiting
     for a courier to accept) and `assigned` as "Confirmed" (accepted). Confirm that reading, whether a
     courier can decline or time out and what happens then, and which status writes the first
     `tracking[]` event (and an accepted-at time). (3.4) **Answered 2026-10-09:** `pending` means no dispatcher
     assigned, `assigned` means one was. There is no courier accept/decline step, no accept timeout, no accepted-at field, and
-    assignment writes no tracking event. So the "waiting for a courier to accept" reading above is wrong.
+    assignment writes no tracking event. So the "waiting for a courier to accept" reading above is wrong. Still to
+    decide on BE's side: a tracking event at assignment and an `assigned_at` field.
+21. Cancel (`PATCH /user/shipment/{id}`) applies the change but answers 400; the order stays `pending`. (2.9)
+22. Pay again (`pending-payment-request`) still returns a Paystack URL for a cancelled shipment's order. (2.9)
+23. No refund exists for a paid, cancelled shipment, and the cancel dialog promises one (held). Which statuses
+    allow cancelling, and what happens after pickup? (2.9)
+24. An order with no photos is still accepted (201). Photos are required in the app only.
+25. Seed rate durations (24/48, priority 12/24) are read as days, so the expected date is about 74 days out.
+26. The box size the customer chose isn't on the shipment row; only the category's default size.
+27. Emails: the invoice email fails on dev (swallowed 422 `invalid_attachment`). Who receives which email?
+28. Is the Paystack webhook (`/v1/webhook/paystack`) set up on dev with signature checking? Orders only become
+    paid through verify today.
+29. Addresses are geocoded from the typed text alone, ignoring the chosen state and city.
+30. With a matching sender phone, are `sender_name` and `sender_email` replaced by the account's own? Intended?
+31. Only Abuja/Durumi has a rate; which other cities will be set up?
+32. The `paymentHandler` null-courier TypeError: fixed yet?
+33. Is the location filter on `GET /customer-shipment/shipments` case-sensitive? (date inclusivity is fixed)
+34. KYC upload: the `account_type` values and the file rules (types, size).
+35. Parcel photo upload (`/upload/multiple-images/shipments`): max file size and allowed types? The app resizes
+    to 1600px JPEG and refuses over 10 MB (our estimate).
+36. OpenAPI: add the `verify-paystack` success and abandoned responses, plus real sample rows for the shipments
+    list, transactions and the order success.
 
 **Product / design (Bami)**
 
