@@ -588,20 +588,25 @@ Grouped by who can answer.
 15. Should a customer be able to download a shipping label? `download-shipping-label` answers 403.
     Open it, or confirm it is courier-only. (3.4)
 16. `GET /shipment-extras/delivery-proof/{tracking_id}` is in the spec but not deployed (404 "Cannot
-    GET" on staging). When does it ship, and may a customer read it? (3.4)
+    GET" on staging). When does it ship, and may a customer read it? (3.4) **Answered 2026-10-09:** no GET endpoint exists and `delivery_proof`
+    isn't in the shipment includes, so the 404 is expected. Unbuilt; ship date and who may read it are team decisions.
 17. Low priority: `GET /shipment-tracking` answers 403 for a customer. The app works around it with
-    the list row's `tracking[]`; say if that is the intended contract. (3.4)
+    the list row's `tracking[]`; say if that is the intended contract. (3.4) **Answered 2026-10-09:** courier-only by
+    design; customers use the public `track-shipment/:tracking_id` route or the `tracking` array in shipment detail (what the app does).
 18. Rating a delivery (`POST/PATCH /shipment-rating/{tracking_id}`, built 2026-10-07 but never sent
     to a live server): what is the required `id` in the body (we send the shipment UUID)? May
     `comment` be an empty string? What does `anonymous` change (we always send `false`)? From which
-    shipment status is rating allowed (we show it at `received`/`completed` only)? (3.4)
+    shipment status is rating allowed (we show it at `received`/`completed` only)? (3.4) **Partly answered 2026-10-09:** `comment` may be
+    empty; `anonymous` is stored only and changes nothing; there are no tags and no status gate. Still open: what `id` in the body is.
 19. The old send flow had a "Delivery instruction (optional)" box that was never sent: the order DTO has
     no field for it. The 2026-10-07 rebuild removed it. Can BE add a receiver note (or should it ride in
     `parcel.long_description`)? (3.5)
 20. Status meaning for the first step (2026-10-07): the app now reads `pending` as "Confirming" (waiting
     for a courier to accept) and `assigned` as "Confirmed" (accepted). Confirm that reading, whether a
     courier can decline or time out and what happens then, and which status writes the first
-    `tracking[]` event (and an accepted-at time). (3.4)
+    `tracking[]` event (and an accepted-at time). (3.4) **Answered 2026-10-09:** `pending` means no dispatcher
+    assigned, `assigned` means one was. There is no courier accept/decline step, no accept timeout, no accepted-at field, and
+    assignment writes no tracking event. So the "waiting for a courier to accept" reading above is wrong.
 
 **Product / design (Bami)**
 
@@ -1061,6 +1066,28 @@ authenticated endpoint shares those quirks — it changes how the timeline compo
   needs a delivered parcel to test, and the test account has none. Confirmed `/signup/phone` is the
   Google gap-fill step and found it is not enforced after sign-in (2.2). Fixed four full-suite test
   timeouts by raising the default to 15 seconds.
+- **2026-10-09 (BE answers)** — Delivery proof is unbuilt on BE (no GET, not in the shipment includes), so the
+  404 is expected. `/shipment-tracking` is courier-only by design; the app already uses the list row's `tracking[]`.
+  Rating: `comment` may be empty, `anonymous` does nothing, no tags, no status gate. Status: `pending` = no
+  dispatcher assigned, `assigned` = dispatcher assigned; there is no courier accept step, timeout or accepted-at
+  field, and assignment writes no tracking event. The courier list has no default paid-only filter.
+  `payment_medium` defaults to paystack, so the app can omit it. The stale "courier accepts" code comments
+  were corrected; the "Confirming" label for `pending` is unchanged.
+- **2026-10-09 (BE rating fix merged)** — Rating POST was broken for everyone (body stripped); fixed. The
+  tracking code is the id in the path for POST, GET, PATCH and DELETE (the UUID now 404s). Body is
+  `{score 1-5, comment?, anonymous?, images?}` with no `id`; `images` are upload ids (PATCH replaces the set).
+  GET answers 404 when unrated and is readable only by the rater and that shipment's courier. No status gate
+  and no tags field (picks stay inside `comment`). The app no longer sends `id` and no longer passes the
+  shipment UUID to the rating card. `payment_medium` is no longer sent (BE defaults to paystack; the unused
+  `PAYMENT_MEDIUMS` list was removed). Still on BE's side to decide: customer invoice (one endpoint will be
+  opened to the owner), label, delivery proof GET, receiver note, assignment event and `assigned_at`. Unretested
+  against dev: the rating POST/PATCH needs a handed-over parcel.
+- **2026-10-09 (photo size, mock wording)** — Parcel photos are now resized in the browser before upload
+  (`@shared/utils/compress-image.ts`: long edge 1600px, JPEG at 0.82; small images, gifs, svgs and anything the
+  browser can't decode go up unchanged) and anything still over 10 MB is refused before the request. The 10 MB
+  cap is our guess; BE's real limit is not known yet. Not yet tried with a real phone photo in a browser. The
+  dev mock timeline now reads "Assigned" instead of "Order Accepted". The features-page screenshot still says
+  "Order Accepted" because the text is part of the image; it needs a re-export from the design file.
 
 ---
 
