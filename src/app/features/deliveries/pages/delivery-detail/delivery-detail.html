@@ -17,7 +17,7 @@
           [disabled]="busy() !== null"
           (click)="completePayment()"
         >
-          {{ busy() === 'pay' ? 'Opening Paystack…' : 'Complete payment' }}
+          {{ busy() === 'pay' ? 'Redirecting…' : 'Complete payment' }}
         </button>
       }
       @if (showRefresh()) {
@@ -79,7 +79,7 @@
           [disabled]="busy() !== null"
           (click)="completePayment()"
         >
-          {{ busy() === 'pay' ? 'Opening Paystack…' : 'Complete payment' }}
+          {{ busy() === 'pay' ? 'Redirecting…' : 'Complete payment' }}
         </button>
       </section>
     }
