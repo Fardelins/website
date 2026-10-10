@@ -19,6 +19,7 @@ const USD_PER_NGN = 1 / 1550;
 
 const FINAL_STATUSES = new Set(['completed', 'received', 'cancelled', 'canceled', 'failed']);
 const DELIVERED_STATUSES = new Set(['completed', 'received']);
+const AWAITING_PAYMENT = 'awaiting_payment';
 const STATUS_ORDER = DASHBOARD_PARCEL_STATUSES;
 
 @Injectable({ providedIn: 'root' })
@@ -38,7 +39,8 @@ export class DashboardDataService {
         DELIVERED_STATUSES.has(delivery.status.toLowerCase()) &&
         (range || this.insidePeriod(delivery.createdAt, deliveredPeriod)),
     );
-    const spend = scoped.reduce((sum, delivery) => sum + this.amount(delivery), 0);
+    const spend = scoped.reduce((sum, delivery) => sum + this.spent(delivery), 0);
+    const awaiting = this.awaitingTotal(scoped);
     const currency = deliveries.find((delivery) => delivery.currency)?.currency ?? 'NGN';
 
     const thisWeek = this.thisWeek(deliveries);
@@ -50,12 +52,13 @@ export class DashboardDataService {
         delivered.length,
         scoped.length,
         spend,
+        awaiting,
         locale,
         currency,
         scoped,
         thisWeek,
       ).map((metric) =>
-        range ? this.periodMetric(metric, range, deliveries, scoped, currency) : metric,
+        range ? this.periodMetric(metric, range, deliveries, scoped, currency, locale) : metric,
       ),
       activity: {
         'this-week': thisWeek,
@@ -111,6 +114,7 @@ export class DashboardDataService {
     all: DeliverySummary[],
     scoped: DeliverySummary[],
     currency: string,
+    locale: string,
   ): DashboardMetric {
     const label = {
       'this-week': 'this week',
@@ -128,7 +132,7 @@ export class DashboardDataService {
     });
     const value = (parcels: DeliverySummary[]) =>
       metric.key === 'spend'
-        ? parcels.reduce((sum, p) => sum + this.amount(p), 0)
+        ? parcels.reduce((sum, p) => sum + this.spent(p), 0)
         : metric.key === 'delivered'
           ? parcels.filter((p) => dashboardParcelStatusGroup(p.status) === 'delivered').length
           : parcels.length;
@@ -137,7 +141,8 @@ export class DashboardDataService {
       trend: metric.key === 'in-transit' ? null : this.trend(value(scoped), value(previous)),
       caption:
         metric.key === 'spend'
-          ? `${this.usdCaption(metric.value, currency) ?? 'Spent'} ${label}`
+          ? (this.awaitingCaption(this.awaitingTotal(scoped), locale, currency) ??
+            `${this.usdCaption(metric.value, currency) ?? 'Spent'} ${label}`)
           : metric.key === 'delivered'
             ? `Delivered ${label}`
             : `Parcels ${label}`,
@@ -149,6 +154,7 @@ export class DashboardDataService {
     delivered: number,
     total: number,
     spend: number,
+    awaiting: number,
     locale: string,
     currency: string,
     deliveries: DeliverySummary[],
@@ -206,7 +212,8 @@ export class DashboardDataService {
         displayValue: `${symbol}${money.format(spend)}`,
         icon: 'solarWalletBoldDuotone',
         trend: this.trend(current.spend, previous.spend),
-        caption: this.usdCaption(spend, currency),
+        caption:
+          this.awaitingCaption(awaiting, locale, currency) ?? this.usdCaption(spend, currency),
         breakdown: null,
       },
     ];
@@ -252,7 +259,7 @@ export class DashboardDataService {
     });
     return {
       parcels: matched.length,
-      spend: matched.reduce((sum, delivery) => sum + this.amount(delivery), 0),
+      spend: matched.reduce((sum, delivery) => sum + this.spent(delivery), 0),
       delivered: matched.filter((delivery) => DELIVERED_STATUSES.has(delivery.status.toLowerCase()))
         .length,
     };
@@ -427,6 +434,23 @@ export class DashboardDataService {
       .map((delivery) => this.date(delivery.createdAt))
       .filter((date): date is Date => Boolean(date));
     return dates.sort((left, right) => right.getTime() - left.getTime())[0] ?? new Date();
+  }
+
+  /** Money actually paid: a parcel still awaiting payment has cost nothing yet. */
+  private spent(delivery: DeliverySummary): number {
+    return delivery.status.toLowerCase() === AWAITING_PAYMENT ? 0 : this.amount(delivery);
+  }
+
+  private awaitingTotal(deliveries: DeliverySummary[]): number {
+    return deliveries
+      .filter((delivery) => delivery.status.toLowerCase() === AWAITING_PAYMENT)
+      .reduce((sum, delivery) => sum + this.amount(delivery), 0);
+  }
+
+  private awaitingCaption(awaiting: number, locale: string, currency: string): string | null {
+    if (awaiting <= 0) return null;
+    const money = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+    return `${currencySymbol(currency)}${money.format(awaiting)} awaiting payment`;
   }
 
   private amount(delivery: DeliverySummary): number {

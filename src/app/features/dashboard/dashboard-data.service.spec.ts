@@ -120,6 +120,25 @@ describe('DashboardDataService', () => {
     ).toBe('Parcels this week');
   });
 
+  it('leaves unpaid parcels out of spend and shows them as awaiting payment instead', () => {
+    const paid = parcel({ trackingId: 'paid', status: 'assigned', amount: 2_600 });
+    const unpaid = parcel({ trackingId: 'unpaid', status: 'awaiting_payment', amount: 7_800 });
+    const spendOf = (parcels: DeliverySummary[], range?: 'this-year') =>
+      service.build(parcels, 'all-time', 'en-NG', range).metrics.find((m) => m.key === 'spend')!;
+
+    const both = spendOf([paid, unpaid]);
+    expect(both.value).toBe(2_600);
+    expect(both.caption).toBe('₦7,800 awaiting payment');
+
+    const none = spendOf([paid]);
+    expect(none.value).toBe(2_600);
+    expect(none.caption).toContain('$');
+
+    const onlyUnpaid = spendOf([unpaid], 'this-year');
+    expect(onlyUnpaid.value).toBe(0);
+    expect(onlyUnpaid.caption).toBe('₦7,800 awaiting payment');
+  });
+
   it('keeps out-for-delivery parcels active and aggregates assigned into pending', () => {
     const data = service.build(
       [
