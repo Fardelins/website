@@ -140,6 +140,26 @@ describe('SendDelivery', () => {
     expect(root.querySelectorAll('.tag')).toHaveLength(0);
   });
 
+  it('keeps the newest prices when an older request finishes last', async () => {
+    await render(completeDraft());
+    await press('Continue');
+    await press('Continue');
+
+    let finishOld: (rates: ReturnType<typeof rate>[]) => void = () => undefined;
+    api.rates
+      .mockReturnValueOnce(new Promise((resolve) => (finishOld = resolve)))
+      .mockResolvedValueOnce([rate('a', 5100, '1 day')]);
+    await press('Courier office');
+    await press('Priority');
+    finishOld([rate('a', 2100, '2 days')]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const shown = root.querySelector('.courier__price')?.textContent;
+    expect(shown).toContain((5100).toLocaleString());
+    expect(shown).not.toContain((2100).toLocaleString());
+  });
+
   it('asks for a courier before paying, then pays through Paystack', async () => {
     api.order.mockResolvedValue({ reference: 'ref-1', authorizationUrl: null });
     await render(completeDraft());

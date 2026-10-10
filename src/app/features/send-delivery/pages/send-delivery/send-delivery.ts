@@ -69,6 +69,7 @@ export class SendDelivery {
   private readonly seo = inject(SeoService);
   private readonly addressBook = inject(SavedAddressesService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private ratesRequest = 0;
 
   protected readonly steps = STEPS;
   protected readonly draft = signal<SendDraft>(emptyDraft());
@@ -386,10 +387,12 @@ export class SendDelivery {
 
   protected async loadRates(): Promise<void> {
     if (!this.parcelDone() || !this.dropoffDone()) return;
+    const request = ++this.ratesRequest;
     this.loadingRates.set(true);
     this.ratesError.set(null);
     try {
       const rates = await this.api.rates(this.draft());
+      if (request !== this.ratesRequest) return;
       this.rates.set(rates);
       if (!rates.length) {
         const { deliveryType, priority } = this.draft();
@@ -400,9 +403,11 @@ export class SendDelivery {
         );
       }
     } catch {
-      this.ratesError.set("We couldn't load couriers for this route.");
+      if (request === this.ratesRequest) {
+        this.ratesError.set("We couldn't load couriers for this route.");
+      }
     } finally {
-      this.loadingRates.set(false);
+      if (request === this.ratesRequest) this.loadingRates.set(false);
     }
   }
 
