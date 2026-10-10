@@ -473,6 +473,12 @@
   padding: 18px 12px 2px;
   list-style: none;
 }
+.timeline__empty {
+  padding: 4px 0 8px;
+  color: var(--color-styles-label);
+  font-size: 14px;
+  line-height: 1.5;
+}
 .event {
   position: relative;
   display: grid;

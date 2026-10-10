@@ -268,7 +268,7 @@ export class Track {
   }
 
   protected stepLabel(phase: TrackingPhase, result: TrackingResult): string {
-    return phaseLabel(phase, result.events[0]?.status);
+    return phaseLabel(phase, result.events[0]?.status ?? 'pending');
   }
 
   protected stepCurrent(index: number, result: TrackingResult): boolean {

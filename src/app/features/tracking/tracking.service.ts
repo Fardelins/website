@@ -21,7 +21,7 @@ export class TrackingService {
   private readonly http = inject(HttpClient);
   private readonly platformId = inject(PLATFORM_ID);
 
-  /** Look up a shipment by tracking number. Returns null when nothing matches (404 / empty). */
+  /** Look up a shipment by tracking number. Returns null only for an unknown number (404). */
   async track(trackingId: string): Promise<TrackingResult | null> {
     const id = trackingId.trim();
     if (!id) return null;
@@ -41,8 +41,21 @@ export class TrackingService {
     return this.composeResult(id, response?.data ?? []);
   }
 
-  private composeResult(id: string, raw: TrackingEventRaw[]): TrackingResult | null {
-    if (raw.length === 0) return null;
+  private composeResult(id: string, raw: TrackingEventRaw[]): TrackingResult {
+    // BE answers 200 with no events for a parcel that exists but has no dispatcher yet (unknown ids 404).
+    if (raw.length === 0) {
+      return {
+        trackingId: id,
+        events: [],
+        currentPhaseIndex: 0,
+        currentPhaseProgress: 0.25,
+        delivered: false,
+        accepted: false,
+        completed: false,
+        headline: statusLabel('pending'),
+        updatedLabel: '',
+      };
+    }
 
     // Sort by `order` ascending, it can be non-contiguous, so never rely on
     // array position or max(order) as a step count.

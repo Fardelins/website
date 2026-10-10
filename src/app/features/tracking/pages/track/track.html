@@ -192,6 +192,12 @@
                 <div class="timeline-wrap" [class.open]="timelineOpen()">
                   <div class="timeline-clip">
                     <ol id="shipment-timeline" class="timeline">
+                      @if (!r.events.length) {
+                        <li class="timeline__empty">
+                          We found your parcel. Tracking updates start as soon as a dispatcher is
+                          assigned to it.
+                        </li>
+                      }
                       @for (event of r.events; track event.id; let first = $first) {
                         <li class="event" [class.event--current]="first && !r.delivered">
                           <span class="event__node"></span>
