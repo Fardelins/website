@@ -7,8 +7,11 @@ export interface CourierRate {
   rateId: string;
   courierName: string;
   logoUrl: string | null;
+  /** The total charged: BE multiplies the rate by the parcel quantity. */
   priceLabel: string;
   amount: number;
+  /** "₦2,600 × 3" when the quantity is above 1. */
+  quantityNote?: string | null;
   deliveryWindow: string | null;
   rating: number | null;
   reviewCount: number | null;

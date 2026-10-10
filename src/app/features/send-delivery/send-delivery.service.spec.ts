@@ -276,6 +276,24 @@ describe('SendDeliveryService', () => {
       expect(priority[0]).toMatchObject({ amount: 5600, deliveryWindow: '1 day' });
     });
 
+    it('charges the rate times the quantity, like BE, and shows the multiplication', async () => {
+      const draft = { ...emptyDraft(), deliveryType: 'user' as const, priority: false };
+      draft.parcel.sizeId = 2;
+      draft.parcel.quantity = 3;
+      const pending = service.rates(draft);
+      http.expectOne('/v1/public/get-shipment-rates').flush({ data: [rate(1)] });
+
+      const [three] = await pending;
+      expect(three.amount).toBe(7800);
+      expect(three.priceLabel).toContain('7,800');
+      expect(three.quantityNote).toContain('2,600');
+      expect(three.quantityNote).toContain('× 3');
+
+      const [one] = await ask({ deliveryType: 'user', priority: false }, [rate(1)]);
+      expect(one.amount).toBe(2600);
+      expect(one.quantityNote).toBeNull();
+    });
+
     it("hides a courier that doesn't offer the chosen option", async () => {
       const noOffice = rate(2, {
         sizes: [

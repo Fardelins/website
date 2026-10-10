@@ -62,12 +62,16 @@ export class SendDeliveryService {
 
   async rates(draft: SendDraft): Promise<CourierRate[]> {
     if (this.auth.isMockSession()) {
+      const count = Math.max(1, draft.parcel.quantity);
       return MOCK_COURIERS.map((courier) => ({
         rateId: courier.rateId,
         courierName: courier.name,
         logoUrl: courier.logoUrl,
-        amount: courier.amount,
-        priceLabel: formatMoney(courier.amount, 'NGN') ?? `₦${courier.amount.toLocaleString()}`,
+        amount: courier.amount * count,
+        priceLabel:
+          formatMoney(courier.amount * count, 'NGN') ??
+          `₦${(courier.amount * count).toLocaleString()}`,
+        quantityNote: count > 1 ? `${formatMoney(courier.amount, 'NGN')} × ${count}` : null,
         deliveryWindow: courier.deliveryWindow,
         rating: courier.rating,
         reviewCount: courier.reviewCount,
@@ -90,7 +94,7 @@ export class SendDeliveryService {
       }),
     );
     return readList(body)
-      .map((item) => this.toRate(item, draft.parcel.sizeId, draft))
+      .map((item) => this.toRate(item, draft.parcel.sizeId, draft, draft.parcel.quantity))
       .filter((rate): rate is CourierRate => rate !== null);
   }
 
@@ -195,6 +199,7 @@ export class SendDeliveryService {
     source: unknown,
     sizeId: number | null,
     options: DeliveryOptions,
+    quantity: number,
   ): CourierRate | null {
     const record = asBag(source);
     // Confirmed shape: the courier sits under hub.courier_business; company_name and uploads
@@ -207,8 +212,11 @@ export class SendDeliveryService {
     const sizes = readList(record['sizes']).map(asBag);
     const size = sizes.find((s) => Number(s['shipment_size_id']) === sizeId) ?? sizes[0] ?? null;
     if (size && size['available'] === false) return null;
-    const amount = this.rateAmount(record, size, options);
-    if (amount === null) return null;
+    const unitAmount = this.rateAmount(record, size, options);
+    if (unitAmount === null) return null;
+    const count = Math.max(1, Math.floor(quantity) || 1);
+    const amount = unitAmount * count;
+    const currency = readString(record, ['currency', 'currency_code']) ?? undefined;
     const durations = asBag(record['durations']);
     const timing = asBag(durations[options.priority ? 'priority' : 'standard']);
     return {
@@ -219,9 +227,8 @@ export class SendDeliveryService {
         'Courier',
       logoUrl: readString(readList(courier['uploads'])[0], ['link', 'url']),
       amount,
-      priceLabel:
-        formatMoney(amount, readString(record, ['currency', 'currency_code']) ?? undefined) ??
-        'Not available',
+      priceLabel: formatMoney(amount, currency) ?? 'Not available',
+      quantityNote: count > 1 ? `${formatMoney(unitAmount, currency)} × ${count}` : null,
       // Pickup happens before the clock the customer sees really starts, so only delivery shows.
       // Durations are days (BE confirmed 2026-10-06, after first calling them hours).
       deliveryWindow: this.daysLabel(timing['delivery_duration'] ?? record['delivery_duration']),

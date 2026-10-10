@@ -483,7 +483,12 @@
                         }
                       </span>
                     </span>
-                    <span class="courier__price">{{ rate.priceLabel }}</span>
+                    <span class="courier__price"
+                      >{{ rate.priceLabel }}
+                      @if (rate.quantityNote) {
+                        <small>{{ rate.quantityNote }}</small>
+                      }
+                    </span>
                   </button>
                 } @empty {
                   <p class="field__hint">No courier matches "{{ courierQuery() }}".</p>
@@ -570,7 +575,12 @@
         </div>
       </dl>
       <div class="receipt__total">
-        <span>Total</span>
+        <span
+          >Total
+          @if (selectedRate()?.quantityNote; as note) {
+            <small class="receipt__note">{{ note }}</small>
+          }
+        </span>
         <strong [class.is-empty]="!selectedRate()">{{
           selectedRate()?.priceLabel ?? 'Not priced yet'
         }}</strong>
