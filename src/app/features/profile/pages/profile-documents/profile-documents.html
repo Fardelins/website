@@ -35,10 +35,12 @@
     <label class="upload">
       <ng-icon name="solarUploadBoldDuotone" aria-hidden="true" />
       <span class="upload__title">{{ uploading() ? 'Uploading…' : 'Choose a file' }}</span>
-      <span class="upload__hint">JPG, PNG or PDF. Make sure the whole document is visible.</span>
+      <span class="upload__hint"
+        >One JPG or PDF file. Make sure the whole document is visible.</span
+      >
       <input
         type="file"
-        accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+        accept=".jpg,.jpeg,.pdf,image/jpeg,application/pdf"
         hidden
         [disabled]="uploading()"
         (change)="onFile($event)"

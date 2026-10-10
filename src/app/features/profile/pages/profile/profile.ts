@@ -75,7 +75,7 @@ const DOC_TYPE_ICONS: Record<string, string> = {
   "Driver's Licence": 'solarCard2BoldDuotone',
   "Voter's Card": 'solarDocumentTextBoldDuotone',
 };
-const ACCEPTED_DOCUMENT_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+const ACCEPTED_DOCUMENT_TYPES = ['image/jpeg', 'application/pdf'];
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024;
 const OCR_SCAN_TIMEOUT_MS = 20_000;
 
@@ -603,7 +603,7 @@ export class Profile {
     input.value = '';
 
     if (!ACCEPTED_DOCUMENT_TYPES.includes(file.type)) {
-      this.error.set('Choose a JPG, PNG or PDF document.');
+      this.error.set('Choose a JPG or PDF document.');
       this.haptics.error();
       return;
     }

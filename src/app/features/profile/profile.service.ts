@@ -19,6 +19,10 @@ import { MOCK_TRANSACTIONS } from '@features/transactions/transactions.mock';
 const TRANSACTION_PAGE_SIZE = 100;
 const MAX_TRANSACTION_PAGES = 10;
 
+function createdTime(record: Record<string, unknown>): number {
+  return Date.parse(String(record['created_at'] ?? record['createdAt'] ?? '')) || 0;
+}
+
 export interface Transaction {
   id: string;
   reference: string;
@@ -171,9 +175,11 @@ export class ProfileService {
       return readList(body)
         .map((item) => asBag(item))
         .filter((record) => readString(record, ['id', '_id', 'status', 'state']))
+        .sort((a, b) => createdTime(b) - createdTime(a))
         .map((record) => ({
           id: readString(record, ['id', '_id']) ?? '',
-          type: readString(record, ['type', 'document_type', 'name']) ?? 'Document',
+          // `type` is BE's own bucket ("domestic"), `name` is the ID type the customer picked.
+          type: readString(record, ['name', 'document_type', 'type']) ?? 'Document',
           status: readString(record, ['status', 'state']) ?? 'pending',
           uploadedLabel: formatDate(record['created_at'] ?? record['createdAt']),
         }));
@@ -198,9 +204,8 @@ export class ProfileService {
     form.append('unique_identifier', uniqueIdentifier);
     form.append('document', file, file.name);
     try {
-      await firstValueFrom(
-        this.http.post(this.apiUrl('/verification-document/upload/customer'), form),
-      );
+      // BE only accepts `user` or `courier` here (Swagger lists no values); `customer` is a 400.
+      await firstValueFrom(this.http.post(this.apiUrl('/verification-document/upload/user'), form));
     } catch (error) {
       throw new Error(parseApiError(error, "We couldn't upload that document."));
     }

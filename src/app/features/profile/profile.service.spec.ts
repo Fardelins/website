@@ -82,7 +82,7 @@ describe('ProfileService avatar upload', () => {
     const file = new File(['passport'], 'passport.pdf', { type: 'application/pdf' });
 
     const upload = service.uploadDocument(file, 'Passport', 'A12345678');
-    const request = http.expectOne('/v1/verification-document/upload/customer');
+    const request = http.expectOne('/v1/verification-document/upload/user');
     const body = request.request.body as FormData;
 
     expect(request.request.method).toBe('POST');
@@ -245,7 +245,37 @@ describe('ProfileService avatar upload', () => {
     expect(await service.documents()).toEqual([
       expect.objectContaining({ type: 'Passport', status: 'pending' }),
     ]);
-    http.expectNone('/v1/verification-document/upload/customer');
+    http.expectNone('/v1/verification-document/upload/user');
     http.expectNone('/v1/verification-document');
+  });
+
+  it('lists the newest submission first and names it by the ID type, not the BE bucket', async () => {
+    const service = TestBed.inject(ProfileService);
+    const http = TestBed.inject(HttpTestingController);
+
+    const pending = service.documents();
+    http.expectOne('/v1/verification-document').flush({
+      data: [
+        {
+          id: 1,
+          name: 'Passport',
+          type: 'domestic',
+          status: 'rejected',
+          created_at: '2026-10-01T09:00:00Z',
+        },
+        {
+          id: 2,
+          name: 'NIN',
+          type: 'domestic',
+          status: 'pending',
+          created_at: '2026-10-09T09:00:00Z',
+        },
+      ],
+    });
+
+    await expect(pending).resolves.toEqual([
+      expect.objectContaining({ id: '2', type: 'NIN', status: 'pending' }),
+      expect.objectContaining({ id: '1', type: 'Passport', status: 'rejected' }),
+    ]);
   });
 });
