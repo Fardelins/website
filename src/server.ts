@@ -142,6 +142,13 @@ app.use((req, res, next) => {
   req.on('error', next);
 });
 
+// The browser Places key, read from a Railway variable at runtime so it is never in git or the bundle.
+// It still reaches the browser (it must), so it needs referrer and API restrictions in Google Cloud.
+app.get('/api/public-config', (_req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=300');
+  res.json({ googlePlacesKey: process.env['GOOGLE_PLACES_API_KEY'] ?? '' });
+});
+
 // Mailchimp subscribe, proxied server-side since the API key can't reach the browser.
 // MAILCHIMP_AUDIENCE_ID is swappable independently of the key (different list, same key).
 const MAILCHIMP_API_KEY = process.env['MAILCHIMP_API_KEY'];

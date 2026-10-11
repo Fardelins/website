@@ -65,9 +65,24 @@ describe('GooglePlacesService', () => {
 
   it('does nothing without a key, so the field stays a plain text box', async () => {
     const service = serviceWith('');
-    expect(service.enabled).toBe(false);
+    fetchMock.mockResolvedValue(reply({ googlePlacesKey: '' }));
     expect(await service.suggest('Durumi')).toEqual([]);
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/public-config');
+  });
+
+  it('fetches the key from the server once, then searches with it', async () => {
+    const service = serviceWith('');
+    fetchMock.mockImplementation(async (url: string) =>
+      url === '/api/public-config'
+        ? reply({ googlePlacesKey: 'server-key' })
+        : reply({ suggestions: [] }),
+    );
+    await service.suggest('Durumi');
+    await service.suggest('Durumi Abuja');
+    const configCalls = fetchMock.mock.calls.filter(([url]) => url === '/api/public-config');
+    expect(configCalls).toHaveLength(1);
+    expect(fetchMock.mock.calls[1][1].headers['X-Goog-Api-Key']).toBe('server-key');
   });
 
   it('waits for three characters before searching', async () => {

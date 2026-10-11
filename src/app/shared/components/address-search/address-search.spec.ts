@@ -16,7 +16,6 @@ describe('AddressSearch', () => {
   let fixture: ComponentFixture<AddressSearch>;
   let root: HTMLElement;
   const places = {
-    enabled: true,
     suggest: vi.fn(),
     details: vi.fn(),
   };
@@ -32,7 +31,6 @@ describe('AddressSearch', () => {
   };
 
   beforeEach(async () => {
-    places.enabled = true;
     places.suggest.mockReset();
     places.details.mockReset();
     places.suggest.mockResolvedValue([
@@ -93,11 +91,10 @@ describe('AddressSearch', () => {
     expect(root.querySelector('[role=listbox]')).toBeNull();
   });
 
-  it('stays a plain text box when Google is not set up', async () => {
-    places.enabled = false;
+  it('stays a plain text box when Google gives no suggestions', async () => {
+    places.suggest.mockResolvedValue([]);
     type('Soulmate');
     await settle();
-    expect(places.suggest).not.toHaveBeenCalled();
     expect(root.querySelector('[role=listbox]')).toBeNull();
   });
 

@@ -1,10 +1,14 @@
-import { Injectable, InjectionToken, inject } from '@angular/core';
-import { GOOGLE_PLACES_API_KEY } from '@core/config/google-places.config';
+import { Injectable, InjectionToken, inject, isDevMode } from '@angular/core';
 
+/** The browser Places key. Empty by default: the server hands it over at runtime, so it is never in git. */
 export const GOOGLE_PLACES_KEY = new InjectionToken<string>('GOOGLE_PLACES_KEY', {
   providedIn: 'root',
-  factory: () => GOOGLE_PLACES_API_KEY,
+  factory: () => '',
 });
+
+const CONFIG_URL = '/api/public-config';
+/** Dev only: paste a key into this localStorage entry to try address search on `ng serve`. */
+const DEV_KEY_STORAGE = 'fardelins.dev.googlePlacesKey';
 
 const AUTOCOMPLETE_URL = 'https://places.googleapis.com/v1/places:autocomplete';
 const DETAILS_URL = 'https://places.googleapis.com/v1/places';
@@ -96,15 +100,13 @@ export function parsePlace(raw: RawPlace, fallbackStreet: string): PlaceDetails 
 /** Address search over Google Places (New), called from the browser with a referrer-restricted key. */
 @Injectable({ providedIn: 'root' })
 export class GooglePlacesService {
-  private readonly key = inject(GOOGLE_PLACES_KEY);
+  private key = inject(GOOGLE_PLACES_KEY);
+  private keyLoad: Promise<void> | null = null;
   private sessionToken = crypto.randomUUID();
-
-  /** False while no key is configured; the address field then stays a plain text box. */
-  readonly enabled = this.key.length > 0;
 
   /** Never throws: a failed search just means no suggestions. */
   async suggest(input: string): Promise<PlaceSuggestion[]> {
-    if (!this.enabled || input.trim().length < 3) return [];
+    if (input.trim().length < 3 || !(await this.hasKey())) return [];
     try {
       const body = await this.request<{
         suggestions?: {
@@ -143,7 +145,7 @@ export class GooglePlacesService {
 
   /** Ends the search session (Google bills a session as one lookup), so the next search starts fresh. */
   async details(suggestion: PlaceSuggestion): Promise<PlaceDetails | null> {
-    if (!this.enabled) return null;
+    if (!(await this.hasKey())) return null;
     const token = this.sessionToken;
     this.sessionToken = crypto.randomUUID();
     try {
@@ -154,6 +156,35 @@ export class GooglePlacesService {
       return parsePlace({ ...raw, id: raw.id ?? suggestion.placeId }, suggestion.primary);
     } catch {
       return null;
+    }
+  }
+
+  /** Asks the server for the key once. Without one the address field simply stays a plain text box. */
+  private async hasKey(): Promise<boolean> {
+    if (!this.key) {
+      this.keyLoad ??= this.loadKey();
+      await this.keyLoad;
+    }
+    return this.key.length > 0;
+  }
+
+  private async loadKey(): Promise<void> {
+    try {
+      const response = await fetch(CONFIG_URL);
+      if (response.ok) {
+        this.key = String(
+          ((await response.json()) as { googlePlacesKey?: unknown }).googlePlacesKey ?? '',
+        );
+      }
+    } catch {
+      // Not reachable (for example `ng serve`): fall through to the dev fallback.
+    }
+    if (!this.key && isDevMode()) {
+      try {
+        this.key = localStorage.getItem(DEV_KEY_STORAGE) ?? '';
+      } catch {
+        this.key = '';
+      }
     }
   }
 

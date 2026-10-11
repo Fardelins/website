@@ -72,7 +72,7 @@ export class AddressSearch {
     this.activeIndex.set(-1);
     clearTimeout(this.timer);
     const request = ++this.request;
-    if (!this.places.enabled || raw.trim().length < 3) {
+    if (raw.trim().length < 3) {
       this.suggestions.set([]);
       this.open.set(false);
       return;
