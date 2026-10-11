@@ -610,11 +610,26 @@
   .detail-page {
     gap: 12px;
   }
+  /* Refresh stays beside the tracking ID; the wide buttons (Cancel shipment) drop to their own row. */
   .detail-nav {
+    flex-wrap: wrap;
     gap: 12px;
   }
-  .nav-btn--refresh {
+  .tracking-code {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .detail-nav__actions {
+    display: contents;
+  }
+  .detail-nav__actions .nav-btn {
+    order: 3;
+    flex: 1 1 100%;
     justify-content: center;
+  }
+  .detail-nav__actions .nav-btn--refresh {
+    order: 2;
+    flex: none;
     width: 40px;
     padding: 0;
   }

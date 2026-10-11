@@ -245,6 +245,20 @@
   padding: 10px 12px;
   font-size: 13px;
 }
+/* 1fr columns cannot shrink below a date input's own width (wider in Safari), so the two dates overlapped. */
+.filter-group .field__row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.filter-group .field input[type='date'] {
+  min-width: 0;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.filter-group .field input[type='date']::-webkit-date-and-time-value {
+  min-height: 1.4em;
+  text-align: left;
+}
 .presets {
   display: flex;
   flex-wrap: wrap;
@@ -600,11 +614,13 @@
     outline: 3px solid var(--dashboard-focus);
     outline-offset: 2px;
   }
+  /* A long recipient name and a wide status pill wrap onto two lines rather than squeezing the name. */
   .mobile-parcel__foot {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px 8px;
     min-width: 0;
   }
   .mobile-parcel__foot > span {
@@ -647,9 +663,28 @@
   .chips {
     padding-inline: 14px;
   }
-  /* Tabs scroll under the Filters button; fade the edge so it reads as scrollable, not cut off. */
+  /* The tabs get a full-width row so none is cut off; Filters sits on its own row below them. */
+  .bar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
   .filters {
-    mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent);
+    flex: 1 1 100%;
+    gap: 4px;
+    mask-image: linear-gradient(90deg, #000 calc(100% - 18px), transparent);
+  }
+  /* The count sits under the label, so four equal tabs fit a phone without clipping. */
+  .filter {
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 4px;
+    font-size: 11.5px;
+  }
+  .filter-trigger {
+    flex: 1 1 100%;
+    justify-content: center;
   }
   .filter-backdrop {
     position: fixed;

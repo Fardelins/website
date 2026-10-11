@@ -248,7 +248,7 @@
 /* ---- Choice controls ---- */
 .sizes {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
 }
 
@@ -377,6 +377,10 @@
   width: 88px;
   height: 88px;
   border-radius: var(--radius-lg);
+}
+
+.photos__item {
+  background: var(--dashboard-control);
 }
 
 .photos__item img {
