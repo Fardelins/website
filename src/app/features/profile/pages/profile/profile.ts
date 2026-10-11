@@ -79,6 +79,19 @@ const DOC_TYPE_ICONS: Record<string, string> = {
   "Voter's Card": 'solarDocumentTextBoldDuotone',
 };
 const ACCEPTED_DOCUMENT_TYPES = ['image/jpeg', 'application/pdf'];
+
+/** Data saver or a 2G link: skip big downloads nobody asked for yet. */
+function onSlowConnection(): boolean {
+  if (typeof navigator === 'undefined') return true;
+  const { connection } = navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string };
+  };
+  return (
+    Boolean(connection?.saveData) ||
+    connection?.effectiveType === '2g' ||
+    connection?.effectiveType === 'slow-2g'
+  );
+}
 const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024;
 const OCR_SCAN_TIMEOUT_MS = 20_000;
 
@@ -171,6 +184,7 @@ export class Profile {
   protected readonly documentReadState = signal<'idle' | 'found' | 'manual' | 'mismatch'>('idle');
   protected readonly detectedDocumentType = signal<VerificationDocumentType | null>(null);
   protected readonly loadingDocuments = signal(false);
+  private readonly documentsLoaded = signal(false);
   protected readonly docs = signal<VerificationDoc[]>([]);
   protected readonly documentVerified = computed(() =>
     /verif|approv/i.test(this.docs()[0]?.status ?? ''),
@@ -304,12 +318,19 @@ export class Profile {
         this.documentsRequested = true;
         void this.loadDocuments();
       }
-      if (this.activeTab() === 'verification' && !this.documentOcrWarmupRequested) {
-        this.documentOcrWarmupRequested = true;
-        void this.documentOcr
-          .warmUp()
-          .catch((ocrError) => console.warn('[Document OCR] Warm-up failed.', ocrError));
-      }
+    });
+    effect(() => {
+      // The reader is about 25 MB, so fetch it early only when the upload form is about to show.
+      const formShowing =
+        this.activeTab() === 'verification' &&
+        this.documentsLoaded() &&
+        !this.loadingDocuments() &&
+        this.docs().length === 0;
+      if (!formShowing || this.documentOcrWarmupRequested || onSlowConnection()) return;
+      this.documentOcrWarmupRequested = true;
+      void this.documentOcr
+        .warmUp()
+        .catch((ocrError) => console.warn('[Document OCR] Warm-up failed.', ocrError));
     });
     effect(() => {
       if (this.activeTab() === 'addresses' && !this.states().length && !this.loadingStates()) {
@@ -797,6 +818,7 @@ export class Profile {
       this.docs.set(await this.profile.documents());
     } finally {
       this.loadingDocuments.set(false);
+      this.documentsLoaded.set(true);
     }
   }
 

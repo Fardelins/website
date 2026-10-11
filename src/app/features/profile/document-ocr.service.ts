@@ -55,7 +55,12 @@ export class DocumentOcrService {
 
   private async createEngine(): Promise<OcrEngine> {
     const { PaddleOCR } = await import('@paddleocr/paddleocr-js');
-    const wasmPaths = new URL('ort/', document.baseURI).href;
+    // The plain CPU build (14 MB), not the WebGPU one (28 MB) ORT picks by default. ORT accepts this
+    // object form; PaddleOCR forwards it untouched but types the option as a string.
+    const wasmPaths = {
+      mjs: new URL('ort/ort-wasm-simd-threaded.mjs', document.baseURI).href,
+      wasm: new URL('ort/ort-wasm-simd-threaded.wasm', document.baseURI).href,
+    } as unknown as string;
     const workerUrl = new URL('paddleocr/worker-entry-C9UNuyOJ.js', document.baseURI);
     return PaddleOCR.create({
       textDetectionModelName: 'PP-OCRv6_tiny_det',
