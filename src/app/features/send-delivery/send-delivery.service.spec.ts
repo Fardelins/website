@@ -158,6 +158,12 @@ describe('SendDeliveryService', () => {
     await expect(pending).rejects.toThrow('Image storage unavailable.');
   });
 
+  it('tells the customer what to choose when a photo type cannot be used, without calling the API', async () => {
+    const heic = new File([new Uint8Array(1000)], 'IMG_1.heic', { type: 'image/heic' });
+    await expect(service.uploadImages([heic])).rejects.toThrow(/HEIC files can't be used/);
+    http.expectNone('/v1/upload/multiple-images/shipments');
+  });
+
   it('refuses a photo over 10 MB without calling the API', async () => {
     const huge = new File([new Uint8Array(11 * 1024 * 1024)], 'huge.png', { type: 'image/png' });
     await expect(service.uploadImages([huge])).rejects.toThrow('too large');
