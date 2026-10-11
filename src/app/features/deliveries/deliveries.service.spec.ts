@@ -123,30 +123,23 @@ describe('DeliveriesService account cache', () => {
     await expect(pending).resolves.toEqual(expect.objectContaining({ currentPhaseIndex: 3 }));
   });
 
-  it('drops parcels outside the chosen state and city, since BE returns them all', async () => {
+  it('shows the parcels BE returns for a location filter, without filtering them again', async () => {
     const service = TestBed.inject(DeliveriesService);
     const http = TestBed.inject(HttpTestingController);
-    const row = (id: string, state: string, city: string) => ({
-      id,
-      tracking_id: `FDL-${id}`,
-      status: 'pending',
-      receiver_location: { address: 'x', state: { name: state }, city: { name: city } },
-      order: { id: `o${id}`, status: 'paid', amount: 100 },
+    const pending = service.search({ ...EMPTY_PARCEL_FILTERS, state: 'lagos' });
+    http.expectOne(isShipments).flush({
+      data: [
+        {
+          id: '1',
+          tracking_id: 'FDL-1',
+          status: 'pending',
+          receiver_location: { address: 'x', state: { name: 'abuja' } },
+          order: { id: 'o1', status: 'paid', amount: 100 },
+        },
+      ],
+      has_next_page: false,
     });
-    const rows = [
-      row('1', 'abuja', 'durumi'),
-      row('2', 'abuja', 'wuse'),
-      row('3', 'lagos', 'ikeja'),
-    ];
-    const ask = async (state: string, city = '') => {
-      const pending = service.search({ ...EMPTY_PARCEL_FILTERS, state, city });
-      http.expectOne(isShipments).flush({ data: rows, has_next_page: false });
-      return (await pending).map((item) => item.trackingId);
-    };
-
-    expect(await ask('abuja')).toEqual(['FDL-1', 'FDL-2']);
-    expect(await ask('Abuja', 'durumi')).toEqual(['FDL-1']);
-    expect(await ask('kano')).toEqual([]);
+    expect((await pending).map((item) => item.trackingId)).toEqual(['FDL-1']);
   });
 
   describe('invoice', () => {

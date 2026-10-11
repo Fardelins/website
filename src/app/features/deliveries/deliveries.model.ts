@@ -67,20 +67,6 @@ export function parcelFilterParams(filters: ParcelFilters): Record<string, strin
   return params;
 }
 
-/**
- * BE ignores the location filter on the shipments list (it answers with every parcel), so the page
- * checks the destination itself. A parcel whose destination is unknown is kept, never hidden.
- */
-export function matchesLocation(
-  delivery: Pick<DeliverySummary, 'dropOffState' | 'dropOffCity'>,
-  filters: Pick<ParcelFilters, 'state' | 'city'>,
-): boolean {
-  const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
-  if (!filters.state || !delivery.dropOffState) return true;
-  if (!same(delivery.dropOffState, filters.state)) return false;
-  return !filters.city || !delivery.dropOffCity || same(delivery.dropOffCity, filters.city);
-}
-
 export interface DeliveryDetail extends DeliverySummary {
   senderName: string | null;
   receiverName: string | null;
