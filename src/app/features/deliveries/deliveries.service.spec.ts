@@ -123,6 +123,32 @@ describe('DeliveriesService account cache', () => {
     await expect(pending).resolves.toEqual(expect.objectContaining({ currentPhaseIndex: 3 }));
   });
 
+  it('drops parcels outside the chosen state and city, since BE returns them all', async () => {
+    const service = TestBed.inject(DeliveriesService);
+    const http = TestBed.inject(HttpTestingController);
+    const row = (id: string, state: string, city: string) => ({
+      id,
+      tracking_id: `FDL-${id}`,
+      status: 'pending',
+      receiver_location: { address: 'x', state: { name: state }, city: { name: city } },
+      order: { id: `o${id}`, status: 'paid', amount: 100 },
+    });
+    const rows = [
+      row('1', 'abuja', 'durumi'),
+      row('2', 'abuja', 'wuse'),
+      row('3', 'lagos', 'ikeja'),
+    ];
+    const ask = async (state: string, city = '') => {
+      const pending = service.search({ ...EMPTY_PARCEL_FILTERS, state, city });
+      http.expectOne(isShipments).flush({ data: rows, has_next_page: false });
+      return (await pending).map((item) => item.trackingId);
+    };
+
+    expect(await ask('abuja')).toEqual(['FDL-1', 'FDL-2']);
+    expect(await ask('Abuja', 'durumi')).toEqual(['FDL-1']);
+    expect(await ask('kano')).toEqual([]);
+  });
+
   it('returns null when the tracking id is not in the account list', async () => {
     const service = TestBed.inject(DeliveriesService);
     const http = TestBed.inject(HttpTestingController);

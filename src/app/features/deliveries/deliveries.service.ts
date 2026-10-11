@@ -19,6 +19,7 @@ import {
   formatDate,
   formatMoney,
   hasNextPage,
+  matchesLocation,
   parcelFilterParams,
   readList,
   readString,
@@ -85,7 +86,9 @@ export class DeliveriesService {
   async search(filters: ParcelFilters): Promise<DeliverySummary[]> {
     if (this.auth.isMockSession()) return filterMockDeliveries(MOCK_DELIVERIES, filters);
     const rows = await this.fetchShipmentRows(parcelFilterParams(filters));
-    return rows.map((item) => this.toSummary(item));
+    return rows
+      .map((item) => this.toSummary(item))
+      .filter((item) => matchesLocation(item, filters));
   }
 
   async detail(trackingId: string): Promise<DeliveryDetail | null> {
@@ -208,6 +211,8 @@ export class DeliveriesService {
         'city',
         'state',
       ]),
+      dropOffState: readString(asBag(asBag(record['receiver_location'])['state']), ['name']),
+      dropOffCity: readString(asBag(asBag(record['receiver_location'])['city']), ['name']),
       etaLabel: formatDate(etaAt) || null,
       amountLabel: formatMoney(rawAmount, currency ?? undefined),
       createdAt,

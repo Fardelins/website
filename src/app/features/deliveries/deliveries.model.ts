@@ -11,6 +11,9 @@ export interface DeliverySummary {
   imageUrl: string | null;
   createdLabel: string;
   dropOff: string | null;
+  /** The destination's state and city names as BE stores them, used to double-check the location filter. */
+  dropOffState?: string | null;
+  dropOffCity?: string | null;
   etaLabel: string | null;
   amountLabel: string | null;
   createdAt?: string | null;
@@ -62,6 +65,20 @@ export function parcelFilterParams(filters: ParcelFilters): Record<string, strin
     if (filters.city) params['location[city]'] = filters.city;
   }
   return params;
+}
+
+/**
+ * BE ignores the location filter on the shipments list (it answers with every parcel), so the page
+ * checks the destination itself. A parcel whose destination is unknown is kept, never hidden.
+ */
+export function matchesLocation(
+  delivery: Pick<DeliverySummary, 'dropOffState' | 'dropOffCity'>,
+  filters: Pick<ParcelFilters, 'state' | 'city'>,
+): boolean {
+  const same = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+  if (!filters.state || !delivery.dropOffState) return true;
+  if (!same(delivery.dropOffState, filters.state)) return false;
+  return !filters.city || !delivery.dropOffCity || same(delivery.dropOffCity, filters.city);
 }
 
 export interface DeliveryDetail extends DeliverySummary {
