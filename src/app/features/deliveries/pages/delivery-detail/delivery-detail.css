@@ -532,6 +532,13 @@
   font: 650 11px/1 var(--font-body);
   text-decoration: none;
 }
+.invoice-link {
+  cursor: pointer;
+}
+.invoice-link:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
 .invoice-link ng-icon {
   font-size: 14px;
 }

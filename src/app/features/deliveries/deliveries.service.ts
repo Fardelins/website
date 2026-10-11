@@ -91,6 +91,47 @@ export class DeliveriesService {
       .filter((item) => matchesLocation(item, filters));
   }
 
+  /** The sender's invoice PDF. A plain link can't carry the login token, so it is fetched, then saved. */
+  async invoice(trackingId: string): Promise<{ blob: Blob; filename: string }> {
+    if (this.auth.isMockSession())
+      throw new Error('Invoices are not available in the demo account.');
+    try {
+      const response = await firstValueFrom(
+        this.http.get(this.apiUrl(`/customer-shipment/invoice/${encodeURIComponent(trackingId)}`), {
+          responseType: 'blob',
+          observe: 'response',
+        }),
+      );
+      if (!response.body) throw new Error('empty');
+      const named = /filename="?([^";]+)"?/i.exec(
+        response.headers.get('content-disposition') ?? '',
+      );
+      return { blob: response.body, filename: named?.[1] ?? `invoice-${trackingId}.pdf` };
+    } catch (error) {
+      // BE uses 400 both for "shipment not found" and for a PDF it failed to build, so read the message.
+      const status = error instanceof HttpErrorResponse ? error.status : 0;
+      const reason = status === 400 ? await this.blobMessage(error) : '';
+      throw new Error(
+        /shipment not found/i.test(reason)
+          ? "We couldn't find an invoice for this parcel."
+          : status === 400
+            ? "The invoice couldn't be generated right now. Please try again later."
+            : "We couldn't download the invoice. Please try again.",
+      );
+    }
+  }
+
+  /** The `message` of a JSON error body that arrived as a blob (the request asked for a file). */
+  private async blobMessage(error: unknown): Promise<string> {
+    const body = error instanceof HttpErrorResponse ? error.error : null;
+    if (!(body instanceof Blob)) return '';
+    try {
+      return String((JSON.parse(await body.text()) as { message?: unknown }).message ?? '');
+    } catch {
+      return '';
+    }
+  }
+
   async detail(trackingId: string): Promise<DeliveryDetail | null> {
     if (this.auth.isMockSession()) return mockDeliveryDetail(trackingId);
     const record = await this.findOwnShipment(trackingId);

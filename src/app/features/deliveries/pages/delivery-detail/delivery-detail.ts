@@ -34,6 +34,7 @@ import { SITE_NAME, SeoService } from '@core/services/seo.service';
 import { EmptyState } from '@shared/components/empty-state/empty-state';
 import { ImageCarousel } from '@shared/components/image-carousel/image-carousel';
 import { ReceiptDialog } from '@shared/components/receipt-dialog/receipt-dialog';
+import { saveFile } from '@shared/utils/save-file';
 import { MapPoint, RouteMap } from '@shared/components/route-map/route-map';
 import { Skeleton } from '@shared/components/skeleton/skeleton';
 import { TrackingCopy } from '@shared/components/tracking-copy/tracking-copy';
@@ -95,6 +96,7 @@ export class DeliveryDetail implements OnDestroy {
   /** The completed payment for this parcel; the Payment section only exists once it is found. */
   protected readonly payment = signal<Transaction | null>(null);
   protected readonly receiptOpen = signal(false);
+  protected readonly invoiceBusy = signal(false);
 
   protected readonly busy = signal<'pay' | 'cancel' | null>(null);
   protected readonly actionError = signal<string | null>(null);
@@ -315,6 +317,27 @@ export class DeliveryDetail implements OnDestroy {
     } catch {
       // Not worth an error banner; the next refresh asks again.
       this.paymentRequestedFor = '';
+    }
+  }
+
+  protected async downloadInvoice(): Promise<void> {
+    const trackingId = this.detail()?.trackingId;
+    if (!trackingId || this.invoiceBusy()) return;
+    this.haptics.light();
+    this.invoiceBusy.set(true);
+    try {
+      const { blob, filename } = await this.deliveries.invoice(trackingId);
+      saveFile(blob, filename);
+      this.toast.success('Invoice downloaded', { description: filename });
+      this.haptics.success();
+    } catch (error) {
+      this.toast.error("Couldn't download the invoice", {
+        description: (error as Error).message,
+        actions: [{ label: 'Try again', run: () => void this.downloadInvoice() }],
+      });
+      this.haptics.error();
+    } finally {
+      this.invoiceBusy.set(false);
     }
   }
 

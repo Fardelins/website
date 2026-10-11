@@ -149,6 +149,82 @@ describe('DeliveriesService account cache', () => {
     expect(await ask('kano')).toEqual([]);
   });
 
+  describe('invoice', () => {
+    const invoiceUrl = '/v1/customer-shipment/invoice/FDL-1';
+
+    it('fetches the PDF as a file and reuses the name BE gives it', async () => {
+      const service = TestBed.inject(DeliveriesService);
+      const http = TestBed.inject(HttpTestingController);
+
+      const pending = service.invoice('FDL-1');
+      const request = http.expectOne(invoiceUrl);
+      expect(request.request.method).toBe('GET');
+      expect(request.request.responseType).toBe('blob');
+      request.flush(new Blob(['%PDF-1.4'], { type: 'application/pdf' }), {
+        headers: { 'Content-Disposition': 'attachment; filename="invoice-FDL-1.pdf"' },
+      });
+
+      const { blob, filename } = await pending;
+      expect(filename).toBe('invoice-FDL-1.pdf');
+      expect(blob.type).toBe('application/pdf');
+    });
+
+    it('names the file itself when BE sends no name', async () => {
+      const service = TestBed.inject(DeliveriesService);
+      const http = TestBed.inject(HttpTestingController);
+
+      const pending = service.invoice('FDL-1');
+      http.expectOne(invoiceUrl).flush(new Blob(['%PDF-1.4'], { type: 'application/pdf' }));
+
+      expect((await pending).filename).toBe('invoice-FDL-1.pdf');
+    });
+
+    it('says the invoice was not found for the 400 BE uses for that', async () => {
+      const service = TestBed.inject(DeliveriesService);
+      const http = TestBed.inject(HttpTestingController);
+
+      const pending = service.invoice('FDL-1');
+      http.expectOne(invoiceUrl).flush(
+        new Blob([JSON.stringify({ message: 'shipment not found' })], {
+          type: 'application/json',
+        }),
+        { status: 400, statusText: 'Bad Request' },
+      );
+
+      await expect(pending).rejects.toThrow("couldn't find an invoice");
+    });
+
+    it('says the invoice could not be generated when BE fails to build the PDF', async () => {
+      const service = TestBed.inject(DeliveriesService);
+      const http = TestBed.inject(HttpTestingController);
+
+      const pending = service.invoice('FDL-1');
+      http.expectOne(invoiceUrl).flush(
+        new Blob(
+          [
+            JSON.stringify({
+              message: 'Failed to launch the browser process: Running as root without --no-sandbox',
+            }),
+          ],
+          { type: 'application/json' },
+        ),
+        { status: 400, statusText: 'Bad Request' },
+      );
+
+      await expect(pending).rejects.toThrow("couldn't be generated");
+    });
+
+    it('asks to try again for any other failure', async () => {
+      const service = TestBed.inject(DeliveriesService);
+      const http = TestBed.inject(HttpTestingController);
+
+      const pending = service.invoice('FDL-1');
+      http.expectOne(invoiceUrl).flush(new Blob([]), { status: 500, statusText: 'Server Error' });
+
+      await expect(pending).rejects.toThrow('try again');
+    });
+  });
+
   it('returns null when the tracking id is not in the account list', async () => {
     const service = TestBed.inject(DeliveriesService);
     const http = TestBed.inject(HttpTestingController);

@@ -256,15 +256,15 @@
         <section class="panel facts-panel">
           <header class="panel__head">
             <h2>Delivery details</h2>
-            <a
+            <button
+              type="button"
               class="invoice-link"
-              [href]="'/v1/shipment/download-invoice/' + item.trackingId"
-              target="_blank"
-              rel="noopener"
+              [disabled]="invoiceBusy()"
+              (click)="downloadInvoice()"
             >
               <ng-icon name="solarDownloadMinimalisticBoldDuotone" aria-hidden="true" />
-              Invoice
-            </a>
+              {{ invoiceBusy() ? 'Preparing…' : 'Invoice' }}
+            </button>
           </header>
           <dl class="facts">
             <div>
