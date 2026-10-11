@@ -2,9 +2,11 @@ import { TitleCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
@@ -58,6 +60,7 @@ export class Combobox {
 
   private readonly field = viewChild<ElementRef<HTMLInputElement>>('field');
   private readonly titleCasePipe = new TitleCasePipe();
+  private blurTimer: ReturnType<typeof setTimeout> | undefined;
 
   protected readonly filtered = computed(() => {
     const term = this.query().trim().toLowerCase();
@@ -68,6 +71,8 @@ export class Combobox {
 
   constructor() {
     effect(() => this.query.set(this.value()));
+    // A pending blur must not emit once the field is gone (Angular NG0953).
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.blurTimer));
   }
 
   protected onInput(raw: string): void {
@@ -82,7 +87,8 @@ export class Combobox {
 
   protected onBlur(): void {
     // Deferred so a mousedown-selected option (see (mousedown) below) still lands first.
-    setTimeout(() => {
+    clearTimeout(this.blurTimer);
+    this.blurTimer = setTimeout(() => {
       this.open.set(false);
       this.reconcile();
     });
