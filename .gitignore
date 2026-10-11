@@ -51,3 +51,7 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 .originkit/
+
+# Local planning notes (kept on disk, not in git)
+/docs/customer-app-plan.md
+/docs/todo.md
