@@ -564,6 +564,9 @@
 .facts dd.is-unpaid {
   color: var(--parcel-status-cancelled);
 }
+.facts__ref {
+  overflow-wrap: anywhere;
+}
 @media (max-width: 900px) {
   .nav-btn--desktop {
     display: none;

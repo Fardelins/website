@@ -1,104 +1,48 @@
-import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  solarBillListBoldDuotone,
   solarCheckCircleBoldDuotone,
   solarClockCircleBoldDuotone,
   solarCloseCircleBoldDuotone,
-  solarDangerCircleBoldDuotone,
   solarDownloadMinimalisticBoldDuotone,
-  solarUndoLeftRoundBoldDuotone,
-  solarWalletMoneyBoldDuotone,
 } from '@ng-icons/solar-icons/bold-duotone';
 import { toPng } from 'html-to-image';
-import { SITE_NAME, SeoService } from '@core/services/seo.service';
 import { HapticsService } from '@core/services/haptics.service';
 import { ToastService } from '@core/services/toast.service';
-import { EmptyState } from '@shared/components/empty-state/empty-state';
-import { Logo } from '@shared/components/logo/logo';
-import { Skeleton } from '@shared/components/skeleton/skeleton';
-import { StatusPill } from '@shared/components/status-pill/status-pill';
-import { TrackingCopy } from '@shared/components/tracking-copy/tracking-copy';
-import { ProfileService, Transaction } from '@features/profile/profile.service';
+import { Transaction } from '@features/profile/profile.service';
+import { Logo } from '../logo/logo';
+import { StatusPill } from '../status-pill/status-pill';
+import { TrackingCopy } from '../tracking-copy/tracking-copy';
 
-type TransactionFilter = 'all' | 'credit' | 'debit';
-
+/** The paper receipt for one payment, with a PNG download. Shown from the parcel page. */
 @Component({
-  selector: 'app-transactions',
-  imports: [NgIcon, StatusPill, EmptyState, Skeleton, Logo, TrackingCopy],
+  selector: 'app-receipt-dialog',
+  imports: [NgIcon, StatusPill, Logo, TrackingCopy],
   viewProviders: [
     provideIcons({
-      solarBillListBoldDuotone,
       solarCheckCircleBoldDuotone,
       solarClockCircleBoldDuotone,
       solarCloseCircleBoldDuotone,
-      solarDangerCircleBoldDuotone,
       solarDownloadMinimalisticBoldDuotone,
-      solarUndoLeftRoundBoldDuotone,
-      solarWalletMoneyBoldDuotone,
     }),
   ],
-  templateUrl: './transactions.html',
-  styleUrls: ['../../../../shared/styles/forms.css', './transactions.css'],
+  templateUrl: './receipt-dialog.html',
+  styleUrl: './receipt-dialog.css',
 })
-export class Transactions {
-  private readonly profile = inject(ProfileService);
-  private readonly seo = inject(SeoService);
+export class ReceiptDialog {
   private readonly haptics = inject(HapticsService);
   private readonly toast = inject(ToastService);
   private readonly receiptCard = viewChild<ElementRef<HTMLElement>>('receiptCard');
 
-  protected readonly items = signal<Transaction[]>([]);
-  protected readonly loading = signal(true);
-  protected readonly failed = signal(false);
-  protected readonly activeFilter = signal<TransactionFilter>('all');
-  protected readonly receipt = signal<Transaction | null>(null);
+  readonly transaction = input.required<Transaction>();
+  readonly closed = output<void>();
+
   protected readonly downloadingReceipt = signal(false);
   /** One diagonal line through the card's center, the label repeated a few times across it. */
   protected readonly watermarkRepeats = Array.from({ length: 3 });
 
-  protected readonly filteredItems = computed(() => {
-    const filter = this.activeFilter();
-    if (filter === 'all') return this.items();
-    return this.items().filter((item) => (filter === 'credit' ? item.credit : !item.credit));
-  });
-
-  constructor() {
-    this.seo.update({
-      title: `Transactions | ${SITE_NAME}`,
-      description: 'Your Fardelins payment history.',
-      path: '/app/transactions',
-      robots: 'noindex, nofollow',
-    });
-    void this.load();
-  }
-
-  protected async load(): Promise<void> {
-    this.loading.set(true);
-    this.failed.set(false);
-    try {
-      this.items.set(await this.profile.transactions());
-    } catch {
-      this.failed.set(true);
-    } finally {
-      this.loading.set(false);
-    }
-  }
-
-  /** Top-ups feed the wallet, refunds reverse a payment, everything else is a plain receipt. */
-  protected txnIcon(item: Transaction): string {
-    if (/top-?up/i.test(item.description)) return 'solarWalletMoneyBoldDuotone';
-    if (/refund/i.test(item.description)) return 'solarUndoLeftRoundBoldDuotone';
-    return 'solarBillListBoldDuotone';
-  }
-
-  protected openReceipt(item: Transaction): void {
-    this.haptics.selection();
-    this.receipt.set(item);
-  }
-
-  protected closeReceipt(): void {
-    this.receipt.set(null);
+  protected close(): void {
+    this.closed.emit();
   }
 
   protected receiptTone(item: Transaction): 'success' | 'pending' | 'failed' {
@@ -135,8 +79,8 @@ export class Transactions {
 
   protected async downloadReceipt(): Promise<void> {
     const el = this.receiptCard()?.nativeElement;
-    const item = this.receipt();
-    if (!el || !item || this.downloadingReceipt()) return;
+    const item = this.transaction();
+    if (!el || this.downloadingReceipt()) return;
 
     this.downloadingReceipt.set(true);
     this.haptics.light();
@@ -160,15 +104,7 @@ export class Transactions {
     }
   }
 
-  /**
-   * The real brand mark as a rasterizable <img>, not the inline <svg> the component renders.
-   * html-to-image draws the node via `<svg><foreignObject>`, and a nested <svg> inside that
-   * foreignObject hits a browser ceiling and silently fails to draw, but an <img> pointed at
-   * an SVG data URI is just an ordinary image resource and renders fine. Computed `fill` is
-   * copied onto each cloned path inline, since the logo's colors come from CSS custom
-   * properties set on its host (--logo-ink etc.) that the clone's detached markup can't
-   * resolve on its own.
-   */
+  /** html-to-image drops a nested <svg>, so the logo is exported as an <img> of an SVG data URI. */
   private buildLogoDataUrl(logoHost: HTMLElement): string | null {
     const svg = logoHost.querySelector('svg');
     if (!svg) return null;
@@ -183,19 +119,8 @@ export class Transactions {
   }
 
   /**
-   * html-to-image renders the node into an `<svg><foreignObject>`, so it hits a real
-   * limitation we have to route around, not just a style quirk: our fibre-grain texture is an
-   * inline SVG data URI used as a background-image, SVG-in-data-URI-in-HTML-in-foreignObject-
-   * in-SVG is one nesting too many, and the whole canvas rendered solid black rather than
-   * throwing (confirmed by sampling the exported pixels, then bisecting by stripping
-   * properties one at a time). Nulled for the capture only, every OTHER background-image
-   * (the torn-edge gradients, which depend on --receipt-paper resolving) is instead frozen to
-   * its already-computed, var()-free value so it survives the clone.
-   * Also freezes every descendant's computed color/background/border onto inline styles
-   * (custom properties don't reliably survive the clone either), swaps the logo for a
-   * rasterized <img> (see buildLogoDataUrl), reveals the (otherwise screen-hidden) diagonal
-   * watermark, and pins --receipt-paper as a literal. Everything here is a visual no-op on
-   * screen, it only matters for the capture, and is reverted in the caller's finally block.
+   * Freezes computed styles inline and swaps in export-safe pieces: the grain texture turns the
+   * PNG solid black, and CSS variables and nested SVG do not survive html-to-image. Returns the undo.
    */
   private prepareReceiptCapture(root: HTMLElement): () => void {
     const paper = getComputedStyle(root).getPropertyValue('--receipt-paper').trim();

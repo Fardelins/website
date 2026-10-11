@@ -316,6 +316,37 @@
             </div>
           </dl>
         </section>
+
+        @if (payment(); as paid) {
+          <section class="panel facts-panel">
+            <header class="panel__head">
+              <h2>Payment</h2>
+              <button type="button" class="invoice-link" (click)="openReceipt()">
+                <ng-icon name="solarBanknoteBoldDuotone" aria-hidden="true" />
+                View payment
+              </button>
+            </header>
+            <dl class="facts">
+              <div>
+                <dt>Reference</dt>
+                <dd class="facts__ref">{{ paid.reference }}</dd>
+              </div>
+              <div>
+                <dt>Paid on</dt>
+                <dd>
+                  {{ paid.dateLabel }}
+                  @if (paid.timeLabel) {
+                    · {{ paid.timeLabel }}
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>Method</dt>
+                <dd>{{ methodLabel(paid) }}</dd>
+              </div>
+            </dl>
+          </section>
+        }
       </div>
 
       <aside class="map-pane">
@@ -332,6 +363,10 @@
         </app-route-map>
       </aside>
     </div>
+
+    @if (receiptOpen() && payment(); as paid) {
+      <app-receipt-dialog [transaction]="paid" (closed)="receiptOpen.set(false)" />
+    }
 
     <dialog
       #cancelDialog

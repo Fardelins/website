@@ -23,10 +23,23 @@ function createdTime(record: Record<string, unknown>): number {
   return Date.parse(String(record['created_at'] ?? record['createdAt'] ?? '')) || 0;
 }
 
+function paidMatch(rows: Transaction[], trackingId: string): Transaction | null {
+  return (
+    rows.find(
+      (row) =>
+        row.trackingId === trackingId && /^(paid|success|successful|completed)$/i.test(row.status),
+    ) ?? null
+  );
+}
+
 export interface Transaction {
   id: string;
   reference: string;
   trackingId: string | null;
+  /** How it was paid, as BE names it (for example "paystack"). */
+  method?: string | null;
+  /** How Paystack took the money (card, bank_transfer), when BE's gateway record says. */
+  channel?: string | null;
   description: string;
   amount: number;
   amountLabel: string;
@@ -110,59 +123,76 @@ export class ProfileService {
   async transactions(): Promise<Transaction[]> {
     if (this.isMockSession()) return MOCK_TRANSACTIONS;
 
-    return (await this.fetchTransactionRows()).map((item) => {
-      const record = asBag(item);
-      // BE rows are payments for shipments: { id, payment_method, amount, admin_fee, status, mode,
-      // shipment_id, created_at, transaction }. `transaction` (the gateway record, with the
-      // reference) is null until the payment has actually been attempted.
-      const gateway = asBag(record['transaction']);
-      const paysShipment = Boolean(readString(record, ['shipment_id', 'shipmentId']));
-      const amount = Number(record['amount'] ?? record['value'] ?? 0);
-      const type = readString(record, ['type', 'direction', 'entry']) ?? '';
-      const timestamp = record['created_at'] ?? record['createdAt'] ?? record['date'];
-      const id = readString(record, ['id', '_id']) ?? '';
-      return {
-        id,
-        reference:
-          readString(gateway, ['transaction_id', 'reference', 'ref', 'transaction_ref']) ??
-          readString(record, ['reference', 'ref', 'transaction_ref']) ??
-          id,
-        // BE returns shipment_id, not the tracking code, so there is nothing to link to yet.
-        trackingId: readString(record, [
-          'tracking_id',
-          'trackingId',
-          'delivery_tracking_id',
-          'parcel_tracking_id',
-        ]),
-        description:
-          readString(record, ['description', 'narration', 'title', 'purpose']) ??
-          (paysShipment ? 'Delivery Payment' : 'Transaction'),
-        amount: Math.abs(amount),
-        amountLabel:
-          formatMoney(amount, readString(record, ['currency', 'currency_code']) ?? undefined) ??
-          '—',
-        dateLabel: formatDate(timestamp),
-        timeLabel: formatTime(timestamp),
-        status: readString(record, ['status', 'state']) ?? 'pending',
-        // Paying for a shipment is money out even though BE stores the amount as positive.
-        credit: !paysShipment && (/credit|\bin\b|deposit|refund/i.test(type) || amount > 0),
-      };
-    });
-  }
-
-  /** Follows BE's has_next_page so a long history isn't cut off, capped at 1,000 rows. */
-  private async fetchTransactionRows(): Promise<unknown[]> {
-    const rows: unknown[] = [];
+    const rows: Transaction[] = [];
     for (let page = 1; page <= MAX_TRANSACTION_PAGES; page++) {
-      const body = await firstValueFrom(
-        this.http.get(this.apiUrl('/user/transactions'), {
-          params: { page: String(page), limit: String(TRANSACTION_PAGE_SIZE) },
-        }),
-      );
-      rows.push(...readList(body));
+      const body = await this.transactionPage(page);
+      rows.push(...readList(body).map((item) => this.toTransaction(item)));
       if (!hasNextPage(body)) break;
     }
     return rows;
+  }
+
+  /** The completed payment for one parcel, or null. Stops paging as soon as it is found. */
+  async paymentFor(trackingId: string): Promise<Transaction | null> {
+    if (this.isMockSession()) return paidMatch(MOCK_TRANSACTIONS, trackingId);
+
+    for (let page = 1; page <= MAX_TRANSACTION_PAGES; page++) {
+      const body = await this.transactionPage(page);
+      const found = paidMatch(
+        readList(body).map((item) => this.toTransaction(item)),
+        trackingId,
+      );
+      if (found) return found;
+      if (!hasNextPage(body)) break;
+    }
+    return null;
+  }
+
+  private transactionPage(page: number): Promise<unknown> {
+    return firstValueFrom(
+      this.http.get(this.apiUrl('/user/transactions'), {
+        params: { page: String(page), limit: String(TRANSACTION_PAGE_SIZE) },
+      }),
+    );
+  }
+
+  private toTransaction(item: unknown): Transaction {
+    const record = asBag(item);
+    // BE rows are payments for shipments: { id, payment_method, amount, admin_fee, status, mode,
+    // shipment_id, created_at, transaction }. `transaction` (the gateway record, with the
+    // reference) is null until the payment has actually been attempted.
+    const gateway = asBag(record['transaction']);
+    const paysShipment = Boolean(readString(record, ['shipment_id', 'shipmentId']));
+    const amount = Number(record['amount'] ?? record['value'] ?? 0);
+    const type = readString(record, ['type', 'direction', 'entry']) ?? '';
+    const timestamp = record['created_at'] ?? record['createdAt'] ?? record['date'];
+    const id = readString(record, ['id', '_id']) ?? '';
+    return {
+      id,
+      reference:
+        readString(gateway, ['transaction_id', 'reference', 'ref', 'transaction_ref']) ??
+        readString(record, ['reference', 'ref', 'transaction_ref']) ??
+        id,
+      trackingId: readString(record, [
+        'tracking_id',
+        'trackingId',
+        'delivery_tracking_id',
+        'parcel_tracking_id',
+      ]),
+      method: readString(record, ['payment_method', 'paymentMethod', 'method']),
+      channel: readString(gateway, ['channel', 'payment_channel']),
+      description:
+        readString(record, ['description', 'narration', 'title', 'purpose']) ??
+        (paysShipment ? 'Delivery Payment' : 'Transaction'),
+      amount: Math.abs(amount),
+      amountLabel:
+        formatMoney(amount, readString(record, ['currency', 'currency_code']) ?? undefined) ?? '—',
+      dateLabel: formatDate(timestamp),
+      timeLabel: formatTime(timestamp),
+      status: readString(record, ['status', 'state']) ?? 'pending',
+      // Paying for a shipment is money out even though BE stores the amount as positive.
+      credit: !paysShipment && (/credit|\bin\b|deposit|refund/i.test(type) || amount > 0),
+    };
   }
 
   async documents(): Promise<VerificationDoc[]> {

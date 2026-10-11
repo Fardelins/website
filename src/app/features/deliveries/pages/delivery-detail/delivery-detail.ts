@@ -18,6 +18,7 @@ import {
   solarDangerCircleBoldDuotone,
   solarDeliveryBoldDuotone,
   solarDownloadMinimalisticBoldDuotone,
+  solarBanknoteBoldDuotone,
   solarMapPointBoldDuotone,
   solarRefreshBoldDuotone,
   solarRefreshCircleBoldDuotone,
@@ -28,9 +29,11 @@ import { HapticsService } from '@core/services/haptics.service';
 import { ToastService } from '@core/services/toast.service';
 import { RoutingService } from '@core/services/routing.service';
 import { PaymentService } from '@features/payment/payment.service';
+import { ProfileService, Transaction } from '@features/profile/profile.service';
 import { SITE_NAME, SeoService } from '@core/services/seo.service';
 import { EmptyState } from '@shared/components/empty-state/empty-state';
 import { ImageCarousel } from '@shared/components/image-carousel/image-carousel';
+import { ReceiptDialog } from '@shared/components/receipt-dialog/receipt-dialog';
 import { MapPoint, RouteMap } from '@shared/components/route-map/route-map';
 import { Skeleton } from '@shared/components/skeleton/skeleton';
 import { TrackingCopy } from '@shared/components/tracking-copy/tracking-copy';
@@ -55,6 +58,7 @@ const CANCELLABLE = ['pending', 'awaiting_payment', 'assigned'];
     TrackingCopy,
     ImageCarousel,
     DeliveryRatingCard,
+    ReceiptDialog,
   ],
   viewProviders: [
     provideIcons({
@@ -64,6 +68,7 @@ const CANCELLABLE = ['pending', 'awaiting_payment', 'assigned'];
       solarDangerCircleBoldDuotone,
       solarClockCircleBoldDuotone,
       solarDeliveryBoldDuotone,
+      solarBanknoteBoldDuotone,
       solarMapPointBoldDuotone,
       solarRefreshBoldDuotone,
       solarRefreshCircleBoldDuotone,
@@ -82,8 +87,14 @@ export class DeliveryDetail implements OnDestroy {
   private readonly routing = inject(RoutingService);
   private readonly auth = inject(AuthService);
   private readonly payments = inject(PaymentService);
+  private readonly profile = inject(ProfileService);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private generation = 0;
+  private paymentRequestedFor = '';
+
+  /** The completed payment for this parcel; the Payment section only exists once it is found. */
+  protected readonly payment = signal<Transaction | null>(null);
+  protected readonly receiptOpen = signal(false);
 
   protected readonly busy = signal<'pay' | 'cancel' | null>(null);
   protected readonly actionError = signal<string | null>(null);
@@ -292,7 +303,30 @@ export class DeliveryDetail implements OnDestroy {
     if (generation !== this.generation) return;
     this.detail.set(detail);
     this.lastUpdatedAt.set(new Date());
+    if (detail?.paid) void this.loadPayment(detail.trackingId);
     if (detail) await this.plot(detail, generation);
+  }
+
+  private async loadPayment(trackingId: string): Promise<void> {
+    if (this.paymentRequestedFor === trackingId) return;
+    this.paymentRequestedFor = trackingId;
+    try {
+      this.payment.set(await this.profile.paymentFor(trackingId));
+    } catch {
+      // Not worth an error banner; the next refresh asks again.
+      this.paymentRequestedFor = '';
+    }
+  }
+
+  protected openReceipt(): void {
+    this.haptics.selection();
+    this.receiptOpen.set(true);
+  }
+
+  /** Every payment goes through Paystack; the channel (card, bank transfer) is added when BE says. */
+  protected methodLabel(payment: Transaction): string {
+    const channel = payment.channel?.replace(/[_-]+/g, ' ').toLowerCase();
+    return channel ? `Paystack · ${channel.replace(/^\w/, (c) => c.toUpperCase())}` : 'Paystack';
   }
 
   protected phaseDone(index: number): boolean {

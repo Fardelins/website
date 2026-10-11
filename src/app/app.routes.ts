@@ -150,13 +150,8 @@ export const routes: Routes = [
             ({ OrderSuccess }) => OrderSuccess,
           ),
       },
-      {
-        path: 'transactions',
-        loadComponent: () =>
-          import('./features/transactions/pages/transactions/transactions').then(
-            ({ Transactions }) => Transactions,
-          ),
-      },
+      // Payments now live on each parcel; keep old links and bookmarks working.
+      { path: 'transactions', redirectTo: 'deliveries', pathMatch: 'full' },
       {
         path: 'help',
         loadComponent: () => import('./features/help/pages/help/help').then(({ Help }) => Help),

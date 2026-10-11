@@ -1,6 +1,6 @@
 import type { Transaction } from '@features/profile/profile.service';
 
-// Backs the dev-mock login session (see core/auth/dev-mock.ts) so /app/transactions has
+// Backs the dev-mock login session (see core/auth/dev-mock.ts) so the dev login has
 // real-looking data to review while the wallet-transactions endpoint is unconfirmed against
 // the live API. `reference` is always the payment-gateway reference; `trackingId` (delivery
 // rows only) reuses the tracking codes from deliveries.mock.ts so the receipt can link the

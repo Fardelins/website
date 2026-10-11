@@ -18,7 +18,6 @@ import {
   solarHome2BoldDuotone,
   solarLogout2BoldDuotone,
   solarBoxBoldDuotone,
-  solarBillListBoldDuotone,
   solarUserRoundedBoldDuotone,
   solarQuestionCircleBoldDuotone,
   solarSidebarMinimalisticBoldDuotone,
@@ -82,7 +81,6 @@ const PAGE_TITLES: ReadonlyArray<readonly [RegExp, string]> = [
   [/^\/app$/, 'Dashboard'],
   [/^\/app\/deliveries\/[^/]+$/, 'Parcel details'],
   [/^\/app\/deliveries/, 'Parcels'],
-  [/^\/app\/transactions/, 'Transactions'],
   [/^\/app\/profile/, 'Settings'],
   [/^\/app\/send\/[^/]+\/success/, 'Delivery booked'],
   [/^\/app\/send/, 'New delivery'],
@@ -107,7 +105,6 @@ const PAGE_TITLES: ReadonlyArray<readonly [RegExp, string]> = [
       solarHome2BoldDuotone,
       solarBoxBoldDuotone,
       solarUserRoundedBoldDuotone,
-      solarBillListBoldDuotone,
       solarLogout2BoldDuotone,
       solarQuestionCircleBoldDuotone,
       solarSidebarMinimalisticBoldDuotone,
@@ -175,12 +172,6 @@ export class AppShell {
   protected readonly navItems: NavItem[] = [
     { label: 'Home', path: '/app', icon: 'solarHome2BoldDuotone', exact: true },
     { label: 'Parcels', path: '/app/deliveries', icon: 'solarBoxBoldDuotone', exact: false },
-    {
-      label: 'Transactions',
-      path: '/app/transactions',
-      icon: 'solarBillListBoldDuotone',
-      exact: false,
-    },
   ];
   // Profile has no sidebar row, it lives in the account menu, but it still earns a mobile tab.
   protected readonly tabs: NavItem[] = [

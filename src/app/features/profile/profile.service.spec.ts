@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { DEV_USER } from '@core/auth/dev-mock';
 import { TokenStore } from '@core/auth/token-store';
 import { ProfileService } from './profile.service';
@@ -247,6 +248,58 @@ describe('ProfileService avatar upload', () => {
     ]);
     http.expectNone('/v1/verification-document/upload/user');
     http.expectNone('/v1/verification-document');
+  });
+
+  it("finds a parcel's completed payment, paging only until it turns up", async () => {
+    const service = TestBed.inject(ProfileService);
+    const http = TestBed.inject(HttpTestingController);
+    const row = (id: string, tracking: string, status: string) => ({
+      id,
+      shipment_id: `ship-${id}`,
+      tracking_id: tracking,
+      payment_method: 'paystack',
+      amount: 2600,
+      status,
+      created_at: '2026-10-09T09:00:00Z',
+      transaction: { transaction_id: `T${id}`, channel: 'bank_transfer' },
+    });
+
+    const pending = service.paymentFor('FDL-2');
+    http
+      .expectOne((req) => req.url === '/v1/user/transactions' && req.params.get('page') === '1')
+      .flush({ data: [row('1', 'FDL-1', 'paid')], has_next_page: true });
+    await vi.waitFor(() =>
+      http
+        .expectOne((req) => req.url === '/v1/user/transactions' && req.params.get('page') === '2')
+        .flush({
+          data: [row('2', 'FDL-2', 'pending'), row('3', 'FDL-2', 'paid')],
+          has_next_page: true,
+        }),
+    );
+
+    const payment = await pending;
+    expect(payment).toMatchObject({
+      reference: 'T3',
+      method: 'paystack',
+      channel: 'bank_transfer',
+      status: 'paid',
+    });
+    http.expectNone((req) => req.params.get('page') === '3');
+  });
+
+  it('answers null when the parcel has no completed payment', async () => {
+    const service = TestBed.inject(ProfileService);
+    const http = TestBed.inject(HttpTestingController);
+
+    const pending = service.paymentFor('FDL-9');
+    http
+      .expectOne((req) => req.url === '/v1/user/transactions')
+      .flush({
+        data: [{ id: '1', shipment_id: 's', tracking_id: 'FDL-9', status: 'pending', amount: 100 }],
+        has_next_page: false,
+      });
+
+    await expect(pending).resolves.toBeNull();
   });
 
   it('lists the newest submission first and names it by the ID type, not the BE bucket', async () => {

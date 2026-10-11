@@ -1,0 +1,110 @@
+@let item = transaction();
+<div class="receipt-backdrop" (click)="close()" (keydown.escape)="close()">
+  <button type="button" class="receipt-close" (click)="close(); $event.stopPropagation()">
+    <ng-icon name="solarCloseCircleBoldDuotone" aria-hidden="true" />
+    <span>Close</span>
+  </button>
+
+  <div class="receipt-stack" (click)="$event.stopPropagation()">
+    <section
+      #receiptCard
+      class="receipt"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="receipt-title"
+    >
+      <span class="receipt__edge receipt__edge--top" aria-hidden="true"></span>
+      <div class="receipt__body">
+        <div class="receipt__watermark" aria-hidden="true" hidden>
+          <div class="receipt__watermark-grid">
+            @for (i of watermarkRepeats; track $index) {
+              <span>www.fardelins.com</span>
+            }
+          </div>
+        </div>
+
+        <div
+          class="receipt__hero"
+          [class.receipt__hero--pending]="receiptTone(item) === 'pending'"
+          [class.receipt__hero--failed]="receiptTone(item) === 'failed'"
+        >
+          <span class="receipt__hero-icon" aria-hidden="true">
+            <ng-icon [name]="receiptIcon(item)" />
+          </span>
+          <span class="receipt__hero-label" id="receipt-title">
+            {{ receiptHeading(item) }}
+          </span>
+          <strong class="receipt__hero-amount" [class.receipt__hero-amount--in]="item.credit">{{
+            item.amountLabel
+          }}</strong>
+          <app-status-pill [status]="item.status" />
+        </div>
+
+        <div class="receipt__divider" aria-hidden="true"></div>
+
+        @let parts = receiptParts(item);
+        <dl class="receipt__rows">
+          <div class="receipt__row">
+            <dt>Date</dt>
+            <dd>{{ item.dateLabel }}</dd>
+          </div>
+          @if (item.timeLabel) {
+            <div class="receipt__row">
+              <dt>Time</dt>
+              <dd>{{ item.timeLabel }}</dd>
+            </div>
+          }
+
+          <div class="receipt__divider receipt__divider--inset" aria-hidden="true"></div>
+
+          <div class="receipt__row">
+            <dt>Transaction ID</dt>
+            <dd>{{ item.reference }}</dd>
+          </div>
+          <div class="receipt__row">
+            <dt>Payment Type</dt>
+            <dd>{{ parts.type }}</dd>
+          </div>
+          @if (parts.detail) {
+            <div class="receipt__row receipt__row--wrap">
+              <dt>{{ receiptItemLabel(item) }}</dt>
+              <dd>{{ parts.detail }}</dd>
+            </div>
+          }
+          @if (item.trackingId) {
+            <div class="receipt__row">
+              <dt>Tracking Number</dt>
+              <dd>
+                <app-tracking-copy class="receipt__tracking" [trackingId]="item.trackingId" />
+              </dd>
+            </div>
+          }
+        </dl>
+
+        <div class="receipt__divider" aria-hidden="true"></div>
+
+        <footer class="receipt__footer">
+          <app-logo
+            variant="lockup"
+            class="receipt__footer-logo"
+            [style.height.px]="22"
+            label="Fardelins"
+          />
+          <strong class="receipt__footer-wordmark" hidden>FARDELINS</strong>
+          <p>Keep this receipt for your records.</p>
+        </footer>
+      </div>
+      <span class="receipt__edge receipt__edge--bottom" aria-hidden="true"></span>
+    </section>
+
+    <button
+      type="button"
+      class="receipt-download"
+      [disabled]="downloadingReceipt()"
+      (click)="downloadReceipt()"
+    >
+      <ng-icon name="solarDownloadMinimalisticBoldDuotone" aria-hidden="true" />
+      <span>{{ downloadingReceipt() ? 'Preparing…' : 'Download Receipt' }}</span>
+    </button>
+  </div>
+</div>
