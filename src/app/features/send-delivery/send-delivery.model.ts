@@ -45,6 +45,9 @@ export interface PartyStep {
   country: string;
   state: string;
   city: string;
+  /** Set when the address was picked from Google; cleared as soon as it is edited by hand. */
+  latitude?: number;
+  longitude?: number;
   instructions?: string;
 }
 

@@ -160,6 +160,49 @@ describe('SendDelivery', () => {
     expect(shown).not.toContain((2100).toLocaleString());
   });
 
+  it('fills street, state and city from a Google place, and drops the coordinates on a hand edit', async () => {
+    await render();
+    // Let the page's own start-up loading finish so it cannot ask for cities mid-test.
+    await new Promise((resolve) => setTimeout(resolve));
+    const page = fixture.componentInstance;
+    api.cities.mockResolvedValueOnce([{ id: 7, label: 'ikeja' }]);
+
+    await page['onPlace']('dropoff', {
+      placeId: 'p1',
+      street: '12 Aminu Kano Crescent',
+      state: 'Lagos State',
+      cityCandidates: ['Lagos', 'Ikeja'],
+      latitude: 6.6,
+      longitude: 3.3,
+    });
+    expect(page['draft']().dropoff).toMatchObject({
+      address: '12 Aminu Kano Crescent',
+      state: 'Lagos',
+      city: 'ikeja',
+      latitude: 6.6,
+      longitude: 3.3,
+    });
+
+    page['onAddressTyped']('dropoff', '12 Aminu Kano Crescent, Wing B');
+    expect(page['draft']().dropoff.latitude).toBeUndefined();
+    expect(page['draft']().dropoff.longitude).toBeUndefined();
+    expect(page['draft']().dropoff.state).toBe('Lagos');
+  });
+
+  it('keeps the street but leaves the state alone when Google names one we do not list', async () => {
+    await render();
+    const page = fixture.componentInstance;
+    await page['onPlace']('pickup', {
+      placeId: 'p2',
+      street: '1 Hill Road',
+      state: 'Kano',
+      cityCandidates: [],
+      latitude: null,
+      longitude: null,
+    });
+    expect(page['draft']().pickup).toMatchObject({ address: '1 Hill Road', state: '' });
+  });
+
   it('asks for a courier before paying, then pays through Paystack', async () => {
     api.order.mockResolvedValue({ reference: 'ref-1', authorizationUrl: null });
     await render(completeDraft());

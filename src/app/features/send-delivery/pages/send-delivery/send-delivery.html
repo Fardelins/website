@@ -606,12 +606,12 @@
   }
   <label class="field" [class.is-missing]="showErrors(2) && !party(which).address.trim()">
     <span class="field__label">{{ label }}</span>
-    <input
-      type="text"
-      autocomplete="off"
+    <app-address-search
       placeholder="Street and house number"
       [value]="party(which).address"
-      (input)="patchParty(which, { address: $any($event.target).value })"
+      [invalid]="showErrors(2) && !party(which).address.trim()"
+      (valueChange)="onAddressTyped(which, $event)"
+      (placeSelected)="onPlace(which, $event)"
     />
   </label>
   <div class="row">
@@ -635,7 +635,7 @@
       <span class="field__label">City</span>
       <select
         [disabled]="!party(which).state || citiesLoading(which)"
-        (change)="patchParty(which, { city: $any($event.target).value })"
+        (change)="onCityChange(which, $any($event.target).value)"
       >
         <option value="" disabled [selected]="!party(which).city">
           {{ citiesLoading(which) ? 'Loading...' : 'Select city' }}

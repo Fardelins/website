@@ -35,12 +35,15 @@ import {
 import { filter, map } from 'rxjs';
 import { AuthService } from '@core/auth/auth.service';
 import { DashboardPreferencesService } from '@core/services/dashboard-preferences.service';
+import { PlaceDetails } from '@core/services/google-places.service';
+import { matchCity, matchState, withoutCity } from '@core/services/place-match';
 import { SavedAddress, SavedAddressesService } from '@core/services/saved-addresses.service';
 import type { ThemePreference } from '@core/services/dashboard-preferences.service';
 import { HapticsService } from '@core/services/haptics.service';
 import { SITE_NAME, SeoService } from '@core/services/seo.service';
 import { ToastService } from '@core/services/toast.service';
 import { AvatarCropper } from '@shared/components/avatar-cropper/avatar-cropper';
+import { AddressSearch } from '@shared/components/address-search/address-search';
 import { Combobox, ComboboxOption } from '@shared/components/combobox/combobox';
 import { EmptyState } from '@shared/components/empty-state/empty-state';
 import { Skeleton } from '@shared/components/skeleton/skeleton';
@@ -81,7 +84,16 @@ const OCR_SCAN_TIMEOUT_MS = 20_000;
 
 @Component({
   selector: 'app-profile',
-  imports: [RouterLink, NgIcon, AvatarCropper, Combobox, EmptyState, Skeleton, StorefrontSettings],
+  imports: [
+    RouterLink,
+    NgIcon,
+    AddressSearch,
+    AvatarCropper,
+    Combobox,
+    EmptyState,
+    Skeleton,
+    StorefrontSettings,
+  ],
   viewProviders: [
     provideIcons({
       solarCalendarBoldDuotone,
@@ -193,6 +205,10 @@ export class Profile {
   protected readonly savedAddresses = this.addressBook.items;
   protected readonly pendingRemoval = signal<SavedAddress | null>(null);
   protected readonly editingAddress = signal<SavedAddress | null>(null);
+  /** Street, state and city filled in from a Google place; shown over the stored address. */
+  private readonly pickedPlace = signal<{ address?: string; state?: string; city?: string } | null>(
+    null,
+  );
   protected readonly documentIdentifierRule = computed(() =>
     documentNumberRule(this.selectedType()),
   );
@@ -481,6 +497,7 @@ export class Profile {
     }
     form.reset();
     this.cities.set([]);
+    this.pickedPlace.set(null);
     this.editingAddress.set(null);
     this.addressFormOpen.set(false);
     this.toast.success(editing ? 'Address updated' : 'Address saved', {
@@ -493,6 +510,7 @@ export class Profile {
   protected toggleAddressForm(): void {
     const next = !this.addressFormOpen();
     this.addressFormOpen.set(next);
+    this.pickedPlace.set(null);
     if (!next) {
       this.editingAddress.set(null);
       this.cities.set([]);
@@ -501,6 +519,7 @@ export class Profile {
 
   protected async startEditAddress(address: SavedAddress): Promise<void> {
     this.error.set(null);
+    this.pickedPlace.set(null);
     this.editingAddress.set(address);
     this.addressFormOpen.set(true);
     this.haptics.selection();
@@ -521,10 +540,33 @@ export class Profile {
   }
 
   protected editingValue(field: 'label' | 'address' | 'state' | 'city'): string {
+    const picked = this.pickedPlace();
+    const fromPlace = picked && field !== 'label' ? picked[field] : undefined;
+    if (fromPlace !== undefined) return fromPlace;
     const address = this.editingAddress();
     if (!address) return '';
     const raw = address[field];
     return field === 'state' || field === 'city' ? this.titleCasePipe.transform(raw) : raw;
+  }
+
+  /** A Google place fills the street, then the state and city it matches in our own lists. */
+  protected async onAddressPlace(place: PlaceDetails): Promise<void> {
+    if (!this.states().length && !this.loadingStates()) await this.loadAddressStates();
+    const state = matchState(this.states(), place.state);
+    this.pickedPlace.set({
+      address: place.street,
+      ...(state ? { state: this.titleCasePipe.transform(state.label), city: '' } : {}),
+    });
+    if (!state) return;
+    await this.onStateSelected({ id: state.id, label: state.label });
+    const city = matchCity(this.cities(), place.cityCandidates);
+    if (city) {
+      this.pickedPlace.update((picked) => ({
+        ...picked,
+        address: withoutCity(place.street, city.label),
+        city: this.titleCasePipe.transform(city.label),
+      }));
+    }
   }
 
   protected addressSummary(address: SavedAddress): string {

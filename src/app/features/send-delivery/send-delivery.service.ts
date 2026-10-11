@@ -135,6 +135,8 @@ export class SendDeliveryService {
               address: draft.dropoff.address.trim(),
               state_id: locations.dropoff.stateId ?? undefined,
               city_id: locations.dropoff.cityId ?? undefined,
+              latitude: draft.dropoff.latitude,
+              longitude: draft.dropoff.longitude,
             },
           },
           parcel: {

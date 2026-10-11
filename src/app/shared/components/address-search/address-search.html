@@ -1,0 +1,44 @@
+<div class="search">
+  <input
+    type="text"
+    role="combobox"
+    aria-autocomplete="list"
+    aria-haspopup="listbox"
+    autocomplete="off"
+    [class.search__input--invalid]="invalid()"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="listId"
+    [attr.aria-activedescendant]="activeIndex() >= 0 ? listId + '-' + activeIndex() : null"
+    [id]="fieldId()"
+    [name]="name()"
+    [value]="query()"
+    [placeholder]="placeholder()"
+    [disabled]="disabled()"
+    [required]="required()"
+    (input)="onInput($any($event.target).value)"
+    (focus)="onFocus()"
+    (blur)="onBlur()"
+    (keydown)="onKeydown($event)"
+  />
+  @if (open() && suggestions().length) {
+    <ul class="search__list" [id]="listId" role="listbox">
+      @for (suggestion of suggestions(); track suggestion.placeId; let i = $index) {
+        <li
+          [id]="listId + '-' + i"
+          role="option"
+          class="search__option"
+          [class.search__option--active]="i === activeIndex()"
+          [attr.aria-selected]="i === activeIndex()"
+          (mousedown)="$event.preventDefault()"
+          (click)="choose(suggestion)"
+        >
+          <strong>{{ suggestion.primary }}</strong>
+          @if (suggestion.secondary) {
+            <span>{{ suggestion.secondary }}</span>
+          }
+        </li>
+      }
+      <li class="search__credit" aria-hidden="true">Powered by Google</li>
+    </ul>
+  }
+</div>

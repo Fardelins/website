@@ -12,10 +12,13 @@ import {
   solarStarBoldDuotone,
 } from '@ng-icons/solar-icons/bold-duotone';
 import { AuthService } from '@core/auth/auth.service';
+import { PlaceDetails } from '@core/services/google-places.service';
 import { HapticsService } from '@core/services/haptics.service';
+import { matchCity, matchState, withoutCity } from '@core/services/place-match';
 import { ToastService } from '@core/services/toast.service';
 import { SavedAddressesService } from '@core/services/saved-addresses.service';
 import { SITE_NAME, SeoService } from '@core/services/seo.service';
+import { AddressSearch } from '@shared/components/address-search/address-search';
 import { Skeleton } from '@shared/components/skeleton/skeleton';
 import { SendDeliveryService } from '../../send-delivery.service';
 import {
@@ -44,7 +47,7 @@ type Party = 'pickup' | 'dropoff';
 
 @Component({
   selector: 'app-send-delivery',
-  imports: [NgIcon, NgTemplateOutlet, Skeleton],
+  imports: [NgIcon, NgTemplateOutlet, Skeleton, AddressSearch],
   viewProviders: [
     provideIcons({
       solarAltArrowLeftBoldDuotone,
@@ -502,10 +505,42 @@ export class SendDelivery {
     }
   }
 
+  /** Hand-typing an address drops any Google coordinates, they no longer describe the text. */
+  protected onAddressTyped(which: Party, address: string): void {
+    this.patchParty(which, { address, latitude: undefined, longitude: undefined });
+  }
+
+  /** A Google place fills the street, then the state and city it matches in our own lists. */
+  protected async onPlace(which: Party, place: PlaceDetails): Promise<void> {
+    const state = matchState(this.states(), place.state);
+    this.patchParty(which, {
+      address: place.street,
+      latitude: place.latitude ?? undefined,
+      longitude: place.longitude ?? undefined,
+      ...(state ? { state: state.label, city: '' } : {}),
+    });
+    if (!state) return;
+    await this.loadCities(which, state.label);
+    const cities = which === 'pickup' ? this.pickupCities() : this.dropoffCities();
+    const city = matchCity(cities, place.cityCandidates);
+    if (city) {
+      this.patchParty(which, { city: city.label, address: withoutCity(place.street, city.label) });
+    }
+  }
+
   /** A new state makes the picked city stale: clear it and load that state's cities. */
   protected onStateChange(which: Party, stateLabel: string): void {
-    this.patchParty(which, { state: stateLabel, city: '' });
+    this.patchParty(which, {
+      state: stateLabel,
+      city: '',
+      latitude: undefined,
+      longitude: undefined,
+    });
     void this.loadCities(which, stateLabel);
+  }
+
+  protected onCityChange(which: Party, city: string): void {
+    this.patchParty(which, { city, latitude: undefined, longitude: undefined });
   }
 
   private async loadCities(which: Party, stateLabel: string): Promise<void> {

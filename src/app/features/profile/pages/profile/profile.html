@@ -234,12 +234,12 @@
                 </label>
                 <label class="field">
                   Street Address
-                  <input
+                  <app-address-search
                     name="address"
-                    type="text"
                     placeholder="12 Admiralty Way"
+                    [required]="true"
                     [value]="editingValue('address')"
-                    required
+                    (placeSelected)="onAddressPlace($event)"
                   />
                 </label>
                 <div class="field__row">
