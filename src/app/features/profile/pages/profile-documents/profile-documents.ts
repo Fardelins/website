@@ -14,6 +14,7 @@ import { StatusPill } from '@shared/components/status-pill/status-pill';
 import { ProfileService, VerificationDoc } from '../../profile.service';
 
 const DOC_TYPES = ['NIN', 'Passport', "Driver's Licence", "Voter's Card"];
+const UNAVAILABLE_DOC_TYPES = ["Driver's Licence", "Voter's Card"];
 const ACCEPTED_FILE_TYPES = ['image/jpeg', 'application/pdf'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -41,6 +42,7 @@ export class ProfileDocuments {
   private readonly seo = inject(SeoService);
 
   protected readonly docTypes = DOC_TYPES;
+  protected readonly unavailable = UNAVAILABLE_DOC_TYPES;
   protected readonly docs = signal<VerificationDoc[]>([]);
   protected readonly loading = signal(true);
   protected readonly uploading = signal(false);

@@ -78,6 +78,8 @@ const DOC_TYPE_ICONS: Record<string, string> = {
   "Driver's Licence": 'solarCard2BoldDuotone',
   "Voter's Card": 'solarDocumentTextBoldDuotone',
 };
+// BE only accepts the national ID and the passport for now.
+const UNAVAILABLE_DOC_TYPES: string[] = ["Driver's Licence", "Voter's Card"];
 const ACCEPTED_DOCUMENT_TYPES = ['image/jpeg', 'application/pdf'];
 
 /** Data saver or a 2G link: skip big downloads nobody asked for yet. */
@@ -208,6 +210,7 @@ export class Profile {
   protected readonly docTypeOptions = DOC_TYPES.map((value) => ({
     value,
     icon: DOC_TYPE_ICONS[value],
+    disabled: UNAVAILABLE_DOC_TYPES.includes(value),
   }));
   protected readonly resendingEmail = signal(false);
   protected readonly verificationEmailSent = signal(false);

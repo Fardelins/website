@@ -495,6 +495,8 @@
                       class="kyc-doc-type"
                       [class.kyc-doc-type--selected]="selectedType() === docType.value"
                       [attr.aria-pressed]="selectedType() === docType.value"
+                      [disabled]="docType.disabled"
+                      [attr.title]="docType.disabled ? 'Not available yet' : null"
                       (click)="selectDocumentType(docType.value)"
                     >
                       <ng-icon [name]="docType.icon" aria-hidden="true" />
