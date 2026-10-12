@@ -42,6 +42,11 @@ export function normalizeDocumentNumber(
   return documentType === 'NIN' ? normalized.replace(/\D/g, '') : normalized;
 }
 
+export function maskDocumentNumber(value: string): string {
+  const visible = value.length > 6 ? value.slice(-4) : '';
+  return '•'.repeat(value.length - visible.length) + visible;
+}
+
 export function documentNumberRule(documentType: VerificationDocumentType): DocumentNumberRule {
   return DOCUMENT_NUMBER_RULES[documentType];
 }

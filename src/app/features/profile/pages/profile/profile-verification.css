@@ -366,6 +366,56 @@
 .kyc-status__actions .btn {
   cursor: pointer;
 }
+.kyc-status__number {
+  margin-left: 6px;
+  color: var(--dashboard-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+.doc-dialog {
+  gap: 16px;
+  width: min(100%, 460px);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+}
+.doc-dialog__head {
+  display: grid;
+  gap: 6px;
+}
+.doc-dialog__group {
+  display: grid;
+  gap: 8px;
+}
+.doc-dialog__label {
+  color: var(--dashboard-text);
+  font-size: 13px;
+  font-weight: 500;
+}
+.doc-dialog__type {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-100);
+  color: var(--dashboard-text);
+  font-size: 13px;
+  font-weight: 650;
+}
+.doc-dialog__type ng-icon {
+  color: var(--color-primary-500);
+  font-size: 18px;
+}
+.doc-dialog .document-read-note {
+  margin: -8px 0 0;
+}
+.upload-zone--compact {
+  min-height: 140px;
+}
+.upload-zone--selected.upload-zone--compact {
+  min-height: auto;
+}
 .kyc-status__delete {
   color: var(--color-feedback-error);
 }

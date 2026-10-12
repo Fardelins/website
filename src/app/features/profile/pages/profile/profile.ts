@@ -59,6 +59,7 @@ import {
 import {
   documentNumberError,
   documentNumberRule,
+  maskDocumentNumber,
   normalizeDocumentNumber,
 } from '../../document-validation';
 import { ProfileService, VerificationDoc } from '../../profile.service';
@@ -199,12 +200,19 @@ export class Profile {
     return DOC_TYPE_ICONS[type] ?? 'solarDocumentTextBoldDuotone';
   }
 
-  /** A rejected document has nowhere else to go, clearing it re-opens the upload form. */
-  protected resubmitDocument(): void {
-    this.haptics.light();
-    this.docs.set([]);
-  }
   protected readonly changingDocument = signal(false);
+  protected readonly updatingDocument = signal(false);
+  protected readonly updateIdentifier = signal('');
+  protected readonly updateFile = signal<File | null>(null);
+  protected readonly updateRule = computed(() =>
+    documentNumberRule((this.docs()[0]?.type ?? 'NIN') as VerificationDocumentType),
+  );
+  protected readonly updateIdentifierError = computed(() => {
+    const doc = this.docs()[0];
+    return doc && this.updateIdentifier()
+      ? documentNumberError(doc.type as VerificationDocumentType, this.updateIdentifier())
+      : 'Enter the document number.';
+  });
   protected readonly pendingDocumentRemoval = signal(false);
   protected readonly selectedType = signal(DOC_TYPES[0]);
   protected readonly documentIdentifier = signal('');
@@ -801,12 +809,30 @@ export class Profile {
     }
   }
 
-  protected async replaceDocumentFile(event: Event): Promise<void> {
+  protected maskedIdentifier(doc: VerificationDoc): string | null {
+    return doc.identifier ? maskDocumentNumber(doc.identifier) : null;
+  }
+
+  protected openDocumentUpdate(): void {
+    this.updateIdentifier.set('');
+    this.updateFile.set(null);
+    this.updatingDocument.set(true);
+    this.haptics.light();
+  }
+
+  protected onUpdateIdentifier(event: Event): void {
+    const doc = this.docs()[0];
+    const input = event.target as HTMLInputElement;
+    const normalized = normalizeDocumentNumber(doc.type as VerificationDocumentType, input.value);
+    this.updateIdentifier.set(normalized);
+    input.value = normalized;
+  }
+
+  protected onUpdateFile(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    const doc = this.docs()[0];
     input.value = '';
-    if (!file || !doc || this.changingDocument()) return;
+    if (!file) return;
     if (!ACCEPTED_DOCUMENT_TYPES.includes(file.type)) {
       this.toast.error('Choose a JPG or PDF document');
       this.haptics.error();
@@ -817,12 +843,20 @@ export class Profile {
       this.haptics.error();
       return;
     }
+    this.updateFile.set(file);
+  }
+
+  protected async saveDocumentUpdate(): Promise<void> {
+    const doc = this.docs()[0];
+    const file = this.updateFile();
+    if (!doc || !file || this.updateIdentifierError() || this.changingDocument()) return;
 
     this.changingDocument.set(true);
     try {
-      await this.profile.replaceDocument(doc, file);
+      await this.profile.replaceDocument({ ...doc, identifier: this.updateIdentifier() }, file);
+      this.updatingDocument.set(false);
       await this.loadDocuments();
-      this.toast.success('Document updated', { description: "We'll review the new file." });
+      this.toast.success('Document updated', { description: "We'll review the new details." });
       this.haptics.success();
     } catch (error) {
       this.toast.error("Couldn't update your document", { description: (error as Error).message });

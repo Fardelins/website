@@ -453,6 +453,9 @@
                     <span class="kyc-status__meta-item">
                       <ng-icon [name]="docTypeIcon(docs()[0].type)" aria-hidden="true" />
                       <strong>{{ docs()[0].type }}</strong>
+                      @if (maskedIdentifier(docs()[0]); as masked) {
+                        <span class="kyc-status__number">{{ masked }}</span>
+                      }
                     </span>
                     <span class="kyc-status__meta-item">
                       <ng-icon name="solarCalendarBoldDuotone" aria-hidden="true" />
@@ -467,16 +470,14 @@
                   </div>
                   @if (!documentVerified() && !documentRejected()) {
                     <div class="kyc-status__actions">
-                      <label class="btn btn--ghost" [class.btn--disabled]="changingDocument()">
-                        {{ changingDocument() ? 'Working…' : 'Update Document' }}
-                        <input
-                          type="file"
-                          accept=".jpg,.jpeg,.pdf,image/jpeg,application/pdf"
-                          hidden
-                          [disabled]="changingDocument()"
-                          (change)="replaceDocumentFile($event)"
-                        />
-                      </label>
+                      <button
+                        type="button"
+                        class="btn btn--ghost"
+                        [disabled]="changingDocument()"
+                        (click)="openDocumentUpdate()"
+                      >
+                        Update Document
+                      </button>
                       <button
                         type="button"
                         class="btn btn--ghost kyc-status__delete"
@@ -491,7 +492,7 @@
                     <button
                       type="button"
                       class="btn btn--primary kyc-status__resubmit"
-                      (click)="resubmitDocument()"
+                      (click)="openDocumentUpdate()"
                     >
                       Upload Again
                     </button>
@@ -570,7 +571,7 @@
                       <ng-icon name="solarCloudUploadBoldDuotone" />
                     </span>
                     <strong>Choose Your Document</strong>
-                    <span>One JPG or PDF file, up to 10 MB</span>
+                    <span>One JPG or PDF file, up to 3 MB</span>
                     <small>Make sure your name, photo and every corner are clearly visible.</small>
                     <input
                       type="file"
@@ -818,6 +819,116 @@
     (cancelled)="cancelAvatarCrop()"
     (cropped)="uploadCroppedAvatar($event)"
   />
+}
+
+@if (updatingDocument()) {
+  <div class="confirm-backdrop" (click)="updatingDocument.set(false)">
+    <section
+      class="confirm-dialog doc-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="update-document-title"
+      aria-describedby="update-document-copy"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="updatingDocument.set(false)"
+    >
+      <header class="doc-dialog__head">
+        <h2 id="update-document-title">Update Your Document</h2>
+        <p id="update-document-copy">
+          Enter the number and choose the file again. Your document goes back into review after you
+          save.
+        </p>
+      </header>
+
+      <div class="doc-dialog__group">
+        <span class="doc-dialog__label">Document Type</span>
+        <span class="doc-dialog__type">
+          <ng-icon [name]="docTypeIcon(docs()[0].type)" aria-hidden="true" />
+          {{ docs()[0].type }}
+        </span>
+      </div>
+
+      <label class="field">
+        Document Number
+        <input
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          [attr.inputmode]="docs()[0].type === 'NIN' ? 'numeric' : 'text'"
+          [attr.maxlength]="updateRule().maxLength"
+          [attr.aria-invalid]="updateIdentifier() && updateIdentifierError() ? 'true' : null"
+          aria-describedby="update-number-help"
+          [placeholder]="updateRule().hint"
+          [value]="updateIdentifier()"
+          (input)="onUpdateIdentifier($event)"
+        />
+      </label>
+      <div id="update-number-help" class="document-read-note" aria-live="polite">
+        @if (updateIdentifier() && updateIdentifierError(); as message) {
+          <p class="document-read-note__error" role="alert">{{ message }}</p>
+        } @else if (maskedIdentifier(docs()[0]); as masked) {
+          <p>Current number: {{ masked }}. Type the full number, {{ updateRule().hint }}.</p>
+        } @else {
+          <p>Type the full number, {{ updateRule().hint }}.</p>
+        }
+      </div>
+
+      <div class="doc-dialog__group">
+        <span class="doc-dialog__label">Document File</span>
+        @if (updateFile(); as file) {
+          <div class="upload-zone upload-zone--selected upload-zone--compact">
+            <span class="upload-zone__preview" aria-hidden="true">
+              <ng-icon name="solarCloudUploadBoldDuotone" />
+            </span>
+            <div class="upload-zone__file">
+              <strong>{{ file.name }}</strong>
+              <span>{{ formatDocumentSize(file) }}</span>
+            </div>
+            <div class="upload-zone__actions">
+              <label class="btn btn--ghost">
+                Change
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.pdf,image/jpeg,application/pdf"
+                  hidden
+                  (change)="onUpdateFile($event)"
+                />
+              </label>
+            </div>
+          </div>
+        } @else {
+          <label class="upload-zone upload-zone--compact">
+            <span class="upload-zone__icon" aria-hidden="true">
+              <ng-icon name="solarCloudUploadBoldDuotone" />
+            </span>
+            <strong>Choose Your Document</strong>
+            <span>One JPG or PDF file, up to 3 MB</span>
+            <small>Make sure your name, photo and every corner are clearly visible.</small>
+            <input
+              type="file"
+              accept=".jpg,.jpeg,.pdf,image/jpeg,application/pdf"
+              hidden
+              (change)="onUpdateFile($event)"
+            />
+          </label>
+        }
+      </div>
+
+      <div class="confirm-dialog__actions">
+        <button type="button" class="btn btn--ghost" (click)="updatingDocument.set(false)">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn--primary"
+          [disabled]="!updateFile() || !!updateIdentifierError() || changingDocument()"
+          (click)="saveDocumentUpdate()"
+        >
+          {{ changingDocument() ? 'Saving…' : 'Save Changes' }}
+        </button>
+      </div>
+    </section>
+  </div>
 }
 
 @if (pendingDocumentRemoval()) {
