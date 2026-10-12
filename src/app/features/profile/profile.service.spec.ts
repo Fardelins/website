@@ -77,6 +77,24 @@ describe('ProfileService avatar upload', () => {
     expect(store.user()?.avatarUrl).toBe(avatarUrl);
   });
 
+  it('sends the ID types under the names BE files them by, and labels them back in the list', async () => {
+    const service = TestBed.inject(ProfileService);
+    const http = TestBed.inject(HttpTestingController);
+    const file = new File(['id'], 'id.jpg', { type: 'image/jpeg' });
+
+    const upload = service.uploadDocument(file, 'NIN', '12345678901');
+    const request = http.expectOne('/v1/verification-document/upload/user');
+    expect((request.request.body as FormData).get('name')).toBe('national identity management');
+    request.flush({ code: 201 });
+    await upload;
+
+    const list = service.documents();
+    http.expectOne('/v1/verification-document').flush({
+      data: [{ id: 'a', name: 'international passport', status: 'pending' }],
+    });
+    expect(await list).toEqual([expect.objectContaining({ type: 'Passport' })]);
+  });
+
   it('uses the verification-document multipart contract', async () => {
     const service = TestBed.inject(ProfileService);
     const http = TestBed.inject(HttpTestingController);
@@ -87,7 +105,7 @@ describe('ProfileService avatar upload', () => {
     const body = request.request.body as FormData;
 
     expect(request.request.method).toBe('POST');
-    expect(body.get('name')).toBe('Passport');
+    expect(body.get('name')).toBe('international passport');
     expect(body.get('unique_identifier')).toBe('A12345678');
     expect((body.get('document') as File).name).toBe(file.name);
     expect((body.get('document') as File).type).toBe(file.type);

@@ -49,6 +49,18 @@ export interface Transaction {
   credit: boolean;
 }
 
+// BE files a document by this exact name; any other name is stored as a domestic document.
+const BE_DOCUMENT_NAMES: Record<string, string> = {
+  NIN: 'national identity management',
+  Passport: 'international passport',
+};
+
+function documentLabel(beName: string): string {
+  return (
+    Object.keys(BE_DOCUMENT_NAMES).find((label) => BE_DOCUMENT_NAMES[label] === beName) ?? beName
+  );
+}
+
 export interface VerificationDoc {
   id: string;
   type: string;
@@ -209,7 +221,7 @@ export class ProfileService {
         .map((record) => ({
           id: readString(record, ['id', '_id']) ?? '',
           // `type` is BE's own bucket ("domestic"), `name` is the ID type the customer picked.
-          type: readString(record, ['name', 'document_type', 'type']) ?? 'Document',
+          type: documentLabel(readString(record, ['name', 'document_type', 'type']) ?? 'Document'),
           status: readString(record, ['status', 'state']) ?? 'pending',
           uploadedLabel: formatDate(record['created_at'] ?? record['createdAt']),
         }));
@@ -230,7 +242,7 @@ export class ProfileService {
     }
 
     const form = new FormData();
-    form.append('name', type);
+    form.append('name', BE_DOCUMENT_NAMES[type] ?? type);
     form.append('unique_identifier', uniqueIdentifier);
     form.append('document', file, file.name);
     try {
