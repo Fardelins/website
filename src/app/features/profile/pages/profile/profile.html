@@ -465,6 +465,28 @@
                       </span>
                     }
                   </div>
+                  @if (!documentVerified() && !documentRejected()) {
+                    <div class="kyc-status__actions">
+                      <label class="btn btn--ghost" [class.btn--disabled]="changingDocument()">
+                        {{ changingDocument() ? 'Working…' : 'Update Document' }}
+                        <input
+                          type="file"
+                          accept=".jpg,.jpeg,.pdf,image/jpeg,application/pdf"
+                          hidden
+                          [disabled]="changingDocument()"
+                          (change)="replaceDocumentFile($event)"
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        class="btn btn--ghost kyc-status__delete"
+                        [disabled]="changingDocument()"
+                        (click)="pendingDocumentRemoval.set(true)"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  }
                   @if (documentRejected()) {
                     <button
                       type="button"
@@ -796,6 +818,33 @@
     (cancelled)="cancelAvatarCrop()"
     (cropped)="uploadCroppedAvatar($event)"
   />
+}
+
+@if (pendingDocumentRemoval()) {
+  <div class="confirm-backdrop" (click)="pendingDocumentRemoval.set(false)">
+    <section
+      class="confirm-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="remove-document-title"
+      (click)="$event.stopPropagation()"
+      (keydown.escape)="pendingDocumentRemoval.set(false)"
+    >
+      <h2 id="remove-document-title">Remove This Document?</h2>
+      <p>
+        Your submitted document will be removed. You can submit a new one right after, to fix a
+        wrong number or file.
+      </p>
+      <div class="confirm-dialog__actions">
+        <button type="button" class="btn btn--ghost" (click)="pendingDocumentRemoval.set(false)">
+          Cancel
+        </button>
+        <button type="button" class="btn btn--danger" (click)="confirmRemoveDocument()">
+          Remove Document
+        </button>
+      </div>
+    </section>
+  </div>
 }
 
 @if (pendingRemoval(); as address) {

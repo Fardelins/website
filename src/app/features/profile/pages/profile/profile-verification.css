@@ -357,6 +357,18 @@
   border-color: color-mix(in srgb, var(--color-feedback-error) 35%, var(--dashboard-border));
   background: color-mix(in srgb, var(--color-feedback-error) 5%, var(--dashboard-card));
 }
+.kyc-status__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+.kyc-status__actions .btn {
+  cursor: pointer;
+}
+.kyc-status__delete {
+  color: var(--color-feedback-error);
+}
 .kyc-status__resubmit {
   justify-self: start;
   margin-top: 4px;

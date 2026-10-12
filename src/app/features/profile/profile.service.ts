@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, isDevMode } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { injectLogisticsApiUrl } from '@core/services/logistics-api.config';
@@ -55,6 +55,14 @@ const BE_DOCUMENT_NAMES: Record<string, string> = {
   Passport: 'international passport',
 };
 
+// BE's 400 text carries a raw regex and varies by route, so the status alone picks our wording.
+function uploadErrorMessage(error: unknown): string {
+  const status = error instanceof HttpErrorResponse ? error.status : 0;
+  if (status === 409) return "You've already submitted this document.";
+  if (status === 400) return 'Use a JPG or PDF file under 3 MB, with the whole document visible.';
+  return parseApiError(error, "We couldn't upload that document.");
+}
+
 function documentLabel(beName: string): string {
   return (
     Object.keys(BE_DOCUMENT_NAMES).find((label) => BE_DOCUMENT_NAMES[label] === beName) ?? beName
@@ -66,6 +74,8 @@ export interface VerificationDoc {
   type: string;
   status: string;
   uploadedLabel: string;
+  /** Kept for a replace, which BE needs sent again. Never shown. */
+  identifier?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -224,6 +234,7 @@ export class ProfileService {
           type: documentLabel(readString(record, ['name', 'document_type', 'type']) ?? 'Document'),
           status: readString(record, ['status', 'state']) ?? 'pending',
           uploadedLabel: formatDate(record['created_at'] ?? record['createdAt']),
+          identifier: readString(record, ['unique_identifier']) ?? undefined,
         }));
     } catch {
       return [];
@@ -249,7 +260,37 @@ export class ProfileService {
       // BE only accepts `user` or `courier` here (Swagger lists no values); `customer` is a 400.
       await firstValueFrom(this.http.post(this.apiUrl('/verification-document/upload/user'), form));
     } catch (error) {
-      throw new Error(parseApiError(error, "We couldn't upload that document."));
+      throw new Error(uploadErrorMessage(error));
+    }
+  }
+
+  async replaceDocument(doc: VerificationDoc, file: File): Promise<void> {
+    if (this.isMockSession()) return;
+
+    const form = new FormData();
+    form.append('name', BE_DOCUMENT_NAMES[doc.type] ?? doc.type);
+    form.append('unique_identifier', doc.identifier ?? '');
+    form.append('document', file, file.name);
+    try {
+      await firstValueFrom(
+        this.http.patch(this.apiUrl(`/verification-document/user/${doc.id}`), form),
+      );
+    } catch (error) {
+      throw new Error(uploadErrorMessage(error));
+    }
+  }
+
+  async deleteDocument(id: string): Promise<void> {
+    if (this.isMockSession()) {
+      const index = this.mockDocuments.findIndex((doc) => doc.id === id);
+      if (index >= 0) this.mockDocuments.splice(index, 1);
+      return;
+    }
+
+    try {
+      await firstValueFrom(this.http.delete(this.apiUrl(`/verification-document/${id}`)));
+    } catch (error) {
+      throw new Error(parseApiError(error, "We couldn't delete that document."));
     }
   }
 

@@ -16,7 +16,7 @@ import { ProfileService, VerificationDoc } from '../../profile.service';
 const DOC_TYPES = ['NIN', 'Passport', "Driver's Licence", "Voter's Card"];
 const UNAVAILABLE_DOC_TYPES = ["Driver's Licence", "Voter's Card"];
 const ACCEPTED_FILE_TYPES = ['image/jpeg', 'application/pdf'];
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 3 * 1024 * 1024;
 
 @Component({
   selector: 'app-profile-documents',
@@ -84,7 +84,7 @@ export class ProfileDocuments {
       return;
     }
     if (file.size > MAX_FILE_SIZE) {
-      this.error.set('Choose a document smaller than 10 MB.');
+      this.error.set('Choose a document smaller than 3 MB.');
       this.haptics.error();
       input.value = '';
       return;

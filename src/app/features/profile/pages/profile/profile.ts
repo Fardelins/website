@@ -94,7 +94,7 @@ function onSlowConnection(): boolean {
     connection?.effectiveType === 'slow-2g'
   );
 }
-const MAX_DOCUMENT_SIZE = 10 * 1024 * 1024;
+const MAX_DOCUMENT_SIZE = 3 * 1024 * 1024;
 const OCR_SCAN_TIMEOUT_MS = 20_000;
 
 @Component({
@@ -204,6 +204,8 @@ export class Profile {
     this.haptics.light();
     this.docs.set([]);
   }
+  protected readonly changingDocument = signal(false);
+  protected readonly pendingDocumentRemoval = signal(false);
   protected readonly selectedType = signal(DOC_TYPES[0]);
   protected readonly documentIdentifier = signal('');
   protected readonly error = signal<string | null>(null);
@@ -674,7 +676,7 @@ export class Profile {
       return;
     }
     if (file.size > MAX_DOCUMENT_SIZE) {
-      this.error.set('Choose a document smaller than 10 MB.');
+      this.error.set('Choose a document smaller than 3 MB.');
       this.haptics.error();
       return;
     }
@@ -796,6 +798,56 @@ export class Profile {
       this.haptics.error();
     } finally {
       this.uploadingDocument.set(false);
+    }
+  }
+
+  protected async replaceDocumentFile(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    const doc = this.docs()[0];
+    input.value = '';
+    if (!file || !doc || this.changingDocument()) return;
+    if (!ACCEPTED_DOCUMENT_TYPES.includes(file.type)) {
+      this.toast.error('Choose a JPG or PDF document');
+      this.haptics.error();
+      return;
+    }
+    if (file.size > MAX_DOCUMENT_SIZE) {
+      this.toast.error('Choose a document smaller than 3 MB');
+      this.haptics.error();
+      return;
+    }
+
+    this.changingDocument.set(true);
+    try {
+      await this.profile.replaceDocument(doc, file);
+      await this.loadDocuments();
+      this.toast.success('Document updated', { description: "We'll review the new file." });
+      this.haptics.success();
+    } catch (error) {
+      this.toast.error("Couldn't update your document", { description: (error as Error).message });
+      this.haptics.error();
+    } finally {
+      this.changingDocument.set(false);
+    }
+  }
+
+  protected async confirmRemoveDocument(): Promise<void> {
+    const doc = this.docs()[0];
+    this.pendingDocumentRemoval.set(false);
+    if (!doc || this.changingDocument()) return;
+
+    this.changingDocument.set(true);
+    try {
+      await this.profile.deleteDocument(doc.id);
+      await this.loadDocuments();
+      this.toast.success('Document removed', { description: 'You can submit a new one now.' });
+      this.haptics.light();
+    } catch (error) {
+      this.toast.error("Couldn't remove your document", { description: (error as Error).message });
+      this.haptics.error();
+    } finally {
+      this.changingDocument.set(false);
     }
   }
 

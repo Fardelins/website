@@ -95,6 +95,56 @@ describe('ProfileService avatar upload', () => {
     expect(await list).toEqual([expect.objectContaining({ type: 'Passport' })]);
   });
 
+  it('words upload failures itself, by status, instead of showing the BE text', async () => {
+    const service = TestBed.inject(ProfileService);
+    const http = TestBed.inject(HttpTestingController);
+    const file = new File(['id'], 'id.jpg', { type: 'image/jpeg' });
+    const fail = async (status: number, message: string) => {
+      const upload = service.uploadDocument(file, 'NIN', '12345678901');
+      http
+        .expectOne('/v1/verification-document/upload/user')
+        .flush({ message }, { status, statusText: 'x' });
+      return upload.catch((error: Error) => error.message);
+    };
+
+    expect(await fail(409, 'Document already exists')).toBe(
+      "You've already submitted this document.",
+    );
+    const wrongFile = await fail(400, 'Validation failed (expected type is /^(image\/jpeg)$/)');
+    expect(wrongFile).toContain('JPG or PDF');
+    expect(wrongFile).not.toContain('/^');
+  });
+
+  it('replaces a document with a new file, keeping its type and number', async () => {
+    const service = TestBed.inject(ProfileService);
+    const http = TestBed.inject(HttpTestingController);
+    const file = new File(['id'], 'new.jpg', { type: 'image/jpeg' });
+
+    const replace = service.replaceDocument(
+      { id: 'd1', type: 'NIN', status: 'pending', uploadedLabel: '', identifier: '12345678901' },
+      file,
+    );
+    const request = http.expectOne('/v1/verification-document/user/d1');
+    const body = request.request.body as FormData;
+    expect(request.request.method).toBe('PATCH');
+    expect(body.get('name')).toBe('national identity management');
+    expect(body.get('unique_identifier')).toBe('12345678901');
+    expect((body.get('document') as File).name).toBe('new.jpg');
+    request.flush({ code: 200 });
+    await expect(replace).resolves.toBeUndefined();
+  });
+
+  it('deletes a document by id', async () => {
+    const service = TestBed.inject(ProfileService);
+    const http = TestBed.inject(HttpTestingController);
+
+    const removal = service.deleteDocument('d1');
+    const request = http.expectOne('/v1/verification-document/d1');
+    expect(request.request.method).toBe('DELETE');
+    request.flush({ code: 200 });
+    await expect(removal).resolves.toBeUndefined();
+  });
+
   it('uses the verification-document multipart contract', async () => {
     const service = TestBed.inject(ProfileService);
     const http = TestBed.inject(HttpTestingController);
