@@ -79,8 +79,6 @@ const DOC_TYPE_ICONS: Record<string, string> = {
   "Driver's Licence": 'solarCard2BoldDuotone',
   "Voter's Card": 'solarDocumentTextBoldDuotone',
 };
-// BE only accepts the national ID and the passport for now.
-const UNAVAILABLE_DOC_TYPES: string[] = ["Driver's Licence", "Voter's Card"];
 const ACCEPTED_DOCUMENT_TYPES = ['image/jpeg', 'application/pdf'];
 
 /** Data saver or a 2G link: skip big downloads nobody asked for yet. */
@@ -211,7 +209,7 @@ export class Profile {
     const doc = this.docs()[0];
     return doc && this.updateIdentifier()
       ? documentNumberError(doc.type as VerificationDocumentType, this.updateIdentifier())
-      : 'Enter the document number.';
+      : null;
   });
   protected readonly pendingDocumentRemoval = signal(false);
   protected readonly selectedType = signal(DOC_TYPES[0]);
@@ -220,7 +218,6 @@ export class Profile {
   protected readonly docTypeOptions = DOC_TYPES.map((value) => ({
     value,
     icon: DOC_TYPE_ICONS[value],
-    disabled: UNAVAILABLE_DOC_TYPES.includes(value),
   }));
   protected readonly resendingEmail = signal(false);
   protected readonly verificationEmailSent = signal(false);
@@ -849,11 +846,16 @@ export class Profile {
   protected async saveDocumentUpdate(): Promise<void> {
     const doc = this.docs()[0];
     const file = this.updateFile();
-    if (!doc || !file || this.updateIdentifierError() || this.changingDocument()) return;
+    const identifier = this.updateIdentifier();
+    if (!doc || (!file && !identifier) || this.updateIdentifierError() || this.changingDocument())
+      return;
 
     this.changingDocument.set(true);
     try {
-      await this.profile.replaceDocument({ ...doc, identifier: this.updateIdentifier() }, file);
+      await this.profile.updateDocument(doc, {
+        identifier: identifier || undefined,
+        file: file ?? undefined,
+      });
       this.updatingDocument.set(false);
       await this.loadDocuments();
       this.toast.success('Document updated', { description: "We'll review the new details." });

@@ -49,15 +49,30 @@ export interface Transaction {
   credit: boolean;
 }
 
-// BE files a document by this exact name; any other name is stored as a domestic document.
+// BE files a document by this exact name and rejects any other.
 const BE_DOCUMENT_NAMES: Record<string, string> = {
   NIN: 'national identity management',
   Passport: 'international passport',
+  "Driver's Licence": "driver's licence",
+  "Voter's Card": "voter's card",
 };
 
-// BE's 400 text carries a raw regex and varies by route, so the status alone picks our wording.
+const DOCUMENT_ERRORS: Record<string, string> = {
+  DOCUMENT_UNSUPPORTED: "That document type isn't supported yet.",
+  DOCUMENT_NUMBER_INVALID: "That number doesn't match the format for this document.",
+  DOCUMENT_ALREADY_EXISTS: "You've already submitted this document.",
+  DOCUMENT_NOT_FOUND: "We couldn't find that document. Refresh the page and try again.",
+  DOCUMENT_FILE_REQUIRED: 'Choose a file to upload.',
+  DOCUMENT_FILE_TYPE_INVALID: 'Use a JPG or PDF file.',
+  DOCUMENT_FILE_TOO_LARGE: 'Use a file smaller than 3 MB.',
+  DOCUMENT_EXPIRY_INVALID: "That expiry date isn't valid.",
+};
+
+// BE's message text varies by route, so its stable `code` picks our wording, then the status.
 function uploadErrorMessage(error: unknown): string {
   const status = error instanceof HttpErrorResponse ? error.status : 0;
+  const code = asBag(error instanceof HttpErrorResponse ? error.error : null)['code'];
+  if (typeof code === 'string' && DOCUMENT_ERRORS[code]) return DOCUMENT_ERRORS[code];
   if (status === 409) return "You've already submitted this document.";
   if (status === 400) return 'Use a JPG or PDF file under 3 MB, with the whole document visible.';
   return parseApiError(error, "We couldn't upload that document.");
@@ -74,8 +89,9 @@ export interface VerificationDoc {
   type: string;
   status: string;
   uploadedLabel: string;
-  /** Kept for a replace, which BE needs sent again. Never shown. */
+  /** Only ever shown masked. */
   identifier?: string;
+  rejectionReason?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -235,6 +251,7 @@ export class ProfileService {
           status: readString(record, ['status', 'state']) ?? 'pending',
           uploadedLabel: formatDate(record['created_at'] ?? record['createdAt']),
           identifier: readString(record, ['unique_identifier']) ?? undefined,
+          rejectionReason: readString(record, ['rejection_reason']) ?? undefined,
         }));
     } catch {
       return [];
@@ -264,13 +281,16 @@ export class ProfileService {
     }
   }
 
-  async replaceDocument(doc: VerificationDoc, file: File): Promise<void> {
+  /** BE re-validates whatever is sent and puts the document back into review. */
+  async updateDocument(
+    doc: VerificationDoc,
+    changes: { identifier?: string; file?: File },
+  ): Promise<void> {
     if (this.isMockSession()) return;
 
     const form = new FormData();
-    form.append('name', BE_DOCUMENT_NAMES[doc.type] ?? doc.type);
-    form.append('unique_identifier', doc.identifier ?? '');
-    form.append('document', file, file.name);
+    if (changes.identifier) form.append('unique_identifier', changes.identifier);
+    if (changes.file) form.append('document', changes.file, changes.file.name);
     try {
       await firstValueFrom(
         this.http.patch(this.apiUrl(`/verification-document/user/${doc.id}`), form),

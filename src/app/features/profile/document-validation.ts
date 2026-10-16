@@ -21,16 +21,16 @@ const DOCUMENT_NUMBER_RULES: Record<VerificationDocumentType, DocumentNumberRule
     invalidMessage: 'Enter a Nigerian passport number with 1 letter followed by 8 digits.',
   },
   "Driver's Licence": {
-    hint: 'For example, CAL4914AB or AKW06968AA2',
-    maxLength: 11,
-    pattern: /^(?:[A-Z]{3}\d{4}[A-Z]{2}|[A-Z]{3}\d{5}[A-Z]{2}\d)$/,
-    invalidMessage: 'Enter a valid Nigerian driver’s licence number.',
+    hint: '12 letters or digits',
+    maxLength: 12,
+    pattern: /^[A-Z0-9]{12}$/,
+    invalidMessage: 'Enter the 12-character driver’s licence number.',
   },
   "Voter's Card": {
-    hint: 'Full 19-character VIN or its last 10 digits',
-    maxLength: 19,
-    pattern: /^(?:[A-Z0-9]{19}|\d{10})$/,
-    invalidMessage: 'Enter the full 19-character VIN or its last 10 digits.',
+    hint: '19 or 20 letters or digits',
+    maxLength: 20,
+    pattern: /^[A-Z0-9]{19,20}$/,
+    invalidMessage: 'Enter the 19 or 20-character number on your voter’s card.',
   },
 };
 

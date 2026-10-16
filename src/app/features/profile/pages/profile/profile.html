@@ -442,8 +442,10 @@
                     @if (documentVerified()) {
                       You're all set. You can now freely use our app and access all features.
                     } @else if (documentRejected()) {
-                      Something didn't check out. Please upload a clear photo of a valid document
-                      and try again.
+                      {{
+                        docs()[0].rejectionReason ||
+                          "Something didn't check out. Please upload a clear photo of a valid document and try again."
+                      }}
                     } @else {
                       We will notify you immediately once the review is complete, your data is safe
                       and encrypted.
@@ -518,8 +520,6 @@
                       class="kyc-doc-type"
                       [class.kyc-doc-type--selected]="selectedType() === docType.value"
                       [attr.aria-pressed]="selectedType() === docType.value"
-                      [disabled]="docType.disabled"
-                      [attr.title]="docType.disabled ? 'Not available yet' : null"
                       (click)="selectDocumentType(docType.value)"
                     >
                       <ng-icon [name]="docType.icon" aria-hidden="true" />
@@ -835,8 +835,7 @@
       <header class="doc-dialog__head">
         <h2 id="update-document-title">Update Your Document</h2>
         <p id="update-document-copy">
-          Enter the number and choose the file again. Your document goes back into review after you
-          save.
+          Change the number, the file, or both. Your document goes back into review after you save.
         </p>
       </header>
 
@@ -867,9 +866,9 @@
         @if (updateIdentifier() && updateIdentifierError(); as message) {
           <p class="document-read-note__error" role="alert">{{ message }}</p>
         } @else if (maskedIdentifier(docs()[0]); as masked) {
-          <p>Current number: {{ masked }}. Type the full number, {{ updateRule().hint }}.</p>
+          <p>Current number: {{ masked }}. Leave blank to keep it.</p>
         } @else {
-          <p>Type the full number, {{ updateRule().hint }}.</p>
+          <p>Format: {{ updateRule().hint }}.</p>
         }
       </div>
 
@@ -902,8 +901,8 @@
               <ng-icon name="solarCloudUploadBoldDuotone" />
             </span>
             <strong>Choose Your Document</strong>
-            <span>One JPG or PDF file, up to 3 MB</span>
-            <small>Make sure your name, photo and every corner are clearly visible.</small>
+            <span>Optional. One JPG or PDF file, up to 3 MB</span>
+            <small>Only choose a file if you want to replace the one you sent.</small>
             <input
               type="file"
               accept=".jpg,.jpeg,.pdf,image/jpeg,application/pdf"
@@ -921,7 +920,11 @@
         <button
           type="button"
           class="btn btn--primary"
-          [disabled]="!updateFile() || !!updateIdentifierError() || changingDocument()"
+          [disabled]="
+            (!updateFile() && !updateIdentifier()) ||
+            !!updateIdentifierError() ||
+            changingDocument()
+          "
           (click)="saveDocumentUpdate()"
         >
           {{ changingDocument() ? 'Saving…' : 'Save Changes' }}

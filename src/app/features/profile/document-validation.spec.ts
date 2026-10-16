@@ -16,15 +16,16 @@ describe('document number validation', () => {
     expect(documentNumberError('Passport', '12647361')).not.toBeNull();
   });
 
-  it('accepts official old and newer driver licence layouts', () => {
-    expect(documentNumberError("Driver's Licence", 'CAL4914AB')).toBeNull();
-    expect(documentNumberError("Driver's Licence", 'AKW06968AA2')).toBeNull();
+  it("follows BE's format for a driver's licence: 12 letters or digits", () => {
+    expect(documentNumberError("Driver's Licence", 'AKW069680AA2')).toBeNull();
+    expect(documentNumberError("Driver's Licence", 'AKW06968AA2')).not.toBeNull();
     expect(documentNumberError("Driver's Licence", '1')).not.toBeNull();
   });
 
-  it('accepts a full VIN or the last ten digits', () => {
+  it("follows BE's format for a voter's card: 19 or 20 letters or digits", () => {
     expect(documentNumberError("Voter's Card", '90F5B2C1D8E7A123456')).toBeNull();
-    expect(documentNumberError("Voter's Card", '1234567890')).toBeNull();
+    expect(documentNumberError("Voter's Card", '90F5B2C1D8E7A1234567')).toBeNull();
+    expect(documentNumberError("Voter's Card", '1234567890')).not.toBeNull();
     expect(documentNumberError("Voter's Card", '123')).not.toBeNull();
   });
 

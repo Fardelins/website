@@ -16,7 +16,7 @@
       >Document Type
       <select [value]="selectedType()" (change)="selectedType.set($any($event.target).value)">
         @for (type of docTypes; track type) {
-          <option [value]="type" [disabled]="unavailable.includes(type)">{{ type }}</option>
+          <option [value]="type">{{ type }}</option>
         }
       </select>
     </label>

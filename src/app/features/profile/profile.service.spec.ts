@@ -115,23 +115,62 @@ describe('ProfileService avatar upload', () => {
     expect(wrongFile).not.toContain('/^');
   });
 
-  it('replaces a document with a new file, keeping its type and number', async () => {
+  it('sends only what changed when a document is updated', async () => {
     const service = TestBed.inject(ProfileService);
     const http = TestBed.inject(HttpTestingController);
-    const file = new File(['id'], 'new.jpg', { type: 'image/jpeg' });
+    const doc = { id: 'd1', type: 'NIN', status: 'pending', uploadedLabel: '' };
 
-    const replace = service.replaceDocument(
-      { id: 'd1', type: 'NIN', status: 'pending', uploadedLabel: '', identifier: '12345678901' },
-      file,
-    );
-    const request = http.expectOne('/v1/verification-document/user/d1');
-    const body = request.request.body as FormData;
-    expect(request.request.method).toBe('PATCH');
-    expect(body.get('name')).toBe('national identity management');
-    expect(body.get('unique_identifier')).toBe('12345678901');
-    expect((body.get('document') as File).name).toBe('new.jpg');
-    request.flush({ code: 200 });
-    await expect(replace).resolves.toBeUndefined();
+    const numberOnly = service.updateDocument(doc, { identifier: '12345678901' });
+    const first = http.expectOne('/v1/verification-document/user/d1');
+    const firstBody = first.request.body as FormData;
+    expect(first.request.method).toBe('PATCH');
+    expect(firstBody.get('unique_identifier')).toBe('12345678901');
+    expect(firstBody.has('document')).toBe(false);
+    expect(firstBody.has('name')).toBe(false);
+    first.flush({ code: 200 });
+    await numberOnly;
+
+    const file = new File(['id'], 'new.jpg', { type: 'image/jpeg' });
+    const fileOnly = service.updateDocument(doc, { file });
+    const second = http.expectOne('/v1/verification-document/user/d1');
+    const secondBody = second.request.body as FormData;
+    expect((secondBody.get('document') as File).name).toBe('new.jpg');
+    expect(secondBody.has('unique_identifier')).toBe(false);
+    second.flush({ code: 200 });
+    await fileOnly;
+  });
+
+  it('words each BE document error by its code', async () => {
+    const service = TestBed.inject(ProfileService);
+    const http = TestBed.inject(HttpTestingController);
+    const doc = { id: 'd1', type: 'NIN', status: 'pending', uploadedLabel: '' };
+    const fail = async (status: number, code: string) => {
+      const update = service.updateDocument(doc, { identifier: '1' });
+      http
+        .expectOne('/v1/verification-document/user/d1')
+        .flush({ statusCode: status, code, message: code }, { status, statusText: 'x' });
+      return update.catch((error: Error) => error.message);
+    };
+
+    expect(await fail(400, 'DOCUMENT_NUMBER_INVALID')).toContain("doesn't match the format");
+    expect(await fail(400, 'DOCUMENT_FILE_TOO_LARGE')).toContain('3 MB');
+    expect(await fail(404, 'DOCUMENT_NOT_FOUND')).toContain("couldn't find");
+  });
+
+  it('sends the licence and voter card under the names BE expects', async () => {
+    const service = TestBed.inject(ProfileService);
+    const http = TestBed.inject(HttpTestingController);
+    const file = new File(['id'], 'id.jpg', { type: 'image/jpeg' });
+    for (const [label, name] of [
+      ["Driver's Licence", "driver's licence"],
+      ["Voter's Card", "voter's card"],
+    ]) {
+      const upload = service.uploadDocument(file, label, 'X');
+      const request = http.expectOne('/v1/verification-document/upload/user');
+      expect((request.request.body as FormData).get('name')).toBe(name);
+      request.flush({ code: 201 });
+      await upload;
+    }
   });
 
   it('deletes a document by id', async () => {

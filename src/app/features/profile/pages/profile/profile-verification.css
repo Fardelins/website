@@ -124,14 +124,6 @@
   border-color: color-mix(in srgb, var(--color-primary-500) 40%, var(--dashboard-border));
   transform: translateY(-2px);
 }
-.kyc-doc-type:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-.kyc-doc-type:disabled:hover {
-  border-color: var(--dashboard-border);
-  transform: none;
-}
 .kyc-doc-type--selected {
   border-color: var(--color-primary-500);
   background: color-mix(in srgb, var(--color-primary-500) 8%, transparent);
