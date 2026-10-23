@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --proxy-config proxy.conf.mjs",
+    "start": "node --env-file-if-exists=.env node_modules/@angular/cli/bin/ng.js serve --proxy-config proxy.conf.mjs",
     "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "ng build",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
@@ -16,7 +16,7 @@
     "lint": "prettier --check \"src/**/*.{ts,html,css}\" \"scripts/**/*.mjs\"",
     "format": "prettier --write \"src/**/*.{ts,html,css}\" \"scripts/**/*.mjs\"",
     "serve:prod": "serve -s dist/fardelins-app/browser",
-    "serve:ssr:fardelins-app": "node dist/fardelins-app/server/server.mjs"
+    "serve:ssr:fardelins-app": "node --env-file-if-exists=.env dist/fardelins-app/server/server.mjs"
   },
   "private": true,
   "packageManager": "npm@10.9.8",
