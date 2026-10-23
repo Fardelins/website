@@ -14,6 +14,8 @@ describe('SendDeliveryService', () => {
   let mockSession: boolean;
 
   beforeEach(() => {
+    // No image decoder in the test environment: photos then take the same path as a browser that can't decode them.
+    vi.stubGlobal('createImageBitmap', vi.fn().mockRejectedValue(new Error('no decoder')));
     mockSession = false;
     TestBed.configureTestingModule({
       providers: [
@@ -26,7 +28,10 @@ describe('SendDeliveryService', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    http.verify();
+    vi.unstubAllGlobals();
+  });
 
   it('loads shipment sizes from the current API route', async () => {
     const pending = service.sizes();
@@ -39,7 +44,7 @@ describe('SendDeliveryService', () => {
       ],
     });
 
-    await expect(pending).resolves.toEqual([
+    await expect(pending).resolves.toMatchObject([
       { id: 1, label: 'A4 envelope' },
       { id: 2, label: 'Small box' },
     ]);
@@ -341,6 +346,18 @@ describe('SendDeliveryService', () => {
     expect(rates).toHaveLength(MOCK_COURIERS.length);
     expect(rates.map((rate) => rate.courierName)).toEqual(MOCK_COURIERS.map((c) => c.name));
     expect(rates.every((rate) => rate.priceLabel.startsWith('₦'))).toBe(true);
+  });
+
+  it('keeps demo photos local without calling the upload API', async () => {
+    mockSession = true;
+    URL.createObjectURL = vi.fn(() => 'blob:demo');
+
+    const file = new File(['x'], 'parcel.png', { type: 'image/png' });
+    const images = await service.uploadImages([file]);
+
+    expect(images).toHaveLength(1);
+    expect(images[0].link).toBe('blob:demo');
+    http.expectNone('/v1/upload/multiple-images/shipments');
   });
 
   it('completes demo orders without sending a backend mutation', async () => {

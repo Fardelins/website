@@ -32,12 +32,8 @@ export class SendDeliveryService {
   private readonly auth = inject(AuthService);
   private readonly apiUrl = injectLogisticsApiUrl();
 
-  categories(): Promise<Option[]> {
-    return this.options('/category/parcel-categories');
-  }
-
   sizes(): Promise<Option[]> {
-    return this.options('/shipment-sizes');
+    return this.options('/shipment-sizes', true);
   }
 
   async countries(): Promise<Option[]> {
@@ -75,6 +71,7 @@ export class SendDeliveryService {
         deliveryWindow: courier.deliveryWindow,
         rating: courier.rating,
         reviewCount: courier.reviewCount,
+        deliveriesMade: courier.deliveriesMade,
       }));
     }
 
@@ -140,10 +137,9 @@ export class SendDeliveryService {
             },
           },
           parcel: {
-            categoryId: draft.parcel.categoryId ?? undefined,
             type: draft.parcel.type ?? undefined,
             short_description: draft.parcel.shortDescription.trim(),
-            weight: draft.parcel.weight ?? 1,
+            weight: draft.parcel.customWeight ? (draft.parcel.weight ?? 1) : 1,
             quantity: draft.parcel.quantity,
             worth: draft.parcel.worth ?? undefined,
             // BE rejects an image that carries both its upload id and its link.
@@ -172,6 +168,12 @@ export class SendDeliveryService {
   }
 
   async uploadImages(files: FileList | File[]): Promise<ParcelImage[]> {
+    if (this.auth.isMockSession()) {
+      return Array.from(files).map((file, index) => ({
+        id: `demo-image-${Date.now()}-${index}`,
+        link: URL.createObjectURL(file),
+      }));
+    }
     const prepared = await Promise.all(Array.from(files).map(compressImage));
     if (prepared.some((file) => file.size > MAX_IMAGE_BYTES)) {
       throw new Error('One of those photos is too large. Please pick one under 10 MB.');
@@ -236,6 +238,8 @@ export class SendDeliveryService {
       deliveryWindow: this.daysLabel(timing['delivery_duration'] ?? record['delivery_duration']),
       rating: this.num(record['rating'] ?? courier['rating']),
       reviewCount: this.num(record['reviews'] ?? courier['reviews'] ?? record['review_count']),
+      // BE sends none of rating, reviews or deliveries yet; `deliveries_made` is our proposed name.
+      deliveriesMade: this.num(record['deliveries_made'] ?? courier['deliveries_made']),
     };
   }
 
@@ -280,15 +284,89 @@ export class SendDeliveryService {
     return typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : null;
   }
 
-  private async options(path: string): Promise<Option[]> {
+  private async options(path: string, includeSizeDetails = false): Promise<Option[]> {
     const body = await firstValueFrom(this.http.get(this.apiUrl(path)));
     return readList(body)
-      .map((item) => {
+      .map((item): Option | null => {
         const bag = asBag(item);
         const id = Number(bag['id'] ?? bag['_id']);
         const label = readString(bag, ['name', 'title', 'label', 'size', 'description']);
-        return Number.isFinite(id) && label ? { id, label } : null;
+        const details = includeSizeDetails ? sizeDetails(bag) : null;
+        return Number.isFinite(id) && label
+          ? { id, label, ...details }
+          : null;
       })
       .filter((option): option is Option => option !== null);
   }
 }
+
+function sizeDetails(
+  size: Record<string, unknown>,
+): Pick<Option, 'dimensions' | 'weightRange'> {
+  const dimension = asBag(size['dimension'] ?? size['dimensions'] ?? size);
+  const dimensionUnit =
+    readString(dimension, ['unit', 'symbol', 'length_unit', 'lengthUnit']) ??
+    (typeof size['length_unit'] === 'string' ? size['length_unit'] : null) ??
+    readString(asBag(size['length_unit'] ?? size['lengthUnit']), ['symbol', 'name']) ??
+    'cm';
+  const rangeMin = firstNumber(dimension, [
+    'min_length', 'length_min', 'minimum_length', 'length_from',
+    'minLength', 'lengthMin', 'minimumLength', 'lengthFrom',
+    'min_length_cm', 'length_min_cm', 'minLengthCm', 'lengthMinCm',
+  ]);
+  const rangeMax = firstNumber(dimension, [
+    'max_length', 'length_max', 'maximum_length', 'length_to',
+    'maxLength', 'lengthMax', 'maximumLength', 'lengthTo',
+    'max_length_cm', 'length_max_cm', 'maxLengthCm', 'lengthMaxCm',
+  ]);
+  const rangeUnit =
+    readString(dimension, ['length_unit', 'lengthUnit', 'unit', 'symbol']) ?? dimensionUnit;
+  const dimensions = ['length', 'width', 'height'].map((key) => Number(dimension[key]));
+  const rangeText = readString(dimension, [
+    'length_range', 'lengthRange', 'size_range', 'sizeRange', 'dimension_description',
+  ]);
+  const dimensionsLabel =
+    rangeMin !== null && rangeMax !== null && rangeUnit
+      ? `${rangeMin} ${rangeUnit} - ${rangeMax} ${rangeUnit}`
+      : dimensions.every((value) => Number.isFinite(value) && value > 0) && dimensionUnit
+        ? `${dimensions.join(' x ')} ${dimensionUnit}`
+        : rangeText ?? readString(size, [
+            'dimensions', 'dimension_description', 'dimensionDescription',
+            'length_range', 'lengthRange', 'size_range', 'sizeRange',
+          ]);
+  const minimumWeight = firstNumber(size, ['min_weight', 'minimum_weight', 'minWeight']);
+  const maximumWeight = firstNumber(size, ['max_weight', 'maximum_weight', 'maxWeight']);
+  const weight =
+    size['average_weight'] ?? size['averageWeight'] ?? size['avg_weight'] ?? size['avgWeight'] ??
+    size['weight'];
+  const weightBag = asBag(weight);
+  const weightValue = weightBag['value'] ?? weightBag['amount'] ?? weight;
+  const weightUnit =
+    readString(weightBag, ['unit', 'symbol']) ??
+    (typeof (size['weight_unit'] ?? size['weightUnit']) === 'string'
+      ? String(size['weight_unit'] ?? size['weightUnit'])
+      : null) ??
+    readString(asBag(size['weight_unit'] ?? size['weightUnit']), ['symbol', 'name']);
+  const resolvedWeightUnit = weightUnit ?? 'kg';
+  const weightRange =
+    minimumWeight !== null && maximumWeight !== null
+      ? `${minimumWeight} - ${maximumWeight} ${resolvedWeightUnit}`
+      : typeof weightValue === 'string' || typeof weightValue === 'number'
+        ? weightUnit || (typeof weightValue === 'string' && /[a-z]/i.test(weightValue))
+          ? `${String(weightValue)}${resolvedWeightUnit ? ` ${resolvedWeightUnit}` : ''}`
+          : null
+        : null;
+  return {
+    dimensions: dimensionsLabel,
+    weightRange,
+  };
+}
+
+function firstNumber(record: Record<string, unknown>, keys: string[]): number | null {
+  for (const key of keys) {
+    const value = Number(record[key]);
+    if (record[key] !== undefined && record[key] !== null && Number.isFinite(value)) return value;
+  }
+  return null;
+}
+

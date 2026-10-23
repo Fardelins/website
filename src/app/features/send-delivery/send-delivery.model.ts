@@ -1,6 +1,8 @@
 export interface Option {
   id: number;
   label: string;
+  dimensions?: string | null;
+  weightRange?: string | null;
 }
 
 export interface CourierRate {
@@ -15,6 +17,7 @@ export interface CourierRate {
   deliveryWindow: string | null;
   rating: number | null;
   reviewCount: number | null;
+  deliveriesMade: number | null;
 }
 
 /** Both halves of the upload response; the order sends only `id` (BE rejects id and link together), `link` is for previews. */
@@ -32,6 +35,7 @@ export interface PackageStep {
   type: ParcelType | null;
   shortDescription: string;
   weight: number | null;
+  customWeight?: boolean;
   quantity: number;
   worth: number | null;
   images: ParcelImage[];
@@ -104,9 +108,10 @@ export function emptyDraft(): SendDraft {
     parcel: {
       categoryId: null,
       sizeId: null,
-      type: null,
+      type: 'non_perishable',
       shortDescription: '',
       weight: null,
+      customWeight: false,
       quantity: 1,
       worth: null,
       images: [],

@@ -167,6 +167,11 @@
           <ng-icon name="solarArrowLeftBoldDuotone" aria-hidden="true" />
           Back to parcel list
         </a>
+      } @else if (isSendFlow()) {
+        <a class="topbar__title topbar__back" routerLink="/app" (click)="backToParcels()">
+          <ng-icon name="solarArrowLeftBoldDuotone" aria-hidden="true" />
+          Back to dashboard
+        </a>
       } @else {
         <h1 class="topbar__title">{{ pageTitle() }}</h1>
       }

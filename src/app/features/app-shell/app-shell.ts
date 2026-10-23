@@ -195,6 +195,7 @@ export class AppShell {
   });
   // Parcel detail swaps the topbar title for a back link instead of duplicating back-navigation in the page.
   protected readonly isParcelDetail = computed(() => /^\/app\/deliveries\/[^/]+$/.test(this.url()));
+  protected readonly isSendFlow = computed(() => /^\/app\/send\/?$/.test(this.url()));
 
   protected backToParcels(): void {
     this.haptics.light();

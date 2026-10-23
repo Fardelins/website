@@ -4,9 +4,12 @@ import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthService } from '@core/auth/auth.service';
 import { HapticsService } from '@core/services/haptics.service';
+import { SavedAddressesService, SavedAddress } from '@core/services/saved-addresses.service';
 import { ToastService } from '@core/services/toast.service';
 import { SendDeliveryService } from '../../send-delivery.service';
 import { CourierRate, SendDraft, emptyDraft } from '../../send-delivery.model';
+import { StorefrontService } from '@features/storefront/storefront.service';
+import { Storefront } from '@features/storefront/storefront.models';
 import { SendDelivery } from './send-delivery';
 
 const rate = (rateId: string, amount: number, deliveryWindow: string): CourierRate => ({
@@ -18,6 +21,7 @@ const rate = (rateId: string, amount: number, deliveryWindow: string): CourierRa
   deliveryWindow,
   rating: null,
   reviewCount: null,
+  deliveriesMade: null,
 });
 
 function completeDraft(): SendDraft {
@@ -33,7 +37,7 @@ function completeDraft(): SendDraft {
   draft.pickup = { ...draft.pickup, address: '5 Ahmadu Bello Way', state: 'Lagos', city: '' };
   draft.dropoff = {
     ...draft.dropoff,
-    fullName: 'Williams',
+    fullName: 'Ada Williams',
     phone: '+2348098765432',
     email: 'w@mail.test',
     address: '12 Aminu Kano Crescent',
@@ -55,6 +59,7 @@ describe('SendDelivery', () => {
     order: vi.fn(),
     uploadImages: vi.fn(),
   };
+  const savedAddresses = signal<SavedAddress[]>([]);
 
   async function render(draft: SendDraft | null = null) {
     localStorage.clear();
@@ -64,6 +69,8 @@ describe('SendDelivery', () => {
       providers: [
         provideRouter([]),
         { provide: SendDeliveryService, useValue: api },
+        { provide: StorefrontService, useValue: { list: vi.fn().mockResolvedValue([]) } },
+        { provide: SavedAddressesService, useValue: { items: savedAddresses, load: vi.fn() } },
         { provide: AuthService, useValue: { user: signal(null) } },
         { provide: ToastService, useValue: { success: vi.fn(), error: vi.fn() } },
         {
@@ -92,6 +99,7 @@ describe('SendDelivery', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    savedAddresses.set([]);
     TestBed.resetTestingModule();
     api.rates.mockResolvedValue([
       rate('a', 2600, '2 days'),
@@ -100,11 +108,101 @@ describe('SendDelivery', () => {
     ]);
   });
 
+  it('disables a saved address on the opposite side, whichever side selected it first', async () => {
+    savedAddresses.set([
+      {
+        id: 'home',
+        label: 'Home',
+        address: '12 Durumi Road',
+        state: 'Abuja',
+        city: 'Durumi',
+      },
+    ]);
+    await render();
+    let page = fixture.componentInstance;
+    page['currentStep'].set(2);
+    fixture.detectChanges();
+
+    await page['useSavedAddress']('pickup', 'home');
+    page['toggleSavedAddress']('dropoff');
+    fixture.detectChanges();
+    const deliveryChip = root.querySelector<HTMLButtonElement>('#dropoff-saved-addresses .chip');
+    expect(deliveryChip?.disabled).toBe(true);
+    await page['useSavedAddress']('dropoff', 'home');
+    expect(page['draft']().dropoff.address).toBe('');
+
+    TestBed.resetTestingModule();
+    await render();
+    page = fixture.componentInstance;
+    page['currentStep'].set(2);
+    fixture.detectChanges();
+    await page['useSavedAddress']('dropoff', 'home');
+    page['toggleSavedAddress']('pickup');
+    fixture.detectChanges();
+    const pickupChip = root.querySelector<HTMLButtonElement>('#pickup-saved-addresses .chip');
+    expect(pickupChip?.disabled).toBe(true);
+    await page['useSavedAddress']('pickup', 'home');
+    expect(page['draft']().pickup.address).toBe('');
+  });
+
+  it('disables a selected storefront on the opposite side too', async () => {
+    const property: Storefront = {
+      id: 'storefront',
+      name: '',
+      email: 'store@example.test',
+      phone: '08012345678',
+      description: null,
+      website: null,
+      location: {
+        id: null,
+        address: '7 Durumi Road',
+        cityId: 7,
+        stateId: 25,
+        countryId: null,
+        latitude: null,
+        longitude: null,
+        zipCode: null,
+      },
+      preferredCourierIds: [],
+      createdAt: null,
+      updatedAt: null,
+    };
+    await render();
+    let page = fixture.componentInstance;
+    page['currentStep'].set(2);
+    page['properties'].set([property]);
+    fixture.detectChanges();
+
+    await page['usePropertyAddress']('pickup', property.id);
+    page['toggleSavedAddress']('dropoff');
+    fixture.detectChanges();
+    const deliveryChip = root.querySelector<HTMLButtonElement>('#dropoff-saved-addresses .chip');
+    expect(deliveryChip?.textContent?.trim()).toBe('7 Durumi Road');
+    expect(deliveryChip?.disabled).toBe(true);
+    await page['usePropertyAddress']('dropoff', property.id);
+    expect(page['draft']().dropoff.address).toBe('');
+
+    TestBed.resetTestingModule();
+    await render();
+    page = fixture.componentInstance;
+    page['currentStep'].set(2);
+    page['properties'].set([property]);
+    fixture.detectChanges();
+    await page['usePropertyAddress']('dropoff', property.id);
+    page['toggleSavedAddress']('pickup');
+    fixture.detectChanges();
+    const pickupChip = root.querySelector<HTMLButtonElement>('#pickup-saved-addresses .chip');
+    expect(pickupChip?.textContent?.trim()).toBe('7 Durumi Road');
+    expect(pickupChip?.disabled).toBe(true);
+    await page['usePropertyAddress']('pickup', property.id);
+    expect(page['draft']().pickup.address).toBe('');
+  });
+
   it('has three steps and stays put, naming what is missing, when Continue is pressed early', async () => {
     await render();
     expect(
       Array.from(root.querySelectorAll('.steps__label')).map((el) => el.textContent?.trim()),
-    ).toEqual(['1. Parcel', '2. Route', '3. Courier']);
+    ).toEqual(['Parcel Info', 'Set Route', 'Select Courier']);
     await press('Continue');
     expect(title()).toBe('What are you sending?');
     expect(root.textContent).toContain("Tell us what you're sending.");
@@ -138,6 +236,61 @@ describe('SendDelivery', () => {
     await press('Continue');
     await press('Continue');
     expect(root.querySelectorAll('.tag')).toHaveLength(0);
+  });
+
+  it('shows delivery time, rating, reviews and deliveries made on the courier card', async () => {
+    api.rates.mockResolvedValue([
+      {
+        ...rate('a', 3400, '2 - 3 days'),
+        rating: 4.6,
+        reviewCount: 256,
+        deliveriesMade: 1254,
+      },
+      rate('b', 3500, '2 days'),
+    ]);
+    await render(completeDraft());
+    await press('Continue');
+    await press('Continue');
+
+    const cards = root.querySelectorAll('.courier');
+    const first = cards[0].textContent ?? '';
+    expect(first).toContain('Delivers in 2 - 3 days');
+    expect(first).toContain('4.6');
+    expect(first).toContain('(256)');
+    expect(first).toContain(`${(1254).toLocaleString()} Deliveries Made`);
+    expect(cards[1].textContent).not.toContain('Deliveries Made');
+  });
+
+  it('searches couriers by name and loads six at a time', async () => {
+    api.rates.mockResolvedValue(
+      Array.from({ length: 14 }, (_, i) => rate(`${i + 1}`.padStart(2, '0'), 3000 + i, '2 days')),
+    );
+    await render(completeDraft());
+    await press('Continue');
+    await press('Continue');
+
+    expect(root.querySelectorAll('.courier')).toHaveLength(6);
+    expect(root.querySelector('.couriers__more')?.textContent).toContain('Showing 6 of 14');
+    await press('Load more');
+    expect(root.querySelectorAll('.courier')).toHaveLength(12);
+    await press('Load more');
+    expect(root.querySelectorAll('.courier')).toHaveLength(14);
+    expect(
+      Array.from(root.querySelectorAll('button')).some((b) => b.textContent?.includes('Load more')),
+    ).toBe(false);
+
+    const search = root.querySelector<HTMLInputElement>('input[type="search"]')!;
+    search.value = 'courier 07';
+    search.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(root.querySelectorAll('.courier')).toHaveLength(1);
+    expect(root.querySelector('.couriers__more')?.textContent).toContain('Showing 1 of 1');
+
+    search.value = 'nothing';
+    search.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(root.querySelectorAll('.courier')).toHaveLength(0);
+    expect(root.textContent).toContain('No courier matches "nothing".');
   });
 
   it('keeps the newest prices when an older request finishes last', async () => {
