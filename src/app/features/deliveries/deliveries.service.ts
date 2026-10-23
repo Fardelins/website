@@ -286,8 +286,8 @@ export class DeliveriesService {
   }
 
   /**
-   * Cancels a shipment that has not been paid for. BE can apply the change and still answer 400,
-   * and answers 409 when it is already cancelled, so the list is checked before reporting failure.
+   * BE can apply the change and still answer 400, and answers 409 both for an already cancelled
+   * shipment and for one past `pending`, so the list is checked before reporting failure.
    */
   async cancel(shipmentId: string): Promise<void> {
     if (this.auth.isMockSession()) return;
@@ -297,9 +297,8 @@ export class DeliveriesService {
           status: 'canceled',
         }),
       );
-    } catch (error) {
-      const already = error instanceof HttpErrorResponse && error.status === 409;
-      if (!already && !(await this.isCanceled(shipmentId))) {
+    } catch {
+      if (!(await this.isCanceled(shipmentId))) {
         throw new Error("We couldn't cancel this shipment. Please try again.");
       }
     }

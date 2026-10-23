@@ -358,7 +358,7 @@ describe('DeliveriesService account cache', () => {
       await expect(pending).resolves.toBeUndefined();
     });
 
-    it('treats 409 (already cancelled) as done', async () => {
+    it('treats 409 as done when the list shows it already cancelled', async () => {
       const service = TestBed.inject(DeliveriesService);
       const http = TestBed.inject(HttpTestingController);
 
@@ -367,9 +367,29 @@ describe('DeliveriesService account cache', () => {
         .expectOne(cancelUrl)
         .flush({ message: 'status already updated' }, { status: 409, statusText: 'Conflict' });
       await settle();
+      http
+        .expectOne(isShipments)
+        .flush({ data: [{ id: 'da2e356c', status: 'canceled' }], has_next_page: false });
+      await settle();
       http.expectOne(isShipments).flush({ data: [], has_next_page: false });
 
       await expect(pending).resolves.toBeUndefined();
+    });
+
+    it('fails on 409 when the shipment is already en-route', async () => {
+      const service = TestBed.inject(DeliveriesService);
+      const http = TestBed.inject(HttpTestingController);
+
+      const pending = service.cancel('da2e356c');
+      http
+        .expectOne(cancelUrl)
+        .flush({ message: 'shipment already en-route' }, { status: 409, statusText: 'Conflict' });
+      await settle();
+      http
+        .expectOne(isShipments)
+        .flush({ data: [{ id: 'da2e356c', status: 'assigned' }], has_next_page: false });
+
+      await expect(pending).rejects.toThrow("We couldn't cancel this shipment");
     });
 
     it('fails when the request fails and the shipment is still not cancelled', async () => {

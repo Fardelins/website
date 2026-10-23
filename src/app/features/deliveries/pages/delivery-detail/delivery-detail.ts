@@ -44,9 +44,9 @@ import { DeliveryRatingCard } from '../../components/delivery-rating/delivery-ra
 import { DeliveriesService } from '../../deliveries.service';
 import { DeliveryDetail as Detail } from '../../deliveries.model';
 
-// A shipment can be cancelled until it is picked up, paid or not. The refund promise in the dialog
-// relies on BE refunding paid cancellations, which it does not do yet.
-const CANCELLABLE = ['pending', 'awaiting_payment', 'assigned'];
+// BE only cancels a `pending` shipment (409 once assigned). The dialog's refund promise relies on BE
+// refunding paid cancellations, which it does not do yet.
+const CANCELLABLE = ['pending', 'awaiting_payment'];
 
 @Component({
   selector: 'app-delivery-detail',
