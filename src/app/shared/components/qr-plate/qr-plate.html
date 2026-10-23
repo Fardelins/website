@@ -1,0 +1,89 @@
+<div class="qrp" [class.qrp--revealing]="revealing()">
+  <div
+    class="qrp__plate"
+    [appTilt]="14"
+    [appTiltResponse]="0.22"
+    [appTiltPerspective]="620"
+    appTiltSurface="parent"
+    appQrSpotlight
+    appQrSpotlightSurface="parent"
+  >
+    @if (shown(); as code) {
+      <span class="qrp__layers">
+        <svg
+          class="qrp__code qrp__code--base"
+          [attr.viewBox]="viewBox()"
+          role="img"
+          [attr.aria-label]="label()"
+        >
+          <ng-container *ngTemplateOutlet="shapes; context: { $implicit: code }" />
+        </svg>
+
+        <svg
+          class="qrp__code qrp__code--rainbow"
+          [style.fill]="'url(#' + gradientId + ')'"
+          [attr.viewBox]="viewBox()"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient
+              [attr.id]="gradientId"
+              gradientUnits="userSpaceOnUse"
+              x1="0"
+              y1="0"
+              [attr.x2]="span()"
+              [attr.y2]="span()"
+            >
+              <stop offset="0%" stop-color="#ff3b6b" />
+              <stop offset="16%" stop-color="#ff8a34" />
+              <stop offset="32%" stop-color="#ffd93d" />
+              <stop offset="49%" stop-color="#39dd91" />
+              <stop offset="65%" stop-color="#25c7f5" />
+              <stop offset="82%" stop-color="#4f70ff" />
+              <stop offset="100%" stop-color="#b64cff" />
+            </linearGradient>
+          </defs>
+          <ng-container *ngTemplateOutlet="shapes; context: { $implicit: code }" />
+        </svg>
+
+        <svg class="qrp__code qrp__code--spotlight" [attr.viewBox]="viewBox()" aria-hidden="true">
+          <ng-container *ngTemplateOutlet="shapes; context: { $implicit: code }" />
+        </svg>
+
+        <span class="qrp__logo" [style.width.%]="logoPercent()" aria-hidden="true">
+          <img src="/home/app-icon.svg" alt="" />
+        </span>
+      </span>
+    } @else {
+      <span class="qrp__skeleton" role="status" [attr.aria-label]="'Generating ' + label()"></span>
+    }
+  </div>
+</div>
+
+<ng-template #shapes let-code>
+  @for (module of code.modules; track $index) {
+    <svg:rect
+      class="qrp__module"
+      [attr.x]="module.x + 0.08"
+      [attr.y]="module.y + 0.08"
+      width="0.84"
+      height="0.84"
+      rx="0.28"
+      [style.--d]="module.delay"
+    />
+  }
+  @for (finder of code.finders; track $index) {
+    <svg:g class="qrp__finder" [style.--d]="finder.delay">
+      <svg:rect [attr.x]="finder.x" [attr.y]="finder.y" width="7" height="7" rx="1.5" />
+      <svg:rect
+        class="qrp__finder-gap"
+        [attr.x]="finder.x + 1"
+        [attr.y]="finder.y + 1"
+        width="5"
+        height="5"
+        rx="1"
+      />
+      <svg:circle [attr.cx]="finder.x + 3.5" [attr.cy]="finder.y + 3.5" r="1.5" />
+    </svg:g>
+  }
+</ng-template>

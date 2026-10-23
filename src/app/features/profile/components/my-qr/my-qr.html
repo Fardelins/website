@@ -1,0 +1,96 @@
+@if (username(); as handle) {
+  <div class="myqr">
+    <div class="myqr__card">
+      <app-profile-qr-card
+        [theme]="theme()"
+        [name]="fullName()"
+        [handle]="handle"
+        [initials]="initials()"
+        [avatarUrl]="user()?.avatarUrl ?? null"
+        [displayLink]="displayLink()"
+        [glyphs]="glyphs()"
+      />
+    </div>
+
+    <div class="myqr__side">
+      <div>
+        <h3 class="myqr__title">Your QR card</h3>
+        <p class="myqr__lead">Pick a colour, then share it. Anyone can scan it to find you.</p>
+      </div>
+
+      <div
+        class="swatches"
+        role="radiogroup"
+        aria-label="Card colour"
+        (keydown)="onSwatchKey($event)"
+      >
+        @for (option of themes; track option.id) {
+          <button
+            type="button"
+            role="radio"
+            class="swatch"
+            [attr.aria-checked]="option.id === theme().id"
+            [attr.aria-label]="option.label"
+            [attr.tabindex]="option.id === theme().id ? 0 : -1"
+            [title]="option.label"
+            [style.--from]="option.background[0]"
+            [style.--to]="option.background[1]"
+            (click)="pickTheme(option.id)"
+          >
+            <span class="swatch__dot"></span>
+          </button>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="btn btn--primary myqr__share"
+        [disabled]="sharing() || !glyphs()"
+        (click)="share()"
+      >
+        <ng-icon name="solarShareBoldDuotone" aria-hidden="true" />
+        {{ sharing() ? 'Getting your card ready…' : 'Share profile' }}
+      </button>
+
+      <p class="myqr__hint">
+        <ng-icon name="solarLockKeyholeBoldDuotone" aria-hidden="true" />
+        <span>
+          Anyone who scans it can see your name, photo and &#64;username. Nothing else about you is
+          shared.
+        </span>
+      </p>
+    </div>
+  </div>
+} @else {
+  <form class="myqr-form" (submit)="saveUsername($event)" novalidate>
+    <div>
+      <h3>Choose a username</h3>
+      <p class="myqr__lead">
+        Your QR code is built on your &#64;username, so pick one first. It can be 2 to 25 letters or
+        numbers.
+      </p>
+    </div>
+    <label class="field">
+      <span class="field__label">Username</span>
+      <input
+        name="username"
+        type="text"
+        autocomplete="off"
+        autocapitalize="none"
+        spellcheck="false"
+        maxlength="25"
+        placeholder="yourname"
+        [value]="choice()"
+        (input)="onChoice($any($event.target).value)"
+      />
+    </label>
+    @if (error()) {
+      <p class="form-error" role="alert">{{ error() }}</p>
+    } @else if (choice() && !choiceValid()) {
+      <p class="myqr__hint-plain">Use 2 to 25 letters or numbers, with no spaces or symbols.</p>
+    }
+    <button type="submit" class="btn btn--primary" [disabled]="!choiceValid() || saving()">
+      {{ saving() ? 'Saving…' : 'Save username' }}
+    </button>
+  </form>
+}

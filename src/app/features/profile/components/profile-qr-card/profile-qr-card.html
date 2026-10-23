@@ -1,0 +1,27 @@
+<article
+  class="pcard"
+  [style.--pc-from]="theme().background[0]"
+  [style.--pc-to]="theme().background[1]"
+  [style.--pc-pattern]="theme().pattern"
+  [style.--pc-text]="theme().text"
+  [style.--pc-muted]="theme().muted"
+  [style.--pc-pill]="theme().pill"
+  [style.--pc-pill-text]="theme().pillText"
+  [style.--pc-ring]="theme().ring"
+  [attr.aria-label]="'Profile card for ' + name()"
+>
+  @if (avatarUrl(); as avatar) {
+    <img class="pcard__avatar" [src]="avatar" alt="" width="76" height="76" />
+  } @else {
+    <span class="pcard__avatar pcard__avatar--initials" aria-hidden="true">{{ initials() }}</span>
+  }
+  <h3 class="pcard__name">{{ name() }}</h3>
+  <p class="pcard__pill">&#64;{{ handle() }}</p>
+
+  <div class="pcard__plate">
+    <app-qr-plate [glyphs]="glyphs()" [label]="label()" />
+  </div>
+
+  <p class="pcard__link">{{ displayLink() }}</p>
+  <p class="pcard__caption">{{ caption }}</p>
+</article>

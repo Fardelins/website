@@ -20,5 +20,6 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'forgot-password', renderMode: RenderMode.Client },
   { path: 'reset-password', renderMode: RenderMode.Client },
   { path: 'payment/verify-paystack', renderMode: RenderMode.Client },
+  { path: 'u/:username', renderMode: RenderMode.Client },
   { path: '**', renderMode: RenderMode.Server },
 ];

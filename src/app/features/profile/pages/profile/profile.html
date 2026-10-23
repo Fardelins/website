@@ -239,40 +239,67 @@
                     placeholder="12 Admiralty Way"
                     [required]="true"
                     [value]="editingValue('address')"
+                    [autocompleteEnabled]="!addressManual()"
+                    (valueChange)="onStreetTyped($event)"
                     (placeSelected)="onAddressPlace($event)"
                   />
                 </label>
-                <div class="field__row">
-                  <label class="field" for="address-state">
-                    State
-                    <app-combobox
-                      id="address-state"
-                      name="state"
-                      [options]="states()"
-                      [strict]="true"
-                      [required]="true"
-                      [loading]="loadingStates()"
-                      [value]="editingValue('state')"
-                      loadingLabel="Loading States..."
-                      placeholder="Search for a state"
-                      emptyLabel="No matching state"
-                      (selected)="onStateSelected($event)"
-                    />
-                  </label>
-                  <label class="field" for="address-city">
-                    City
-                    <app-combobox
-                      id="address-city"
-                      name="city"
-                      [options]="cities()"
-                      [loading]="loadingCities()"
-                      [value]="editingValue('city')"
-                      loadingLabel="Loading Cities..."
-                      placeholder="Type a city"
-                      emptyLabel="No matching city"
-                    />
-                  </label>
-                </div>
+                @if (addressManual()) {
+                  <div class="field__row" id="address-location">
+                    <label class="field" for="address-state">
+                      State
+                      <app-combobox
+                        id="address-state"
+                        name="state"
+                        [options]="states()"
+                        [strict]="true"
+                        [required]="true"
+                        [loading]="loadingStates()"
+                        [value]="editingValue('state')"
+                        loadingLabel="Loading States..."
+                        placeholder="Search for a state"
+                        emptyLabel="No matching state"
+                        (selected)="onStateSelected($event)"
+                      />
+                    </label>
+                    <label class="field" for="address-city">
+                      City
+                      <app-combobox
+                        id="address-city"
+                        name="city"
+                        [options]="cities()"
+                        [loading]="loadingCities()"
+                        [value]="editingValue('city')"
+                        loadingLabel="Loading Cities..."
+                        placeholder="Type a city"
+                        emptyLabel="No matching city"
+                      />
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    class="address-manual-toggle"
+                    aria-expanded="true"
+                    (click)="toggleAddressManual($event)"
+                  >
+                    Use Google address search
+                  </button>
+                } @else {
+                  @if (addressPlace(); as place) {
+                    <p class="address-form__place">
+                      <ng-icon name="solarMapPointWaveBoldDuotone" aria-hidden="true" />{{ place }}
+                    </p>
+                  }
+                  <button
+                    type="button"
+                    class="address-manual-toggle"
+                    aria-expanded="false"
+                    aria-controls="address-location"
+                    (click)="toggleAddressManual($event)"
+                  >
+                    Enter address manually
+                  </button>
+                }
                 <div class="address-form__actions">
                   <button type="submit" class="btn btn--primary">
                     {{ editingAddress() ? 'Update Address' : 'Save Address' }}
@@ -650,6 +677,9 @@
           </div>
         }
 
+        @case ('qr') {
+          <app-my-qr />
+        }
         @case ('appearance') {
           <section class="appearance-section">
             <div class="appearance-section__copy">

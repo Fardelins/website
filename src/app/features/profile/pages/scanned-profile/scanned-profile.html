@@ -1,0 +1,52 @@
+<main class="scanned" role="main">
+  <div class="scanned__content">
+    @switch (state()) {
+      @case ('loading') {
+        <div
+          class="scanned__avatar scanned__avatar--skeleton"
+          role="status"
+          aria-label="Loading"
+        ></div>
+        <div class="scanned__line scanned__line--name"></div>
+        <div class="scanned__line scanned__line--handle"></div>
+      }
+      @case ('found') {
+        @if (person(); as profile) {
+          @if (profile.avatarUrl) {
+            <img class="scanned__avatar" [src]="profile.avatarUrl" alt="" width="96" height="96" />
+          } @else {
+            <span class="scanned__avatar scanned__avatar--initials" aria-hidden="true">{{
+              initials()
+            }}</span>
+          }
+          <h1>{{ profile.name }}</h1>
+          <p class="scanned__handle">&#64;{{ profile.username }}</p>
+          <p class="scanned__description">Send a parcel with Fardelins, or get the app.</p>
+          <div class="scanned__actions">
+            <a routerLink="/app/send" class="scanned__link scanned__link--solid">Send a parcel</a>
+            <a routerLink="/download" class="scanned__link scanned__link--outline">Get the app</a>
+          </div>
+        }
+      }
+      @case ('missing') {
+        <h1>We couldn't find &#64;{{ username() }}</h1>
+        <p class="scanned__description">
+          That username doesn't match anyone on Fardelins. Check the code or link and try again.
+        </p>
+        <div class="scanned__actions">
+          <a routerLink="/" class="scanned__link scanned__link--solid">Go to homepage</a>
+        </div>
+      }
+      @default {
+        <h1>Something went wrong</h1>
+        <p class="scanned__description">We couldn't look that person up. Please try again.</p>
+        <div class="scanned__actions">
+          <button type="button" class="scanned__link scanned__link--solid" (click)="retry()">
+            Try again
+          </button>
+          <a routerLink="/" class="scanned__link scanned__link--outline">Go to homepage</a>
+        </div>
+      }
+    }
+  </div>
+</main>

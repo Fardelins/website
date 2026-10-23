@@ -1,0 +1,139 @@
+/* Sizes below are the 340 x 510 design space in qr-card-themes.ts; the shared image multiplies them. */
+/* Registered so the gradient's two colours can transition when a swatch is picked. */
+@property --pc-from {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #5a21a8;
+}
+
+@property --pc-to {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: #3b1273;
+}
+
+:host {
+  display: block;
+  width: 340px;
+  max-width: 100%;
+}
+
+.pcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 340px;
+  max-width: 100%;
+  height: 510px;
+  margin: 0;
+  padding-top: 28px;
+  overflow: hidden;
+  border-radius: 26px;
+  color: var(--pc-text);
+  background: linear-gradient(170deg, var(--pc-from), var(--pc-to));
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 10%) inset,
+    0 26px 48px -28px rgb(0 0 0 / 60%);
+  transition:
+    --pc-from 320ms ease,
+    --pc-to 320ms ease,
+    color 280ms ease;
+  isolation: isolate;
+}
+
+/* The swirl, used as a stencil so each card colour tints it, drawn under everything. */
+.pcard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--pc-pattern);
+  -webkit-mask: url('/app/qr-card-pattern.svg') center / cover no-repeat;
+  mask: url('/app/qr-card-pattern.svg') center / cover no-repeat;
+  transition: background-color 280ms ease;
+  pointer-events: none;
+}
+
+.pcard__avatar {
+  flex: none;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px var(--pc-ring);
+}
+
+.pcard__avatar--initials {
+  display: grid;
+  place-items: center;
+  color: #41167a;
+  background: #efe7fb;
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.pcard__name {
+  max-width: 288px;
+  margin: 18px 0 0;
+  overflow: hidden;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 26px;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pcard__pill {
+  margin: 9px 0 0;
+  padding: 0 13px;
+  border-radius: 100px;
+  color: var(--pc-pill-text);
+  background: var(--pc-pill);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 26px;
+  transition:
+    background 280ms ease,
+    color 280ms ease;
+}
+
+.pcard__plate {
+  --qr-size: 224px;
+  --qr-ink: #31105b;
+  display: grid;
+  place-items: center;
+  width: 252px;
+  height: 252px;
+  margin-top: 16px;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 10px 28px -14px rgb(0 0 0 / 45%);
+}
+
+.pcard__link {
+  margin: 20px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.pcard__caption {
+  margin: 2px 0 0;
+  color: var(--pc-muted);
+  font-size: 11px;
+  line-height: 16px;
+  transition: color 280ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pcard,
+  .pcard::before,
+  .pcard__pill,
+  .pcard__caption {
+    transition: none;
+  }
+}

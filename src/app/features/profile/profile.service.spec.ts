@@ -6,6 +6,46 @@ import { DEV_USER } from '@core/auth/dev-mock';
 import { TokenStore } from '@core/auth/token-store';
 import { ProfileService } from './profile.service';
 
+describe('ProfileService username', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+  });
+
+  afterEach(() => TestBed.inject(HttpTestingController).verify());
+
+  it('patches the username and keeps it on the signed-in user', async () => {
+    const store = TestBed.inject(TokenStore);
+    store.setUser({ ...DEV_USER, id: 'real-user' });
+    const http = TestBed.inject(HttpTestingController);
+
+    const saving = TestBed.inject(ProfileService).updateUsername('ada');
+    const request = http.expectOne('/v1/user/username');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ username: 'ada' });
+    request.flush({}, { status: 202, statusText: 'Accepted' });
+
+    await saving;
+    expect(store.user()?.username).toBe('ada');
+  });
+
+  it('shows the API reason when the username is refused and keeps the old state', async () => {
+    const store = TestBed.inject(TokenStore);
+    store.setUser({ ...DEV_USER, id: 'real-user' });
+    const http = TestBed.inject(HttpTestingController);
+
+    const saving = TestBed.inject(ProfileService).updateUsername('ada');
+    http
+      .expectOne('/v1/user/username')
+      .flush({ message: 'Username already taken' }, { status: 409, statusText: 'Conflict' });
+
+    await expect(saving).rejects.toThrow('Username already taken');
+    expect(store.user()?.username).toBeUndefined();
+  });
+});
+
 describe('ProfileService avatar upload', () => {
   beforeEach(() => {
     localStorage.clear();

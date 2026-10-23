@@ -27,6 +27,7 @@ import {
   solarEyeClosedBoldDuotone,
   solarInfoCircleBoldDuotone,
   solarLogout2BoldDuotone,
+  solarMapPointWaveBoldDuotone,
   solarPassportBoldDuotone,
   solarPenBoldDuotone,
   solarShieldCheckBoldDuotone,
@@ -62,10 +63,11 @@ import {
   maskDocumentNumber,
   normalizeDocumentNumber,
 } from '../../document-validation';
+import { MyQr } from '../../components/my-qr/my-qr';
 import { ProfileService, VerificationDoc } from '../../profile.service';
 
 type SettingsTab =
-  'profile' | 'addresses' | 'storefront' | 'appearance' | 'security' | 'verification';
+  'profile' | 'addresses' | 'qr' | 'storefront' | 'appearance' | 'security' | 'verification';
 
 const DOC_TYPES: VerificationDocumentType[] = [
   'NIN',
@@ -105,6 +107,7 @@ const OCR_SCAN_TIMEOUT_MS = 20_000;
     AvatarCropper,
     Combobox,
     EmptyState,
+    MyQr,
     Skeleton,
     StorefrontSettings,
   ],
@@ -123,6 +126,7 @@ const OCR_SCAN_TIMEOUT_MS = 20_000;
       solarEyeClosedBoldDuotone,
       solarInfoCircleBoldDuotone,
       solarLogout2BoldDuotone,
+      solarMapPointWaveBoldDuotone,
       solarPassportBoldDuotone,
       solarPenBoldDuotone,
       solarShieldCheckBoldDuotone,
@@ -229,6 +233,8 @@ export class Profile {
   protected readonly savedAddresses = this.addressBook.items;
   protected readonly pendingRemoval = signal<SavedAddress | null>(null);
   protected readonly editingAddress = signal<SavedAddress | null>(null);
+  /** State and city are typed by hand only when asked for; a Google suggestion fills them otherwise. */
+  protected readonly addressManual = signal(false);
   /** Street, state and city filled in from a Google place; shown over the stored address. */
   private readonly pickedPlace = signal<{ address?: string; state?: string; city?: string } | null>(
     null,
@@ -256,6 +262,7 @@ export class Profile {
   protected readonly tabs: ReadonlyArray<{ key: SettingsTab; label: string; path: string }> = [
     { key: 'profile', label: 'Profile', path: '/app/profile' },
     { key: 'addresses', label: 'My Addresses', path: '/app/profile/addresses' },
+    { key: 'qr', label: 'My QR', path: '/app/profile/qr' },
     { key: 'storefront', label: 'Storefront', path: '/app/profile/storefront' },
     { key: 'appearance', label: 'Appearance', path: '/app/profile/appearance' },
     { key: 'security', label: 'Security', path: '/app/profile/security' },
@@ -266,6 +273,7 @@ export class Profile {
   protected readonly activeTab = computed<SettingsTab>(() => {
     const url = this.routeUrl();
     if (url.includes('/addresses')) return 'addresses';
+    if (url.includes('/qr')) return 'qr';
     if (url.includes('/storefront')) return 'storefront';
     if (url.includes('/security')) return 'security';
     if (url.includes('/documents')) return 'verification';
@@ -282,6 +290,10 @@ export class Profile {
       addresses: {
         title: 'My Addresses',
         description: 'Save the places you send parcels from or deliver to often.',
+      },
+      qr: {
+        title: 'My QR',
+        description: 'Share a code that opens your profile on Fardelins.',
       },
       storefront: {
         title: 'Storefront',
@@ -504,12 +516,18 @@ export class Profile {
     const form = event.currentTarget as HTMLFormElement;
     if (!form.reportValidity()) return;
     const values = new FormData(form);
-    const typedState = String(values.get('state') ?? '').trim();
+    const manual = this.addressManual();
+    const typedState = manual ? this.fieldValue(form, 'state') : this.resolvedPlace('state');
     const state = this.states().find(
       (item) => item.label.toLowerCase() === typedState.toLowerCase(),
     );
     if (!state) {
-      this.error.set('Pick a state from the list.');
+      this.addressManual.set(true);
+      this.error.set(
+        manual
+          ? 'Pick a state from the list.'
+          : 'Pick your address from the suggestions, or choose its state and city.',
+      );
       this.haptics.error();
       return;
     }
@@ -518,7 +536,7 @@ export class Profile {
       label: String(values.get('label') ?? '').trim(),
       address: String(values.get('address') ?? '').trim(),
       state: state.label,
-      city: String(values.get('city') ?? '').trim(),
+      city: manual ? this.fieldValue(form, 'city') : this.resolvedPlace('city'),
     };
     const editing = this.editingAddress();
     if (editing) {
@@ -530,6 +548,7 @@ export class Profile {
     this.cities.set([]);
     this.pickedPlace.set(null);
     this.editingAddress.set(null);
+    this.addressManual.set(false);
     this.addressFormOpen.set(false);
     this.toast.success(editing ? 'Address updated' : 'Address saved', {
       description: payload.label,
@@ -542,6 +561,7 @@ export class Profile {
     const next = !this.addressFormOpen();
     this.addressFormOpen.set(next);
     this.pickedPlace.set(null);
+    this.addressManual.set(false);
     if (!next) {
       this.editingAddress.set(null);
       this.cities.set([]);
@@ -551,6 +571,7 @@ export class Profile {
   protected async startEditAddress(address: SavedAddress): Promise<void> {
     this.error.set(null);
     this.pickedPlace.set(null);
+    this.addressManual.set(false);
     this.editingAddress.set(address);
     this.addressFormOpen.set(true);
     this.haptics.selection();
@@ -578,6 +599,42 @@ export class Profile {
     if (!address) return '';
     const raw = address[field];
     return field === 'state' || field === 'city' ? this.titleCasePipe.transform(raw) : raw;
+  }
+
+  /** Remembers what was typed, or switching to manual entry would reset the street to blank. */
+  protected onStreetTyped(value: string): void {
+    this.pickedPlace.update((picked) => ({ ...picked, address: value }));
+  }
+
+  protected toggleAddressManual(event: Event): void {
+    const opening = !this.addressManual();
+    // Closing hides the State and City fields, so keep what was chosen in them.
+    if (!opening) this.keepManualPlace((event.currentTarget as HTMLElement).closest('form'));
+    this.addressManual.set(opening);
+    if (opening && !this.states().length && !this.loadingStates()) void this.loadAddressStates();
+  }
+
+  private keepManualPlace(form: HTMLFormElement | null): void {
+    if (!form) return;
+    const state = this.fieldValue(form, 'state');
+    const city = this.fieldValue(form, 'city');
+    this.pickedPlace.update((picked) => ({ ...picked, ...(state ? { state, city } : {}) }));
+  }
+
+  /** A box's text even while it is disabled (a combobox is, whilst its list loads), which FormData skips. */
+  private fieldValue(form: HTMLFormElement, name: string): string {
+    const field = form.elements.namedItem(name);
+    return field instanceof HTMLInputElement ? field.value.trim() : '';
+  }
+
+  /** The state or city the form currently stands on: a picked suggestion first, else the saved address. */
+  private resolvedPlace(field: 'state' | 'city'): string {
+    return this.pickedPlace()?.[field] ?? this.editingAddress()?.[field] ?? '';
+  }
+
+  /** "Ikeja, Lagos": what the street field resolved to, shown while State and City are tucked away. */
+  protected addressPlace(): string {
+    return [this.editingValue('city'), this.editingValue('state')].filter(Boolean).join(', ');
   }
 
   /** A Google place fills the street, then the state and city it matches in our own lists. */

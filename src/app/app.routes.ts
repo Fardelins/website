@@ -46,6 +46,13 @@ export const routes: Routes = [
     loadComponent: () => import('./features/tracking/pages/track/track').then(({ Track }) => Track),
   },
   {
+    path: 'u/:username',
+    loadComponent: () =>
+      import('./features/profile/pages/scanned-profile/scanned-profile').then(
+        ({ ScannedProfile }) => ScannedProfile,
+      ),
+  },
+  {
     path: 'email-verified',
     loadComponent: () =>
       import('./features/email-verified/email-verified').then(({ EmailVerified }) => EmailVerified),
@@ -183,6 +190,11 @@ export const routes: Routes = [
       },
       {
         path: 'profile/documents',
+        loadComponent: () =>
+          import('./features/profile/pages/profile/profile').then(({ Profile }) => Profile),
+      },
+      {
+        path: 'profile/qr',
         loadComponent: () =>
           import('./features/profile/pages/profile/profile').then(({ Profile }) => Profile),
       },

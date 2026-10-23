@@ -124,6 +124,19 @@ export class ProfileService {
     }
   }
 
+  /** Sets the @handle the account's QR code and scanned link are built on. */
+  async updateUsername(username: string): Promise<void> {
+    const current = this.store.user();
+    if (!this.isMockSession()) {
+      try {
+        await firstValueFrom(this.http.patch(this.apiUrl('/user/username'), { username }));
+      } catch (error) {
+        throw new Error(parseApiError(error, "We couldn't save that username."));
+      }
+    }
+    if (current) this.store.setUser({ ...current, username });
+  }
+
   async uploadAvatar(file: File): Promise<void> {
     if (this.isMockSession()) return;
 

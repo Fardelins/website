@@ -1,0 +1,146 @@
+.myqr {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 40px;
+  padding: 28px 32px 32px;
+}
+
+/* The explicit column lets the card shrink to a narrow screen instead of overflowing it. */
+.myqr__card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+}
+
+.myqr__side {
+  display: grid;
+  gap: 22px;
+  max-width: 380px;
+}
+
+.myqr__title {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.myqr__lead {
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.swatches {
+  display: flex;
+  gap: 14px;
+}
+
+.swatch {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    transform 180ms var(--ease-out, ease-out);
+}
+
+.swatch__dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, var(--from), var(--to));
+  /* A hairline keeps the white swatch visible on a light dashboard. */
+  box-shadow: inset 0 0 0 1px rgb(127 127 127 / 40%);
+}
+
+.swatch[aria-checked='true'] {
+  border-color: var(--rail-accent, var(--color-primary-500));
+}
+
+.swatch:active {
+  transform: scale(0.94);
+}
+
+.swatch:focus-visible {
+  outline: 2px solid var(--dashboard-focus);
+  outline-offset: 3px;
+}
+
+.myqr__share {
+  gap: 10px;
+  justify-self: start;
+  min-width: 200px;
+}
+
+.myqr__share ng-icon {
+  font-size: 19px;
+}
+
+/* The lock sits inline with the first line, so the whole hint centres as one piece of text. */
+.myqr__hint {
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.myqr__hint ng-icon {
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 15px;
+  vertical-align: -3px;
+}
+
+.myqr__hint-plain {
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.myqr-form {
+  display: grid;
+  gap: 16px;
+  max-width: 420px;
+  padding: 28px 32px 32px;
+}
+
+.myqr-form h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+@media (max-width: 720px) {
+  .myqr {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding: 22px 16px 28px;
+  }
+
+  .myqr__side {
+    max-width: none;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .myqr__share {
+    justify-self: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swatch {
+    transition: none;
+  }
+}
