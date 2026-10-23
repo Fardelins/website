@@ -13,8 +13,12 @@ export interface TrackingEventRaw {
 export interface TrackingApiResponse {
   message: string;
   code: number;
-  data: TrackingEventRaw[];
+  /** An object since 2026-10-20; the bare array is the old shape. */
+  data: TrackingEventRaw[] | { transaction_status?: string | null; tracking?: TrackingEventRaw[] };
 }
+
+/** Payment status of the shipment's order; `unknown` covers any value BE adds later. */
+export type PaymentStatus = 'pending' | 'success' | 'failed' | 'canceled' | 'unknown';
 
 /** One timeline event, shaped for the view. */
 export interface TrackingEvent {
@@ -44,6 +48,8 @@ export interface TrackingResult {
   completed: boolean;
   headline: string;
   updatedLabel: string;
+  /** Null when the parcel has no order or payment yet. */
+  paymentStatus: PaymentStatus | null;
 }
 
 /** The 8 raw API statuses grouped into 4 customer-facing phases. */

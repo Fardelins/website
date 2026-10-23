@@ -3,6 +3,7 @@ import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { firstValueFrom, timeout, type Observable } from 'rxjs';
 import { logisticsApiUrl } from '@core/services/logistics-api.config';
 import {
+  PaymentStatus,
   TRACKING_PHASES,
   TrackingApiResponse,
   TrackingEvent,
@@ -14,6 +15,13 @@ import {
 
 // Cap the read so a slow API can't hang SSR; on timeout the caller renders the error state.
 const REQUEST_TIMEOUT_MS = 8000;
+
+function toPaymentStatus(value: string | null | undefined): PaymentStatus | null {
+  if (value == null) return null;
+  return value === 'pending' || value === 'success' || value === 'failed' || value === 'canceled'
+    ? value
+    : 'unknown';
+}
 
 /** Reads a shipment's public tracking timeline from the Fardelins logistics API. */
 @Injectable({ providedIn: 'root' })
@@ -38,10 +46,17 @@ export class TrackingService {
       throw error;
     }
 
-    return this.composeResult(id, response?.data ?? []);
+    const data = response?.data;
+    const raw = Array.isArray(data) ? data : (data?.tracking ?? []);
+    const payment = Array.isArray(data) ? null : toPaymentStatus(data?.transaction_status);
+    return this.composeResult(id, raw, payment);
   }
 
-  private composeResult(id: string, raw: TrackingEventRaw[]): TrackingResult {
+  private composeResult(
+    id: string,
+    raw: TrackingEventRaw[],
+    paymentStatus: PaymentStatus | null,
+  ): TrackingResult {
     // BE answers 200 with no events for a parcel that exists but has no dispatcher yet (unknown ids 404).
     if (raw.length === 0) {
       return {
@@ -54,6 +69,7 @@ export class TrackingService {
         completed: false,
         headline: statusLabel('pending'),
         updatedLabel: '',
+        paymentStatus,
       };
     }
 
@@ -91,6 +107,7 @@ export class TrackingService {
       completed: latest.status === 'completed',
       headline: latest.statusLabel,
       updatedLabel: `${latest.dateLabel} · ${latest.timeLabel}`,
+      paymentStatus,
     };
   }
 
