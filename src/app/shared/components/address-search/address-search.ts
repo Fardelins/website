@@ -13,6 +13,7 @@ import {
   GooglePlacesService,
   PlaceDetails,
   PlaceSuggestion,
+  PlacesSearchIssue,
 } from '@core/services/google-places.service';
 
 const DEBOUNCE_MS = 300;
@@ -38,11 +39,17 @@ export class AddressSearch {
   readonly required = input(false);
   readonly disabled = input(false);
   readonly invalid = input(false);
+  readonly autocompleteEnabled = input(true);
+  /** False where the host offers its own fallback, so "enter it manually" notes would mislead. */
+  readonly showIssues = input(true);
+  readonly searchRequest = input(0);
 
   /** Every keystroke, so a hand-typed address is never lost. */
   readonly valueChange = output<string>();
   /** A suggestion was picked and its details loaded. */
   readonly placeSelected = output<PlaceDetails>();
+  /** Enter pressed on typed text with no suggestion highlighted. */
+  readonly submitted = output<string>();
 
   private readonly autoId = `address-search-${++nextId}`;
   protected readonly listId = `address-search-list-${nextId}`;
@@ -51,13 +58,33 @@ export class AddressSearch {
   protected readonly suggestions = signal<PlaceSuggestion[]>([]);
   protected readonly open = signal(false);
   protected readonly activeIndex = signal(-1);
+  protected readonly searchIssue = signal<PlacesSearchIssue | null>(null);
 
   private timer: ReturnType<typeof setTimeout> | undefined;
   private blurTimer: ReturnType<typeof setTimeout> | undefined;
   private request = 0;
+  private seenSearchRequest = 0;
 
   constructor() {
-    effect(() => this.query.set(this.value()));
+    effect(() => {
+      const value = this.value();
+      const searchRequest = this.searchRequest();
+      this.query.set(value);
+      if (!this.autocompleteEnabled()) {
+        clearTimeout(this.timer);
+        this.request++;
+        this.suggestions.set([]);
+        this.open.set(false);
+        this.searchIssue.set(null);
+      } else if (searchRequest !== this.seenSearchRequest) {
+        this.seenSearchRequest = searchRequest;
+        clearTimeout(this.timer);
+        const request = ++this.request;
+        this.suggestions.set([]);
+        this.open.set(false);
+        void this.search(value, request);
+      }
+    });
     // Pending timers and replies must not emit once the field is gone (Angular NG0953).
     inject(DestroyRef).onDestroy(() => {
       clearTimeout(this.timer);
@@ -70,19 +97,25 @@ export class AddressSearch {
     this.query.set(raw);
     this.valueChange.emit(raw);
     this.activeIndex.set(-1);
+    this.searchIssue.set(null);
     clearTimeout(this.timer);
     const request = ++this.request;
-    if (raw.trim().length < 3) {
+    if (!this.autocompleteEnabled() || raw.trim().length < 3) {
       this.suggestions.set([]);
       this.open.set(false);
       return;
     }
     this.timer = setTimeout(async () => {
-      const found = await this.places.suggest(raw);
-      if (request !== this.request) return;
-      this.suggestions.set(found);
-      this.open.set(found.length > 0);
+      await this.search(raw, request);
     }, DEBOUNCE_MS);
+  }
+
+  private async search(raw: string, request: number): Promise<void> {
+    const result = await this.places.search(raw);
+    if (request !== this.request || !this.autocompleteEnabled()) return;
+    this.suggestions.set(result.suggestions);
+    this.searchIssue.set(result.issue ?? null);
+    this.open.set(result.suggestions.length > 0);
   }
 
   protected onFocus(): void {
@@ -113,6 +146,8 @@ export class AddressSearch {
       }
     } else if (event.key === 'Escape') {
       this.open.set(false);
+    } else if (event.key === 'Enter' && this.query().trim()) {
+      this.submitted.emit(this.query().trim());
     }
   }
 
@@ -124,8 +159,13 @@ export class AddressSearch {
     this.query.set(suggestion.primary);
     this.valueChange.emit(suggestion.primary);
     const details = await this.places.details(suggestion);
-    if (request !== this.request || !details) return;
-    this.query.set(details.street);
+    if (request !== this.request) return;
+    if (!details) {
+      this.searchIssue.set('request-failed');
+      return;
+    }
+    this.searchIssue.set(null);
+    this.query.set(details.formattedAddress || details.street);
     this.placeSelected.emit(details);
   }
 }

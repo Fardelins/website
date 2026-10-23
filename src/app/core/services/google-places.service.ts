@@ -21,10 +21,18 @@ export interface PlaceSuggestion {
   secondary: string;
 }
 
+export type PlacesSearchIssue = 'missing-key' | 'request-failed';
+export interface PlacesSearchResult {
+  suggestions: PlaceSuggestion[];
+  issue?: PlacesSearchIssue;
+}
+
 /** What the forms need from a picked place: our address line, Google's state and city names. */
 export interface PlaceDetails {
   placeId: string;
   street: string;
+  /** Google's complete formatted address, including locality, region and postal code when available. */
+  formattedAddress?: string;
   state: string;
   /** Most specific first (locality, sublocality, neighbourhood, then the LGA). */
   cityCandidates: string[];
@@ -47,6 +55,17 @@ interface RawPlace {
 }
 
 const PLUS_CODE = /^[A-Z0-9]{4,8}\+[A-Z0-9]{2,}/i;
+function createSessionToken(): string {
+  const browserCrypto = globalThis.crypto;
+  if (browserCrypto?.randomUUID) return browserCrypto.randomUUID();
+  if (browserCrypto?.getRandomValues) {
+    return Array.from(browserCrypto.getRandomValues(new Uint8Array(16)), (byte) =>
+      byte.toString(16).padStart(2, '0'),
+    ).join('');
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
 const DROPPED_TYPES = [
   'country',
   'administrative_area_level_1',
@@ -55,11 +74,16 @@ const DROPPED_TYPES = [
   'postal_code',
 ];
 const CITY_TYPES = [
-  'locality',
+  // Prefer the neighborhood/suburb over its parent city (e.g. Durumi over Abuja).
+  'neighborhood',
+  'sublocality_level_5',
+  'sublocality_level_4',
+  'sublocality_level_3',
+  'sublocality_level_2',
   'sublocality_level_1',
   'sublocality',
-  'neighborhood',
   'administrative_area_level_2',
+  'locality',
 ];
 
 /** Turns Google's place into our address line (without city, state, country) plus the parts to match. */
@@ -90,6 +114,7 @@ export function parsePlace(raw: RawPlace, fallbackStreet: string): PlaceDetails 
   return {
     placeId: raw.id ?? '',
     street: street || raw.displayName?.text || fallbackStreet,
+    formattedAddress: raw.formattedAddress || raw.displayName?.text || fallbackStreet,
     state: named('administrative_area_level_1'),
     cityCandidates,
     latitude: raw.location?.latitude ?? null,
@@ -102,11 +127,17 @@ export function parsePlace(raw: RawPlace, fallbackStreet: string): PlaceDetails 
 export class GooglePlacesService {
   private key = inject(GOOGLE_PLACES_KEY);
   private keyLoad: Promise<void> | null = null;
-  private sessionToken = crypto.randomUUID();
+  private sessionToken = createSessionToken();
 
   /** Never throws: a failed search just means no suggestions. */
   async suggest(input: string): Promise<PlaceSuggestion[]> {
-    if (input.trim().length < 3 || !(await this.hasKey())) return [];
+    return (await this.search(input)).suggestions;
+  }
+
+  /** Like suggest(), but reports why autocomplete could not run so the form can explain it. */
+  async search(input: string): Promise<PlacesSearchResult> {
+    if (input.trim().length < 3) return { suggestions: [] };
+    if (!(await this.hasKey())) return { suggestions: [], issue: 'missing-key' };
     try {
       const body = await this.request<{
         suggestions?: {
@@ -126,7 +157,7 @@ export class GooglePlacesService {
           sessionToken: this.sessionToken,
         }),
       });
-      return (body.suggestions ?? []).flatMap((item) => {
+      const suggestions = (body.suggestions ?? []).flatMap((item) => {
         const prediction = item.placePrediction;
         if (!prediction?.placeId) return [];
         const primary = prediction.structuredFormat?.mainText?.text ?? prediction.text?.text ?? '';
@@ -138,8 +169,9 @@ export class GooglePlacesService {
           },
         ];
       });
+      return { suggestions };
     } catch {
-      return [];
+      return { suggestions: [], issue: 'request-failed' };
     }
   }
 
@@ -147,7 +179,7 @@ export class GooglePlacesService {
   async details(suggestion: PlaceSuggestion): Promise<PlaceDetails | null> {
     if (!(await this.hasKey())) return null;
     const token = this.sessionToken;
-    this.sessionToken = crypto.randomUUID();
+    this.sessionToken = createSessionToken();
     try {
       const raw = await this.request<RawPlace>(
         `${DETAILS_URL}/${encodeURIComponent(suggestion.placeId)}?sessionToken=${token}`,

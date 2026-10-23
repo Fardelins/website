@@ -95,9 +95,19 @@
 }
 .search__credit {
   padding: 8px 10px 4px;
-  color: var(--dashboard-muted);
-  font-size: 11px;
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
+.search__credit img {
+  display: block;
+  width: 120px;
+  height: 14px;
+}
+.search__message {
+  margin: 6px 2px 0;
+  color: var(--color-feedback-error, #9b1c1c);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 @media (prefers-reduced-motion: reduce) {

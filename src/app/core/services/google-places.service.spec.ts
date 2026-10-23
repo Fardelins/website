@@ -27,7 +27,7 @@ describe('parsePlace', () => {
     // The neighbourhood stays in the street line; it is also offered as the city.
     expect(place.street).toBe('Plot 188, Cadastral Zone B02, American Diya Rd, Durumi');
     expect(place.state).toBe('Federal Capital Territory');
-    expect(place.cityCandidates).toEqual(['Abuja', 'Durumi']);
+    expect(place.cityCandidates).toEqual(['Durumi', 'Abuja']);
     expect(place).toMatchObject({ latitude: 9.0, longitude: 7.4, placeId: 'abc' });
   });
 

@@ -16,7 +16,7 @@ describe('AddressSearch', () => {
   let fixture: ComponentFixture<AddressSearch>;
   let root: HTMLElement;
   const places = {
-    suggest: vi.fn(),
+    search: vi.fn(),
     details: vi.fn(),
   };
 
@@ -31,11 +31,11 @@ describe('AddressSearch', () => {
   };
 
   beforeEach(async () => {
-    places.suggest.mockReset();
+    places.search.mockReset();
     places.details.mockReset();
-    places.suggest.mockResolvedValue([
-      { placeId: 'p1', primary: 'Soulmate House', secondary: 'Durumi, Abuja' },
-    ]);
+    places.search.mockResolvedValue({
+      suggestions: [{ placeId: 'p1', primary: 'Soulmate House', secondary: 'Durumi, Abuja' }],
+    });
     places.details.mockResolvedValue(DETAILS);
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
@@ -60,11 +60,11 @@ describe('AddressSearch', () => {
   it('suggests places once a few characters are typed, and says they come from Google', async () => {
     type('Soulmate');
     await settle();
-    expect(places.suggest).toHaveBeenCalledWith('Soulmate');
+    expect(places.search).toHaveBeenCalledWith('Soulmate');
     const options = root.querySelectorAll('[role=option]');
     expect(options).toHaveLength(1);
     expect(options[0].textContent).toContain('Soulmate House');
-    expect(root.textContent).toContain('Powered by Google');
+    expect(root.querySelector('img[alt="Powered by Google"]')).not.toBeNull();
   });
 
   it('waits until typing pauses instead of searching on every key', async () => {
@@ -72,8 +72,8 @@ describe('AddressSearch', () => {
     type('Soul');
     type('Soulm');
     await settle();
-    expect(places.suggest).toHaveBeenCalledTimes(1);
-    expect(places.suggest).toHaveBeenCalledWith('Soulm');
+    expect(places.search).toHaveBeenCalledTimes(1);
+    expect(places.search).toHaveBeenCalledWith('Soulm');
   });
 
   it('fills the field and reports the place when a suggestion is picked', async () => {
@@ -92,7 +92,7 @@ describe('AddressSearch', () => {
   });
 
   it('stays a plain text box when Google gives no suggestions', async () => {
-    places.suggest.mockResolvedValue([]);
+    places.search.mockResolvedValue({ suggestions: [] });
     type('Soulmate');
     await settle();
     expect(root.querySelector('[role=listbox]')).toBeNull();
@@ -104,7 +104,7 @@ describe('AddressSearch', () => {
     type('Soulmate');
     fixture.destroy();
     await settle();
-    expect(places.suggest).not.toHaveBeenCalled();
+    expect(places.search).not.toHaveBeenCalled();
     expect(picked).not.toHaveBeenCalled();
   });
 });
