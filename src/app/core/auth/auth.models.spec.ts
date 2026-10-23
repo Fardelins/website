@@ -46,6 +46,11 @@ describe('parseSession', () => {
 });
 
 describe('parseUser', () => {
+  it('reads the username, and leaves it out when there is none', () => {
+    expect(parseUser({ id: '1', email: 'a@b.test', username: 'ada' })?.username).toBe('ada');
+    expect(parseUser({ id: '1', email: 'a@b.test' })?.username).toBeUndefined();
+  });
+
   it('rejects an object with neither id nor email', () => {
     expect(parseUser({ first_name: 'Bami' })).toBeNull();
   });

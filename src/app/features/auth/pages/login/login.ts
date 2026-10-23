@@ -42,6 +42,7 @@ export class Login {
   protected readonly submitting = signal(false);
   protected readonly googleSubmitting = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly notice = this.auth.takeSignedOutNotice();
   protected readonly showPassword = signal(false);
   protected readonly panelProof = AUTH_SOCIAL_PROOF;
 

@@ -51,6 +51,26 @@ describe('AuthService session restoration', () => {
     expect(localStorage.getItem('fardelins.user')).toBeNull();
   });
 
+  it.each([
+    [403, 'opened on another device'],
+    [401, 'session expired'],
+    [500, null],
+  ])('explains why a refresh answering %s ended the session', async (status, expected) => {
+    localStorage.setItem('fardelins.refresh', 'old-refresh-token');
+    configure();
+    const auth = TestBed.inject(AuthService);
+    const http = TestBed.inject(HttpTestingController);
+
+    const restored = auth.restore();
+    http.expectOne('/v1/auth/refresh').flush({ message: 'no' }, { status, statusText: 'x' });
+
+    await expect(restored).resolves.toBe(false);
+    const notice = auth.takeSignedOutNotice();
+    if (expected) expect(notice).toContain(expected);
+    else expect(notice).toBeNull();
+    expect(auth.takeSignedOutNotice()).toBeNull();
+  });
+
   it('clears the local session without waiting for the logout request', async () => {
     configure();
     const auth = TestBed.inject(AuthService);

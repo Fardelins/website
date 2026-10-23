@@ -25,6 +25,9 @@
       </div>
     } @else {
       <form class="login" (submit)="submit($event)" novalidate>
+        @if (notice) {
+          <p class="form-notice" role="status">{{ notice }}</p>
+        }
         @if (error()) {
           <p class="form-error" role="alert">
             <ng-icon name="solarDangerCircleBoldDuotone" aria-hidden="true" />{{ error() }}

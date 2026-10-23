@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, computed, inject, isDevMode } from '@angular/core';
 import { firstValueFrom, timeout } from 'rxjs';
 import { injectLogisticsApiUrl } from '@core/services/logistics-api.config';
@@ -20,6 +20,7 @@ export class AuthService {
   private readonly apiUrl = injectLogisticsApiUrl();
   private readonly store = inject(TokenStore);
   private restoring: Promise<boolean> | null = null;
+  private signedOutNotice: string | null = null;
   private currenciesRequest: Promise<ApiCurrency[]> | null = null;
 
   readonly user = this.store.user;
@@ -104,7 +105,10 @@ export class AuthService {
   /** Exchanges the stored refresh token for a new session. Deduped so parallel 401s share one call. */
   restore(): Promise<boolean> {
     if (isDevMode() && this.store.user()?.id === DEV_USER.id) {
-      this.store.save({ accessToken: 'dev-mock-token', refreshToken: null, user: DEV_USER });
+      // Keep what the demo account saved (a username, a photo) across reloads.
+      const saved = this.store.user();
+      const user = { ...DEV_USER, username: saved?.username, avatarUrl: saved?.avatarUrl };
+      this.store.save({ accessToken: 'dev-mock-token', refreshToken: null, user });
       return Promise.resolve(true);
     }
     if (!this.store.restorable) {
@@ -140,6 +144,13 @@ export class AuthService {
     this.store.setUser(user);
   }
 
+  /** Why the session ended, shown once on the login page; null for a sign-out the person chose. */
+  takeSignedOutNotice(): string | null {
+    const notice = this.signedOutNotice;
+    this.signedOutNotice = null;
+    return notice;
+  }
+
   logout(): Promise<void> {
     const serverLogout = firstValueFrom(
       this.http.get(this.apiUrl('/auth/logout')).pipe(timeout(8_000)),
@@ -163,7 +174,14 @@ export class AuthService {
       this.store.save(session);
       if (!session.user) await this.loadProfile();
       return true;
-    } catch {
+    } catch (error) {
+      // BE keeps one session per account: a login elsewhere makes this device's refresh answer 403.
+      if (error instanceof HttpErrorResponse && error.status === 403) {
+        this.signedOutNotice =
+          'You were signed out because your account was opened on another device.';
+      } else if (error instanceof HttpErrorResponse && error.status === 401) {
+        this.signedOutNotice = 'Your session expired. Please log in again.';
+      }
       this.store.clear();
       return false;
     }

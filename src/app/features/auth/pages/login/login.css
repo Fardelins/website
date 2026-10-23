@@ -13,3 +13,13 @@
 .login__forgot:hover {
   text-decoration: underline;
 }
+
+.form-notice {
+  margin: 0;
+  padding: 13px 14px;
+  border-radius: var(--radius-md);
+  color: var(--color-primary-600);
+  background: color-mix(in srgb, var(--color-primary-500) 12%, transparent);
+  font-size: 13.5px;
+  line-height: 1.45;
+}

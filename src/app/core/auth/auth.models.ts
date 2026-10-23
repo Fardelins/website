@@ -9,6 +9,8 @@ export interface AuthUser {
   phone?: string;
   country?: string;
   avatarUrl?: string;
+  /** The @handle other people find this account by; absent until the person picks one. */
+  username?: string;
   emailVerified: boolean;
 }
 
@@ -69,6 +71,7 @@ export function parseUser(source: unknown, missingVerificationFallback = false):
     phone: pick(bag, ['phone', 'phone_number', 'phoneNumber']),
     country: pick(bag, ['country', 'country_name', 'countryName']),
     avatarUrl: pick(bag, ['avatar', 'avatar_url', 'avatarUrl', 'image', 'photo']),
+    username: pick(bag, ['username', 'user_name', 'userName']),
     emailVerified: readVerificationState(bag) ?? missingVerificationFallback,
   };
 }
