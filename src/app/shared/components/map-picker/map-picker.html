@@ -1,0 +1,119 @@
+<link rel="stylesheet" href="/maplibre/maplibre-gl.css" />
+<dialog
+  #dialog
+  class="picker"
+  aria-labelledby="picker-title"
+  (click)="onBackdrop($event)"
+  (close)="onClosed()"
+>
+  <div class="picker__handle" aria-hidden="true"></div>
+  <header class="picker__head">
+    <div>
+      <h2 id="picker-title">{{ heading() }}</h2>
+      <p>Move the map so the pin sits on the exact spot.</p>
+    </div>
+    <button type="button" class="picker__close" aria-label="Close map" (click)="close()">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path d="m5 5 10 10M15 5 5 15" />
+      </svg>
+    </button>
+  </header>
+
+  <div class="picker__search">
+    <app-address-search
+      id="picker-search"
+      placeholder="Search for a place, street or landmark"
+      [value]="searchText()"
+      [showIssues]="false"
+      (valueChange)="searchText.set($event); searchMissed.set(false)"
+      (placeSelected)="onSearchPlace($event)"
+      (submitted)="onSearchSubmit($event)"
+    />
+    @if (searchMissed()) {
+      <p class="picker__hint picker__hint--error" role="status">
+        We couldn't find that place. Try a nearby street or landmark.
+      </p>
+    }
+  </div>
+
+  <div class="picker__stage">
+    <div #canvas class="picker__canvas" aria-label="Map" role="application"></div>
+    @if (loadingMap()) {
+      <div class="picker__loading" role="status">Loading map…</div>
+    }
+    @if (mapFailed()) {
+      <p class="picker__failed" role="alert">
+        The map couldn't load. Close this and type the address instead.
+      </p>
+    } @else {
+      <div class="picker__pin" [class.is-lifted]="moving()" aria-hidden="true">
+        <svg viewBox="0 0 32 44" width="32" height="44">
+          <path
+            d="M16 1C8 1 2 7.2 2 15c0 10.5 14 28 14 28s14-17.5 14-28C30 7.2 24 1 16 1Z"
+            fill="currentColor"
+          />
+          <circle cx="16" cy="15" r="5.5" fill="#fff" />
+        </svg>
+        <span class="picker__shadow"></span>
+      </div>
+      <button
+        type="button"
+        class="picker__locate"
+        aria-label="Use my location"
+        title="Use my location"
+        [disabled]="locating()"
+        (click)="locate()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="6" />
+          <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+          <path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
+        </svg>
+      </button>
+    }
+  </div>
+
+  <footer class="picker__foot">
+    <div class="picker__address" aria-live="polite">
+      <span class="picker__label">Selected location</span>
+      @switch (status()) {
+        @case ('ready') {
+          <strong>{{ place()?.formattedAddress }}</strong>
+        }
+        @case ('resolving') {
+          <span class="picker__hint">Finding the address…</span>
+        }
+        @case ('unreadable') {
+          <span class="picker__hint">
+            We couldn't read an address here. Move the pin onto a street or building.
+          </span>
+        }
+        @default {
+          <span class="picker__hint"
+            >Search above, or zoom in a little, then place the pin.</span
+          >
+        }
+      }
+      @if (locating()) {
+        <span class="picker__hint">Finding your location…</span>
+      }
+      @if (locateError()) {
+        <span class="picker__hint picker__hint--error">{{ locateError() }}</span>
+      }
+    </div>
+    <button
+      type="button"
+      class="btn btn--primary picker__confirm"
+      [disabled]="status() !== 'ready' || mapFailed()"
+      (click)="confirm()"
+    >
+      Use this location
+    </button>
+  </footer>
+</dialog>

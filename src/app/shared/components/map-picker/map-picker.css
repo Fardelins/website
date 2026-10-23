@@ -1,0 +1,251 @@
+.picker {
+  padding: 0;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-lg);
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+  width: min(720px, calc(100vw - 32px));
+  height: min(640px, calc(100dvh - 32px));
+  max-width: none;
+  max-height: none;
+  overflow: hidden;
+}
+
+.picker[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.picker::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+
+.picker__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 16px 12px 20px;
+}
+
+.picker__head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.picker__head p {
+  margin: 2px 0 0;
+  color: var(--dashboard-muted);
+  font-size: 13px;
+}
+
+.picker__close,
+.picker__locate {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--dashboard-border);
+  border-radius: var(--radius-lg);
+  color: var(--dashboard-text);
+  background: var(--dashboard-card);
+  cursor: pointer;
+}
+
+.picker__close svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.picker__locate svg {
+  width: 20px;
+  height: 20px;
+}
+
+.picker__close:hover,
+.picker__locate:hover:not(:disabled) {
+  background: var(--dashboard-control);
+}
+
+.picker__locate:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.picker__close:focus-visible,
+.picker__locate:focus-visible {
+  outline: 2px solid var(--dashboard-focus);
+  outline-offset: 2px;
+}
+
+.picker__search {
+  position: relative;
+  z-index: 3;
+  padding: 0 16px 12px 20px;
+}
+
+.picker__search .picker__hint {
+  margin: 6px 0 0;
+}
+
+.picker__stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: var(--dashboard-control);
+}
+
+.picker__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.picker__loading,
+.picker__failed {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: var(--dashboard-muted);
+  font-size: 13px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.picker__pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 44px;
+  color: var(--rail-accent, var(--color-primary-500));
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  transition: transform 160ms var(--ease-out, ease-out);
+}
+
+.picker__pin svg {
+  display: block;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 35%));
+}
+
+.picker__pin.is-lifted {
+  transform: translate(-50%, calc(-100% - 10px));
+}
+
+.picker__shadow {
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 10px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 35%);
+  transform: translateX(-50%);
+}
+
+.picker__locate {
+  position: absolute;
+  right: 10px;
+  bottom: 28px;
+  z-index: 2;
+}
+
+.picker__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px 16px 20px;
+  border-top: 1px solid var(--dashboard-border);
+}
+
+.picker__address {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+  min-width: 0;
+  /* A fixed height, so a longer address never resizes the map and re-triggers a lookup. */
+  min-height: 4.4em;
+}
+
+.picker__label {
+  color: var(--dashboard-muted);
+  font-size: 12px;
+}
+
+.picker__address strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.picker__hint {
+  color: var(--dashboard-muted);
+  font-size: 13px;
+}
+
+.picker__hint--error {
+  color: var(--color-feedback-error);
+}
+
+.picker__confirm {
+  flex: 0 0 auto;
+}
+
+.picker__handle {
+  display: none;
+}
+
+@keyframes picker-up {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+}
+
+@media (max-width: 600px) {
+  /* A bottom sheet, not a page: it leaves the top quarter of the screen showing. */
+  .picker {
+    width: 100vw;
+    height: 75dvh;
+    margin: auto 0 0;
+    border: 0;
+    border-top: 1px solid var(--dashboard-border);
+    border-radius: 24px 24px 0 0;
+    animation: picker-up 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .picker__handle {
+    display: block;
+    flex: none;
+    width: 32px;
+    height: 4px;
+    margin: 10px auto 0;
+    border-radius: var(--radius-100);
+    background: var(--dashboard-border);
+  }
+
+  .picker__head {
+    padding-top: 8px;
+  }
+
+  .picker__foot {
+    flex-direction: column;
+    align-items: stretch;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker,
+  .picker__pin {
+    animation: none;
+    transition: none;
+  }
+}

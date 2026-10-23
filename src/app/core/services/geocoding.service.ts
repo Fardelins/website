@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 
 /** Komoot's public Photon instance: OpenStreetMap data, no key, no account. */
 const PHOTON = 'https://photon.komoot.io/api';
+const PHOTON_REVERSE = 'https://photon.komoot.io/reverse';
 /** Keeps a bare "Lekki" from resolving to a same-named place abroad. */
 const NIGERIA_BBOX = '2.67,4.27,14.68,13.89';
 const CACHE_PREFIX = 'fardelins.geo.';
@@ -21,6 +22,42 @@ export interface GeoPoint {
 export class GeocodingService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly inflight = new Map<string, Promise<GeoPoint | null>>();
+
+  /** The address nearest a map point, shaped like a Google place so the same form-filling code takes it. */
+  async reverse(lat: number, lon: number): Promise<ReversePlace | null> {
+    if (!this.isBrowser) return null;
+    try {
+      const response = await fetch(`${PHOTON_REVERSE}?lon=${lon}&lat=${lat}&lang=en`, {
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
+      if (!response.ok) return null;
+      const body = (await response.json()) as PhotonResponse;
+      const props = body.features?.[0]?.properties;
+      if (!props) return null;
+
+      const onStreet = props.type === 'street' || props.type === 'house';
+      const road = props.street ?? (props.type === 'street' ? props.name : undefined);
+      const lines = [
+        onStreet ? undefined : props.name,
+        [props.housenumber, road].filter(Boolean).join(' '),
+      ].filter((line): line is string => Boolean(line));
+      const area = props.district ?? props.locality;
+      const unique = (items: (string | undefined)[]) => [
+        ...new Set(items.filter((item): item is string => Boolean(item))),
+      ];
+      const formattedAddress = unique([...lines, area, props.city, props.state]).join(', ');
+      if (!formattedAddress || !props.state) return null;
+      return {
+        street: lines.join(', ') || area || props.city || '',
+        formattedAddress,
+        state: props.state,
+        // The state is the last resort: for Abuja and Lagos it is also a city in our lists.
+        cityCandidates: unique([props.city, area, props.county, props.state]),
+      };
+    } catch {
+      return null;
+    }
+  }
 
   /** Country overview must not use the Nigerian address bounding box. */
   async locateCountry(country: string): Promise<GeoPoint | null> {
@@ -125,9 +162,26 @@ export class GeocodingService {
   }
 }
 
+export interface ReversePlace {
+  street: string;
+  formattedAddress: string;
+  state: string;
+  cityCandidates: string[];
+}
+
 interface PhotonResponse {
   features?: {
     geometry?: { coordinates?: [number, number] };
-    properties?: { name?: string; city?: string; state?: string; housenumber?: string };
+    properties?: {
+      name?: string;
+      type?: string;
+      street?: string;
+      housenumber?: string;
+      district?: string;
+      locality?: string;
+      city?: string;
+      county?: string;
+      state?: string;
+    };
   }[];
 }
