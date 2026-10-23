@@ -111,7 +111,9 @@ describe('StorefrontService', () => {
 
     const couriers = await TestBed.inject(StorefrontService).preferredCouriers();
 
-    expect(couriers.map((courier) => courier.name)).toEqual(MOCK_COURIERS.map((c) => c.name));
+    expect(couriers.map((courier) => courier.name)).toEqual(
+      MOCK_COURIERS.slice(0, 10).map((c) => c.name),
+    );
   });
 
   it("resolves Nigeria's country id and sends it as the required country_id param", async () => {

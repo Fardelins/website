@@ -824,3 +824,33 @@ textarea {
 .ov-bar + .store-alert {
   margin-top: 14px;
 }
+
+.address-manual-toggle {
+  justify-self: start;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  color: var(--rail-accent, var(--color-primary-500));
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.address-manual-toggle:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.address-manual-toggle:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--dashboard-focus);
+  outline-offset: 3px;
+}
+.store-form__place {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--dashboard-muted);
+  font-size: 13px;
+}

@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet, TitleCasePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -45,15 +45,26 @@ import {
 } from '@ng-icons/solar-icons/bold-duotone';
 import { CountryCode, getCountryCallingCode, parsePhoneNumberFromString } from 'libphonenumber-js';
 import { AuthService } from '@core/auth/auth.service';
-import { SavedAddressesService } from '@core/services/saved-addresses.service';
+import { SavedAddress, SavedAddressesService } from '@core/services/saved-addresses.service';
 import { HapticsService } from '@core/services/haptics.service';
 import { LOGISTICS_API_ORIGIN } from '@core/services/logistics-api.config';
+import { PlaceDetails } from '@core/services/google-places.service';
+import { matchCity, matchState } from '@core/services/place-match';
 import { ToastService } from '@core/services/toast.service';
+import { AddressSearch } from '@shared/components/address-search/address-search';
+import { Combobox, ComboboxOption } from '@shared/components/combobox/combobox';
 import { EmptyState } from '@shared/components/empty-state/empty-state';
 import { Logo } from '@shared/components/logo/logo';
 import { PhoneInput } from '@shared/components/phone-input/phone-input';
 import { PortalToShellDirective } from '@shared/directives/portal-to-shell.directive';
-import { PreferredCourier, Storefront, StorefrontInput } from '../../storefront.models';
+import { Option } from '@features/send-delivery/send-delivery.model';
+import { SendDeliveryService } from '@features/send-delivery/send-delivery.service';
+import {
+  PreferredCourier,
+  Storefront,
+  StorefrontInput,
+  StorefrontLocationInput,
+} from '../../storefront.models';
 import { StorefrontService } from '../../storefront.service';
 import {
   HandoffCopyTarget,
@@ -70,6 +81,16 @@ const COPY_TOASTS: Record<Exclude<CopyTarget, null>, string> = {
   snippet: 'Test request copied',
   env: '.env values copied',
 };
+/** What the dispatch address resolved to, sent along with its text so BE can place the pickup. */
+interface DispatchPlace {
+  stateId?: number;
+  stateLabel?: string;
+  cityId?: number;
+  cityLabel?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 type OverviewTab = 'integration' | 'details';
 type ConnectionStage = 'form' | 'connecting' | 'connected';
 
@@ -79,6 +100,9 @@ type ConnectionStage = 'form' | 'connecting' | 'connected';
     ReactiveFormsModule,
     RouterLink,
     NgIcon,
+    TitleCasePipe,
+    AddressSearch,
+    Combobox,
     PhoneInput,
     EmptyState,
     NgTemplateOutlet,
@@ -167,6 +191,14 @@ export class StorefrontSettings {
   protected readonly phoneNumber = signal('');
   protected readonly selectedCourierIds = signal<readonly string[]>([]);
   protected readonly addressMode = signal<'saved' | 'custom'>('saved');
+  /** State and city are chosen by hand only when asked for; a Google suggestion fills them otherwise. */
+  protected readonly addressManual = signal(false);
+  protected readonly states = signal<Option[]>([]);
+  protected readonly cities = signal<Option[]>([]);
+  protected readonly loadingStates = signal(false);
+  protected readonly loadingCities = signal(false);
+  private readonly dispatchPlace = signal<DispatchPlace | null>(null);
+  private readonly deliveryApi = inject(SendDeliveryService);
   protected readonly addressPickerOpen = signal(false);
   protected readonly selectedAddressId = signal<string | null>(null);
   protected readonly courierSearch = signal('');
@@ -254,6 +286,8 @@ export class StorefrontSettings {
       if (this.saveTimer) clearTimeout(this.saveTimer);
       this.apiKey.set(null);
     });
+    const user = this.auth.user();
+    if (user) this.addresses.load(user.id);
     void this.load();
   }
 
@@ -343,6 +377,10 @@ export class StorefrontSettings {
     this.selectedCourierIds.set([]);
     this.courierSearch.set('');
     this.resetAddressPicker('');
+    this.dispatchPlace.set(null);
+    this.addressManual.set(false);
+    const preferred = this.savedAddresses()[0];
+    if (preferred) this.fillFromSavedAddress(preferred);
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.formStorefrontId.set(null);
@@ -375,6 +413,18 @@ export class StorefrontSettings {
     this.selectedCourierIds.set([...storefront.preferredCourierIds]);
     this.courierSearch.set('');
     this.resetAddressPicker(storefront.location?.address ?? '');
+    this.addressManual.set(false);
+    const location = storefront.location;
+    this.dispatchPlace.set(
+      location
+        ? {
+            stateId: location.stateId ?? undefined,
+            cityId: location.cityId ?? undefined,
+            latitude: location.latitude ?? undefined,
+            longitude: location.longitude ?? undefined,
+          }
+        : null,
+    );
     this.form.markAsPristine();
     this.form.markAsUntouched();
     this.formStorefrontId.set(storefront.id);
@@ -434,20 +484,152 @@ export class StorefrontSettings {
   protected chooseSavedAddress(id: string): void {
     const address = this.savedAddresses().find((item) => item.id === id);
     if (!address) return;
-    const place = [address.city, address.state].filter(Boolean).join(', ');
-    this.form.controls.address.setValue(place ? `${address.address}, ${place}` : address.address);
+    this.form.controls.address.setValue(this.savedAddressText(address));
+    this.dispatchPlace.set(null);
     this.selectedAddressId.set(id);
     this.addressMode.set('saved');
     this.addressPickerOpen.set(false);
     this.haptics.selection();
   }
 
+  /** Starts a new storefront at a saved address, without counting as an edit. */
+  private fillFromSavedAddress(address: SavedAddress): void {
+    this.form.controls.address.setValue(this.savedAddressText(address), { emitEvent: false });
+    this.selectedAddressId.set(address.id);
+    this.addressMode.set('saved');
+  }
+
+  private savedAddressText(address: SavedAddress): string {
+    const place = [address.city, address.state].filter(Boolean).join(', ');
+    return place ? `${address.address}, ${place}` : address.address;
+  }
+
   protected chooseCustomAddress(): void {
     this.addressMode.set('custom');
     this.selectedAddressId.set(null);
     this.addressPickerOpen.set(false);
+    this.dispatchPlace.set(null);
+    this.addressManual.set(false);
     this.form.controls.address.setValue('');
     this.haptics.selection();
+  }
+
+  protected onAddressTyped(value: string): void {
+    this.form.controls.address.setValue(value);
+    // Typing over a picked suggestion makes its coordinates stale; its state and city still apply.
+    this.dispatchPlace.update((place) =>
+      place ? { ...place, latitude: undefined, longitude: undefined } : place,
+    );
+  }
+
+  /** A Google place fills the address, then the state and city it matches in our own lists. */
+  protected async onAddressPlace(place: PlaceDetails): Promise<void> {
+    this.form.controls.address.setValue(place.formattedAddress || place.street);
+    const resolved: DispatchPlace = {
+      latitude: place.latitude ?? undefined,
+      longitude: place.longitude ?? undefined,
+    };
+    await this.ensureStates();
+    const state = matchState(this.states(), place.state);
+    if (state) {
+      resolved.stateId = state.id;
+      resolved.stateLabel = state.label;
+      await this.loadCities(state.id);
+      const city = matchCity(this.cities(), place.cityCandidates);
+      if (city) {
+        resolved.cityId = city.id;
+        resolved.cityLabel = city.label;
+      }
+    }
+    this.dispatchPlace.set(resolved);
+  }
+
+  protected toggleAddressManual(): void {
+    const opening = !this.addressManual();
+    this.addressManual.set(opening);
+    if (opening) void this.showSavedPlaceInFields();
+  }
+
+  protected onManualState(option: ComboboxOption): void {
+    const stateId = Number(option.id);
+    this.dispatchPlace.update((place) => ({
+      ...place,
+      stateId,
+      stateLabel: option.label,
+      cityId: undefined,
+      cityLabel: undefined,
+    }));
+    this.markDirty();
+    void this.loadCities(stateId);
+  }
+
+  protected onManualCity(option: ComboboxOption): void {
+    this.dispatchPlace.update((place) => ({
+      ...place,
+      cityId: Number(option.id),
+      cityLabel: option.label,
+    }));
+    this.markDirty();
+  }
+
+  /** "Ikeja, Lagos": what the address resolved to, shown while State and City are tucked away. */
+  protected addressPlace(): string {
+    const place = this.dispatchPlace();
+    return [place?.cityLabel, place?.stateLabel].filter(Boolean).join(', ');
+  }
+
+  protected placeLabel(field: 'state' | 'city'): string {
+    const place = this.dispatchPlace();
+    return (field === 'state' ? place?.stateLabel : place?.cityLabel) ?? '';
+  }
+
+  private locationInput(address: string): StorefrontLocationInput {
+    const place = this.dispatchPlace();
+    return {
+      address,
+      ...(place?.stateId ? { state_id: place.stateId } : {}),
+      ...(place?.cityId ? { city_id: place.cityId } : {}),
+      ...(place?.latitude !== undefined ? { latitude: place.latitude } : {}),
+      ...(place?.longitude !== undefined ? { longitude: place.longitude } : {}),
+    };
+  }
+
+  /** An address saved earlier knows its ids but not their names, so fetch the names for the fields. */
+  private async showSavedPlaceInFields(): Promise<void> {
+    await this.ensureStates();
+    const place = this.dispatchPlace();
+    if (!place?.stateId) return;
+    const state = this.states().find((item) => item.id === place.stateId);
+    await this.loadCities(place.stateId);
+    const city = this.cities().find((item) => item.id === place.cityId);
+    this.dispatchPlace.update((current) => ({
+      ...current,
+      stateLabel: current?.stateLabel ?? state?.label,
+      cityLabel: current?.cityLabel ?? city?.label,
+    }));
+  }
+
+  private async ensureStates(): Promise<void> {
+    if (this.states().length || this.loadingStates()) return;
+    this.loadingStates.set(true);
+    try {
+      this.states.set(await this.deliveryApi.states());
+    } catch {
+      this.states.set([]);
+    } finally {
+      this.loadingStates.set(false);
+    }
+  }
+
+  private async loadCities(stateId: number): Promise<void> {
+    this.loadingCities.set(true);
+    try {
+      this.cities.set(await this.deliveryApi.cities(stateId));
+    } catch {
+      this.cities.set([]);
+    } finally {
+      this.loadingCities.set(false);
+    }
   }
 
   @HostListener('document:pointerdown', ['$event'])
@@ -502,7 +684,7 @@ export class StorefrontSettings {
       phone: this.formattedPhone(),
       ...(value.website.trim() ? { website: normalizeWebsite(value.website) } : {}),
       ...(value.description.trim() ? { description: value.description.trim() } : {}),
-      ...(value.address.trim() ? { location: { address: value.address.trim() } } : {}),
+      ...(value.address.trim() ? { location: this.locationInput(value.address.trim()) } : {}),
       ...(this.selectedCourierIds().length
         ? { preferred_courier_ids: [...this.selectedCourierIds()] }
         : {}),

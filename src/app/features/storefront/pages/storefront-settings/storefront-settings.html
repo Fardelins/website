@@ -479,16 +479,75 @@
                 >{{ savedAddresses().length ? 'Custom Address' : 'Pickup Address' }}
                 <span class="field__optional">Optional</span></span
               >
-              <div class="field__affix field__affix--leading">
-                <ng-icon name="solarMapPointWaveBoldDuotone" aria-hidden="true" />
-                <input
-                  type="text"
-                  formControlName="address"
-                  autocomplete="street-address"
-                  placeholder="12 Admiralty Way, Lekki, Lagos"
-                />
-              </div>
+              <app-address-search
+                name="address"
+                placeholder="12 Admiralty Way, Lekki, Lagos"
+                [value]="form.controls.address.value"
+                [autocompleteEnabled]="!addressManual()"
+                (valueChange)="onAddressTyped($event)"
+                (placeSelected)="onAddressPlace($event)"
+              />
             </label>
+
+            @if (addressManual()) {
+              <div class="field__row" id="storefront-address-location">
+                <label class="field" for="storefront-state">
+                  State
+                  <app-combobox
+                    id="storefront-state"
+                    name="state"
+                    [options]="states()"
+                    [strict]="true"
+                    [loading]="loadingStates()"
+                    [value]="placeLabel('state') | titlecase"
+                    loadingLabel="Loading States..."
+                    placeholder="Search for a state"
+                    emptyLabel="No matching state"
+                    (selected)="onManualState($event)"
+                  />
+                </label>
+                <label class="field" for="storefront-city">
+                  City
+                  <app-combobox
+                    id="storefront-city"
+                    name="city"
+                    [options]="cities()"
+                    [strict]="true"
+                    [loading]="loadingCities()"
+                    [value]="placeLabel('city') | titlecase"
+                    loadingLabel="Loading Cities..."
+                    placeholder="Search for a city"
+                    emptyLabel="No matching city"
+                    (selected)="onManualCity($event)"
+                  />
+                </label>
+              </div>
+              <button
+                type="button"
+                class="address-manual-toggle"
+                aria-expanded="true"
+                (click)="toggleAddressManual()"
+              >
+                Use Google address search
+              </button>
+            } @else {
+              @if (addressPlace(); as place) {
+                <p class="store-form__place">
+                  <ng-icon name="solarMapPointWaveBoldDuotone" aria-hidden="true" />{{
+                    place | titlecase
+                  }}
+                </p>
+              }
+              <button
+                type="button"
+                class="address-manual-toggle"
+                aria-expanded="false"
+                aria-controls="storefront-address-location"
+                (click)="toggleAddressManual()"
+              >
+                Enter address manually
+              </button>
+            }
           }
         </section>
 
