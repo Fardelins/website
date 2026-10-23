@@ -1,6 +1,6 @@
 const MAX_EDGE = 1600;
 const QUALITY = 0.82;
-const SKIP_BELOW_BYTES = 400 * 1024;
+const DECODE_TIMEOUT_MS = 10_000;
 const BE_TYPES = ['image/jpeg', 'image/png'];
 
 /** A photo the browser cannot turn into a JPEG or PNG; the message says what to choose instead. */
@@ -33,44 +33,81 @@ export async function compressImage(file: File): Promise<File> {
   const acceptedByBe = BE_TYPES.includes(kind);
   if (kind === 'image/svg+xml' || (!kind.startsWith('image/') && kind !== ''))
     throw unsupported(file);
-  if (typeof createImageBitmap !== 'function' || typeof OffscreenCanvas === 'undefined') {
-    if (acceptedByBe) return file;
-    throw unsupported(file);
-  }
 
-  let bitmap: ImageBitmap;
+  let source: ImageBitmap | HTMLImageElement;
+  let revokeSource: (() => void) | undefined;
   try {
-    bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    if (typeof createImageBitmap === 'function') {
+      source = await withTimeout(createImageBitmap(file, { imageOrientation: 'from-image' }));
+    } else {
+      const url = URL.createObjectURL(file);
+      revokeSource = () => URL.revokeObjectURL(url);
+      source = await withTimeout(loadImage(url));
+    }
   } catch {
+    revokeSource?.();
     if (acceptedByBe) return file;
     throw unsupported(file);
   }
 
   try {
-    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-    if (acceptedByBe && scale === 1 && file.size <= SKIP_BELOW_BYTES) return file;
-
-    const canvas = new OffscreenCanvas(
-      Math.round(bitmap.width * scale),
-      Math.round(bitmap.height * scale),
-    );
-    const context = canvas.getContext('2d');
+    const scale = Math.min(1, MAX_EDGE / Math.max(source.width, source.height));
+    const width = Math.max(1, Math.round(source.width * scale));
+    const height = Math.max(1, Math.round(source.height * scale));
+    const canvas =
+      typeof OffscreenCanvas === 'undefined'
+        ? document.createElement('canvas')
+        : new OffscreenCanvas(width, height);
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d') as
+      CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
     if (!context) {
       if (acceptedByBe) return file;
       throw unsupported(file);
     }
     context.fillStyle = '#fff';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    context.fillRect(0, 0, width, height);
+    context.drawImage(source, 0, 0, width, height);
 
-    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: QUALITY });
-    if (acceptedByBe && scale === 1 && blob.size >= file.size) return file;
+    const blob =
+      typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas
+        ? await canvas.convertToBlob({ type: 'image/jpeg', quality: QUALITY })
+        : await canvasToBlob(canvas as HTMLCanvasElement);
     return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
   } catch (error) {
     if (error instanceof UnsupportedPhotoError) throw error;
     if (acceptedByBe) return file;
     throw unsupported(file);
   } finally {
-    bitmap.close();
+    if ('close' in source && typeof source.close === 'function') source.close();
+    revokeSource?.();
   }
+}
+
+/** A photo that never decodes must not hang the upload: it falls back like any decode failure. */
+function withTimeout<T>(promise: Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Photo decode timed out')), DECODE_TIMEOUT_MS);
+    promise.then(resolve, reject).finally(() => clearTimeout(timer));
+  });
+}
+
+function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = url;
+  });
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('Image conversion failed'))),
+      'image/jpeg',
+      QUALITY,
+    );
+  });
 }

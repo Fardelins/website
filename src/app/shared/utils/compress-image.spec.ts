@@ -28,7 +28,10 @@ function stubBrowser(width: number, height: number, outputBytes: number) {
 }
 
 describe('compressImage', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
 
   it('refuses things that are not photos, saying what to choose', async () => {
     const pdf = fileOf(5_000, 'doc.pdf', 'application/pdf');
@@ -55,17 +58,43 @@ describe('compressImage', () => {
 
   it('refuses a type BE rejects when the browser cannot convert at all', async () => {
     vi.stubGlobal('createImageBitmap', undefined);
+    vi.stubGlobal(
+      'Image',
+      class {
+        onerror: (() => void) | null = null;
+        set src(_value: string) {
+          queueMicrotask(() => this.onerror?.());
+        }
+      },
+    );
     const webp = fileOf(100_000, 'a.webp', 'image/webp');
     await expect(compressImage(webp)).rejects.toThrow('WEBP');
     const png = fileOf(100_000);
     expect(await compressImage(png)).toBe(png);
   });
 
-  it('keeps a small JPEG or PNG that already fits', async () => {
+  it('re-encodes even a small JPEG or PNG, which bakes the phone rotation into the pixels', async () => {
     const { close } = stubBrowser(800, 600, 1000);
     const small = fileOf(100_000);
-    expect(await compressImage(small)).toBe(small);
+    const result = await compressImage(small);
+    expect(result).not.toBe(small);
+    expect(result.type).toBe('image/jpeg');
     expect(close).toHaveBeenCalled();
+  });
+
+  it('falls back instead of hanging when a photo never finishes decoding', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal(
+      'createImageBitmap',
+      vi.fn(() => new Promise(() => undefined)),
+    );
+    const jpeg = fileOf(3_000_000, 'IMG_1.jpg', 'image/jpeg');
+    const heic = fileOf(3_000_000, 'IMG_2.heic', 'image/heic');
+    const kept = compressImage(jpeg);
+    const refused = expect(compressImage(heic)).rejects.toThrow('HEIC');
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(await kept).toBe(jpeg);
+    await refused;
   });
 
   it('converts a WebP or GIF to JPEG even when it is small, because BE rejects those types', async () => {
@@ -86,9 +115,11 @@ describe('compressImage', () => {
     expect(result.size).toBe(300_000);
   });
 
-  it('keeps the original when re-encoding a within-size JPEG or PNG would not shrink it', async () => {
+  it('still re-encodes when the result is not smaller, so the rotation is always baked in', async () => {
     stubBrowser(1200, 900, 900_000);
     const original = fileOf(500_000);
-    expect(await compressImage(original)).toBe(original);
+    const result = await compressImage(original);
+    expect(result).not.toBe(original);
+    expect(result.type).toBe('image/jpeg');
   });
 });
