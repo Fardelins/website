@@ -147,6 +147,21 @@ describe('DashboardDataService', () => {
     expect(onlyUnpaid.caption).toBe('₦7,800 awaiting payment');
   });
 
+  it('adds up spend in the main currency only, so one foreign parcel cannot change the symbol', () => {
+    const naira = [
+      parcel({ trackingId: 'n1', amount: 2_600 }),
+      parcel({ trackingId: 'n2', amount: 3_400 }),
+    ];
+    const tunisian = parcel({ trackingId: 't1', amount: 600, currency: 'TND' });
+    const spend = service
+      .build([tunisian, ...naira], 'all-time', 'en-NG')
+      .metrics.find((m) => m.key === 'spend')!;
+
+    expect(spend.value).toBe(6_000);
+    expect(spend.displayValue).toContain('₦');
+    expect(spend.displayValue).not.toContain('TND');
+  });
+
   it('keeps out-for-delivery parcels active and aggregates assigned into pending', () => {
     const data = service.build(
       [

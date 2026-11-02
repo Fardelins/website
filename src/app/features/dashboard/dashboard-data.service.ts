@@ -24,12 +24,17 @@ const STATUS_ORDER = DASHBOARD_PARCEL_STATUSES;
 
 @Injectable({ providedIn: 'root' })
 export class DashboardDataService {
+  /** Money is added up in one currency only; a parcel priced in another would skew the total. */
+  private moneyCurrency = 'NGN';
+
   build(
     deliveries: DeliverySummary[],
     deliveredPeriod: DeliveredPeriod,
     locale: string,
     range?: ActivityRange,
   ): SenderDashboardData {
+    const currency = this.mainCurrency(deliveries);
+    this.moneyCurrency = currency;
     const active = deliveries
       .filter((delivery) => !FINAL_STATUSES.has(delivery.status.toLowerCase()))
       .sort((left, right) => this.time(left.etaAt) - this.time(right.etaAt));
@@ -41,7 +46,6 @@ export class DashboardDataService {
     );
     const spend = scoped.reduce((sum, delivery) => sum + this.spent(delivery), 0);
     const awaiting = this.awaitingTotal(scoped);
-    const currency = deliveries.find((delivery) => delivery.currency)?.currency ?? 'NGN';
 
     const thisWeek = this.thisWeek(deliveries);
 
@@ -455,7 +459,24 @@ export class DashboardDataService {
     return `${currencySymbol(currency)}${money.format(awaiting)} awaiting payment`;
   }
 
+  private currencyOf(delivery: DeliverySummary): string {
+    return (delivery.currency ?? 'NGN').toUpperCase();
+  }
+
+  /** The currency most parcels use; NGN wins a tie. */
+  private mainCurrency(deliveries: DeliverySummary[]): string {
+    const counts = new Map<string, number>();
+    for (const delivery of deliveries) {
+      const code = this.currencyOf(delivery);
+      counts.set(code, (counts.get(code) ?? 0) + 1);
+    }
+    let best = 'NGN';
+    for (const [code, count] of counts) if (count > (counts.get(best) ?? 0)) best = code;
+    return best;
+  }
+
   private amount(delivery: DeliverySummary): number {
+    if (this.currencyOf(delivery) !== this.moneyCurrency) return 0;
     if (typeof delivery.amount === 'number' && Number.isFinite(delivery.amount))
       return delivery.amount;
     const value = Number(delivery.amountLabel?.replace(/[^\d.-]/g, '') ?? 0);
