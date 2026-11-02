@@ -4,6 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "node --env-file-if-exists=.env node_modules/@angular/cli/bin/ng.js serve --proxy-config proxy.conf.mjs",
+    "start:network": "node --env-file-if-exists=.env node_modules/@angular/cli/bin/ng.js serve --host 0.0.0.0 --allowed-hosts true --proxy-config proxy.conf.mjs",
     "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "ng build",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
