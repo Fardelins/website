@@ -24,21 +24,31 @@ export class PaymentService {
    */
   async verifyPaystack(reference: string): Promise<PaymentOutcome> {
     try {
-      const body = await firstValueFrom(
-        this.http.get(this.apiUrl('/payment/verify-paystack'), { params: { reference } }),
-      );
-      return toOutcome(body);
+      return await this.checkOnce(reference);
     } catch (error) {
       // BE answers an unpaid reference with a 400 whose body says `abandoned`: Paystack saw no
       // completed payment. Any other failure is the check itself failing, not the payment.
       if (error instanceof HttpErrorResponse && error.status === 400) {
         const status = toOutcome({ status: asBag(error.error)['status'] });
         if (status === 'failed') return status;
+        // BE's reusable-card save can 400 after marking the payment paid; the retry returns 200.
+        try {
+          return await this.checkOnce(reference);
+        } catch {
+          // fall through to the transactions list
+        }
       }
       const recorded = await this.fromTransactions(reference);
       if (recorded) return recorded;
       throw error;
     }
+  }
+
+  private async checkOnce(reference: string): Promise<PaymentOutcome> {
+    const body = await firstValueFrom(
+      this.http.get(this.apiUrl('/payment/verify-paystack'), { params: { reference } }),
+    );
+    return toOutcome(body);
   }
 
   /** Restarts payment for an order that was created but never paid; returns the Paystack page to go to. */

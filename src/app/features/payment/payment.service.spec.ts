@@ -72,11 +72,27 @@ describe('PaymentService', () => {
       );
   const settle = () => new Promise((resolve) => setTimeout(resolve));
 
+  it('retries once after a 400 that is not an unpaid reference, and reads the second answer', async () => {
+    const service = TestBed.inject(PaymentService);
+    const http = TestBed.inject(HttpTestingController);
+
+    const pending = service.verifyPaystack('T-paid-card-save-failed');
+    verifyFails(http);
+    await settle();
+    http
+      .expectOne((req) => req.url === '/v1/payment/verify-paystack')
+      .flush({ data: { status: 'success' } });
+
+    await expect(pending).resolves.toBe('success');
+  });
+
   it("falls back to the customer's own transactions when the check returns 400", async () => {
     const service = TestBed.inject(PaymentService);
     const http = TestBed.inject(HttpTestingController);
 
     const pending = service.verifyPaystack('T662937065188922');
+    verifyFails(http);
+    await settle();
     verifyFails(http);
     await settle();
     http
@@ -106,6 +122,8 @@ describe('PaymentService', () => {
     const http = TestBed.inject(HttpTestingController);
 
     const pending = service.verifyPaystack('T-unknown');
+    verifyFails(http);
+    await settle();
     verifyFails(http);
     await settle();
     http.expectOne((req) => req.url === '/v1/user/transactions').flush({ data: [] });
