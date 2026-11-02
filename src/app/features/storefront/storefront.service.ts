@@ -7,6 +7,7 @@ import { injectLogisticsApiUrl } from '@core/services/logistics-api.config';
 import { LocalityService } from '@core/services/locality.service';
 import { MOCK_COURIERS } from '../../dev/mock-couriers';
 import {
+  DEFAULT_COURIER_LOGO,
   PreferredCourier,
   Storefront,
   StorefrontInput,
@@ -98,7 +99,7 @@ export class StorefrontService {
         ({ id, name, logoUrl, rating, reviewCount, amount, deliveryWindow }) => ({
           id,
           name,
-          logoUrl,
+          logoUrl: logoUrl ?? DEFAULT_COURIER_LOGO,
           rating,
           reviewCount,
           priceLabel: `From ₦${amount.toLocaleString('en-NG')}`,

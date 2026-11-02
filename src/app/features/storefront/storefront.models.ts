@@ -22,6 +22,10 @@ export interface Storefront {
   updatedAt: string | null;
 }
 
+/** What BE returns for a courier with no uploaded logo; the demo account mirrors it. */
+export const DEFAULT_COURIER_LOGO =
+  'https://res.cloudinary.com/fardelins/image/upload/v1701996386/assets/icons8-container-truck-100_Large_b23unz.jpg';
+
 export interface PreferredCourier {
   id: string;
   name: string;

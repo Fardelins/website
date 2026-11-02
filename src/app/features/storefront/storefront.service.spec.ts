@@ -95,6 +95,13 @@ describe('StorefrontService', () => {
     http.expectOne('/v1/user/property/store-1').flush({ id: 'store-1', ...input });
     await update;
 
+    // BE answers PATCH with HTTP 201 while the body says code 200.
+    const created = service.update('store-1', input);
+    http
+      .expectOne('/v1/user/property/store-1')
+      .flush({ code: 200, data: { id: 'store-1', ...input } }, { status: 201, statusText: 'Created' });
+    await expect(created).resolves.toMatchObject({ id: 'store-1', name: 'Studio Store' });
+
     const removal = service.remove('store-1');
     http.expectOne('/v1/user/property/store-1').flush({ data: 'store-1' });
     await removal;
