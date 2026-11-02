@@ -1,8 +1,8 @@
 import { DeliverySummary } from '@features/deliveries/deliveries.model';
 
-export type DeliveredPeriod = 'this-week' | 'last-six-months' | 'this-year' | 'all-time';
+export type DeliveredPeriod = 'last-7-days' | 'last-six-months' | 'this-year' | 'all-time';
 export type ActivityRange =
-  'this-week' | 'this-month' | 'last-month' | 'last-6-months' | 'this-year';
+  'last-7-days' | 'last-30-days' | 'last-month' | 'last-6-months' | 'this-year';
 import { DashboardParcelStatusGroup } from '@shared/parcel-status';
 export type { DashboardParcelStatusGroup } from '@shared/parcel-status';
 

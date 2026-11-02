@@ -61,8 +61,8 @@ export class DashboardDataService {
         range ? this.periodMetric(metric, range, deliveries, scoped, currency, locale) : metric,
       ),
       activity: {
-        'this-week': thisWeek,
-        'this-month': this.thisMonth(deliveries),
+        'last-7-days': thisWeek,
+        'last-30-days': this.lastThirtyDays(deliveries),
         'last-month': this.lastMonth(deliveries),
         'last-6-months': this.lastSixMonths(deliveries),
         'this-year': this.thisYear(deliveries),
@@ -75,15 +75,15 @@ export class DashboardDataService {
   }
 
   private bounds(deliveries: DeliverySummary[], range: ActivityRange): [Date, Date] {
-    const end = this.latestDate(deliveries);
+    const end = this.today();
     end.setHours(23, 59, 59, 999);
     let start = this.stripTime(end);
     switch (range) {
-      case 'this-week':
+      case 'last-7-days':
         start = this.addDays(start, -6);
         break;
-      case 'this-month':
-        start = new Date(end.getFullYear(), end.getMonth(), 1);
+      case 'last-30-days':
+        start = this.addDays(start, -29);
         break;
       case 'last-month':
         start = new Date(end.getFullYear(), end.getMonth() - 1, 1);
@@ -117,8 +117,8 @@ export class DashboardDataService {
     locale: string,
   ): DashboardMetric {
     const label = {
-      'this-week': 'this week',
-      'this-month': 'this month',
+      'last-7-days': 'in the last 7 days',
+      'last-30-days': 'in the last 30 days',
       'last-month': 'last month',
       'last-6-months': 'in the last 6 months',
       'this-year': 'this year',
@@ -166,7 +166,7 @@ export class DashboardDataService {
     // (NGN in an en-US locale, notably), so it isn't trusted for the symbol itself.
     const symbol = currencySymbol(currency);
     const money = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
-    const anchor = this.latestDate(deliveries);
+    const anchor = this.today();
     const current = this.window(deliveries, anchor, 0, 7);
     const previous = this.window(deliveries, anchor, 7, 7);
     const busiest = thisWeek.reduce((max, point) => (point.total > max.total ? point : max), {
@@ -281,29 +281,33 @@ export class DashboardDataService {
   /** Rolling 7 days ending at the latest delivery, not the calendar week, matches the
    *  trailing "current vs. previous 7 days" window `metrics()` already trends against. */
   private thisWeek(deliveries: DeliverySummary[]): DashboardActivityPoint[] {
-    const latest = this.latestDate(deliveries);
+    const latest = this.today();
     return this.dayPoints(deliveries, this.addDays(latest, -6), latest, (day) =>
       day.toLocaleDateString('en-US', { weekday: 'short' }),
     );
   }
 
-  /** 1st-of-month through the latest delivery, no fabricated zero days for the rest of
-   *  the month that hasn't happened yet. */
-  private thisMonth(deliveries: DeliverySummary[]): DashboardActivityPoint[] {
-    const latest = this.latestDate(deliveries);
-    const start = new Date(latest.getFullYear(), latest.getMonth(), 1);
-    return this.dayPoints(deliveries, start, latest, (day) => String(day.getDate()));
+  /** The 30 days ending today; the first day and each 1st carry the month so the axis reads across a month end. */
+  private lastThirtyDays(deliveries: DeliverySummary[]): DashboardActivityPoint[] {
+    const latest = this.today();
+    const start = this.addDays(latest, -29);
+    const first = this.stripTime(start).getTime();
+    return this.dayPoints(deliveries, start, latest, (day) =>
+      day.getDate() === 1 || this.stripTime(day).getTime() === first
+        ? day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : String(day.getDate()),
+    );
   }
 
   private lastMonth(deliveries: DeliverySummary[]): DashboardActivityPoint[] {
-    const latest = this.latestDate(deliveries);
+    const latest = this.today();
     const start = new Date(latest.getFullYear(), latest.getMonth() - 1, 1);
     const end = new Date(latest.getFullYear(), latest.getMonth(), 0);
     return this.dayPoints(deliveries, start, end, (day) => String(day.getDate()));
   }
 
   private lastSixMonths(deliveries: DeliverySummary[]): DashboardActivityPoint[] {
-    const latest = this.latestDate(deliveries);
+    const latest = this.today();
     return this.monthPoints(
       deliveries,
       new Date(latest.getFullYear(), latest.getMonth() - 5, 1),
@@ -312,9 +316,9 @@ export class DashboardDataService {
   }
 
   /** Jan through the latest delivery's month, same "don't chart the future" rule as
-   *  `thisMonth()`. */
+   *  `lastThirtyDays()`. */
   private thisYear(deliveries: DeliverySummary[]): DashboardActivityPoint[] {
-    const latest = this.latestDate(deliveries);
+    const latest = this.today();
     return this.monthPoints(deliveries, new Date(latest.getFullYear(), 0, 1), latest);
   }
 
@@ -429,11 +433,9 @@ export class DashboardDataService {
     return date >= start;
   }
 
-  private latestDate(deliveries: DeliverySummary[]): Date {
-    const dates = deliveries
-      .map((delivery) => this.date(delivery.createdAt))
-      .filter((date): date is Date => Boolean(date));
-    return dates.sort((left, right) => right.getTime() - left.getTime())[0] ?? new Date();
+  /** Every window ends today, not at the newest parcel, so an idle account shows empty ranges. */
+  private today(): Date {
+    return new Date();
   }
 
   /** Money actually paid: a parcel still awaiting payment has cost nothing yet. */

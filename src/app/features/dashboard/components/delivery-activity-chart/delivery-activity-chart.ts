@@ -48,7 +48,7 @@ interface ChartColors {
 export class DeliveryActivityChart {
   readonly activity = input.required<DashboardActivity>();
   /** Owned by the dashboard's range dropdown so every panel moves together. */
-  readonly range = input<ActivityRange>('this-week');
+  readonly range = input<ActivityRange>('last-7-days');
 
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly preferences = inject(DashboardPreferencesService);

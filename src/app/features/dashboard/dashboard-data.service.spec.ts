@@ -21,6 +21,13 @@ const parcel = (overrides: Partial<DeliverySummary> = {}): DeliverySummary => ({
 describe('DashboardDataService', () => {
   const service = new DashboardDataService();
 
+  // The windows end today; the fixtures are dated around 2 Sep 2026.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-09-02T12:00:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
   it('aggregates sender metrics and orders active deliveries by ETA', () => {
     const data = service.build(
       [
@@ -64,13 +71,14 @@ describe('DashboardDataService', () => {
 
     const now = new Date();
     const daysInLastMonth = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
-    expect(data.activity['this-week']).toHaveLength(7);
-    expect(data.activity['this-month']).toHaveLength(now.getDate());
+    expect(data.activity['last-7-days']).toHaveLength(7);
+    expect(data.activity['last-30-days']).toHaveLength(30);
     expect(data.activity['last-month']).toHaveLength(daysInLastMonth);
     expect(data.activity['last-6-months']).toHaveLength(6);
     expect(data.activity['this-year']).toHaveLength(now.getMonth() + 1);
   });
   it('keeps every range consistent across totals, delivered counts, spend and chart buckets', () => {
+    vi.setSystemTime(new Date('2026-09-07T12:00:00Z'));
     const parcels = [
       parcel({
         trackingId: 'a',
@@ -98,8 +106,8 @@ describe('DashboardDataService', () => {
       }),
     ];
     for (const [range, total, spend, delivered] of [
-      ['this-week', 2, 300, 1],
-      ['this-month', 2, 300, 1],
+      ['last-7-days', 2, 300, 1],
+      ['last-30-days', 3, 600, 1],
       ['last-month', 1, 300, 0],
       ['last-6-months', 3, 600, 1],
       ['this-year', 4, 1000, 2],
@@ -115,9 +123,9 @@ describe('DashboardDataService', () => {
     }
     expect(
       service
-        .build(parcels, 'all-time', 'en-NG', 'this-week')
+        .build(parcels, 'all-time', 'en-NG', 'last-7-days')
         .metrics.find((m) => m.key === 'total')!.caption,
-    ).toBe('Parcels this week');
+    ).toBe('Parcels in the last 7 days');
   });
 
   it('leaves unpaid parcels out of spend and shows them as awaiting payment instead', () => {
@@ -148,10 +156,10 @@ describe('DashboardDataService', () => {
       ],
       'all-time',
       'en-NG',
-      'this-week',
+      'last-7-days',
     );
     expect(data.activeDeliveries.map((p) => p.trackingId)).toEqual(['FDL-1001', 'assigned']);
-    const buckets = data.activity['this-week'];
+    const buckets = data.activity['last-7-days'];
     expect(buckets.reduce((sum, p) => sum + p.transit, 0)).toBe(1);
     expect(buckets.reduce((sum, p) => sum + p.pending, 0)).toBe(1);
     expect(buckets.reduce((sum, p) => sum + p.delivered, 0)).toBe(1);

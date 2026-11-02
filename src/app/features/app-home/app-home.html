@@ -5,8 +5,8 @@
     <label class="range">
       <span class="sr-only">Activity range</span>
       <select [value]="range()" (change)="range.set($any($event.target).value)">
-        <option value="this-week">This week</option>
-        <option value="this-month">This month</option>
+        <option value="last-7-days">Last 7 days</option>
+        <option value="last-30-days">Last 30 days</option>
         <option value="last-month">Last month</option>
         <option value="last-6-months">Last 6 months</option>
         <option value="this-year">This year</option>

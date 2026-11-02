@@ -51,7 +51,7 @@ export class AppHome {
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
   protected readonly all = signal<DeliverySummary[]>([]);
-  protected readonly range = signal<ActivityRange>('this-week');
+  protected readonly range = signal<ActivityRange>('last-7-days');
   protected readonly locale = Intl.DateTimeFormat().resolvedOptions().locale || 'en-NG';
 
   protected readonly dashboard = computed(() =>
