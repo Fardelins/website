@@ -36,6 +36,7 @@ import { SendDeliveryService } from '../../send-delivery.service';
 import {
   CourierRate,
   DeliveryType,
+  PickupType,
   LocationIds,
   MAX_PARCEL_IMAGES,
   Option,
@@ -143,9 +144,13 @@ export class SendDelivery {
   protected readonly weightInputValue = signal<string | null>(null);
   protected readonly customWeightEnabled = computed(() => Boolean(this.draft().parcel.customWeight));
   protected readonly parcelTypes: { value: ParcelType; label: string }[] = [
-    { value: 'non_perishable', label: 'Non-perishable' },
+    { value: 'breakable', label: 'Breakable' },
+    { value: 'flammable', label: 'Flammable' },
     { value: 'perishable', label: 'Perishable' },
+    { value: 'non_perishable', label: 'Non-perishable' },
   ];
+  /** Custom size is parked for now; flip this to bring the weight entry back. */
+  protected readonly showCustomSize = false;
   protected readonly savedAddresses = this.addressBook.items;
   protected readonly savedAddressOpen = signal<Party | null>(null);
   private readonly mapPicker = viewChild(MapPicker);
@@ -165,11 +170,11 @@ export class SendDelivery {
   protected readonly step = computed(() => STEPS[this.currentStep() - 1]);
 
   protected readonly parcelDone = computed(() => {
-    const { sizeId, type, shortDescription, weight, customWeight, images } = this.draft().parcel;
+    const { sizeId, types, shortDescription, weight, customWeight, images } = this.draft().parcel;
     // BE is making at least one photo compulsory.
     return Boolean(
       sizeId &&
-        type &&
+        types.length &&
         shortDescription.trim() &&
         images.length > 0 &&
         (!customWeight || weight),
@@ -246,8 +251,9 @@ export class SendDelivery {
 
   protected readonly parcelSizeLine = computed(() => this.selectedSize()?.label ?? null);
   protected readonly parcelTypeLine = computed(() => {
-    const type = this.draft().parcel.type;
-    return type === 'perishable' ? 'Perishable' : type === 'non_perishable' ? 'Non-perishable' : null;
+    const { types } = this.draft().parcel;
+    const labels = this.parcelTypes.filter((option) => types.includes(option.value));
+    return labels.length ? labels.map((option) => option.label).join(', ') : null;
   });
 
   constructor() {
@@ -379,6 +385,13 @@ export class SendDelivery {
     if (step === COURIER_STEP) void this.loadRates();
   }
 
+  protected selectPickupType(pickupType: PickupType): void {
+    if (this.draft().pickupType === pickupType) return;
+    this.haptics.selection();
+    this.draft.update((draft) => ({ ...draft, pickupType, rateId: null }));
+    void this.loadRates();
+  }
+
   protected selectDeliveryType(deliveryType: DeliveryType): void {
     if (this.draft().deliveryType === deliveryType) return;
     this.haptics.selection();
@@ -477,9 +490,16 @@ export class SendDelivery {
     this.weightInputValue.set(null);
   }
 
-  protected selectParcelType(type: ParcelType): void {
+  protected toggleParcelType(type: ParcelType): void {
     this.haptics.selection();
-    this.patchParcel({ type });
+    const { types } = this.draft().parcel;
+    const opposite =
+      type === 'perishable' ? 'non_perishable' : type === 'non_perishable' ? 'perishable' : null;
+    this.patchParcel({
+      types: types.includes(type)
+        ? types.filter((item) => item !== type)
+        : [...types.filter((item) => item !== opposite), type],
+    });
   }
 
   protected patchParty(which: Party, patch: Partial<SendDraft['pickup']>): void {
@@ -725,10 +745,10 @@ export class SendDelivery {
       this.rates.set(rates);
       this.courierLimit.set(COURIERS_PER_PAGE);
       if (!rates.length) {
-        const { deliveryType, priority } = this.draft();
+        const { pickupType, deliveryType, priority } = this.draft();
         this.ratesError.set(
-          deliveryType !== 'user' || priority
-            ? 'No courier offers these options on this route. Try Doorstep and Standard.'
+          pickupType !== 'user' || deliveryType !== 'user' || priority
+            ? 'No courier offers these options on this route. Try a different pickup, delivery or speed.'
             : 'No courier covers this route yet.',
         );
       }
@@ -935,14 +955,22 @@ export class SendDelivery {
         parcel: {
           ...empty.parcel,
           ...saved.parcel,
-          type: saved.parcel?.type ?? empty.parcel.type,
-          customWeight: saved.parcel?.customWeight ?? Boolean(saved.parcel?.weight),
+          // Older drafts stored a single `type`.
+          types: saved.parcel?.types ?? this.legacyTypes(saved.parcel) ?? empty.parcel.types,
+          customWeight:
+            this.showCustomSize &&
+            (saved.parcel?.customWeight ?? Boolean(saved.parcel?.weight)),
           images,
         },
       });
     } catch {
       this.clearDraft();
     }
+  }
+
+  private legacyTypes(parcel: unknown): ParcelType[] | null {
+    const type = (parcel as { type?: ParcelType } | undefined)?.type;
+    return type ? [type] : null;
   }
 
   private persist(draft: SendDraft): void {

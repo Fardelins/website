@@ -111,19 +111,22 @@
 
             <fieldset class="field">
               <legend class="field__label">Type</legend>
-              <div class="segment" role="radiogroup" aria-label="Package type">
+              <div class="chips" role="group" aria-label="Package type">
                 @for (option of parcelTypes; track option.value) {
                   <button
                     type="button"
-                    role="radio"
-                    class="segment__option"
-                    [attr.aria-checked]="draft().parcel.type === option.value"
-                    (click)="selectParcelType(option.value)"
+                    class="chip"
+                    [class.is-selected]="draft().parcel.types.includes(option.value)"
+                    [attr.aria-pressed]="draft().parcel.types.includes(option.value)"
+                    (click)="toggleParcelType(option.value)"
                   >
                     {{ option.label }}
                   </button>
                 }
               </div>
+              @if (showErrors(1) && !draft().parcel.types.length) {
+                <span class="field__error">Pick at least one type.</span>
+              }
             </fieldset>
 
             <fieldset class="field" [class.is-missing]="showErrors(1) && !draft().parcel.sizeId">
@@ -179,26 +182,28 @@
                       }
                     </button>
                   }
-                  <button
-                    type="button"
-                    class="size size--custom"
-                    [class.is-selected]="customWeightEnabled()"
-                    [attr.aria-pressed]="customWeightEnabled()"
-                    [disabled]="!draft().parcel.sizeId"
-                    (click)="toggleCustomWeight()"
-                  >
-                    <span class="size__title">
-                      <ng-icon
-                        name="solarBoxBoldDuotone"
-                        [style.fontSize.px]="22"
-                        aria-hidden="true"
-                      />
-                      <span class="size__name">Custom size</span>
-                    </span>
-                    <span class="size__specs">
-                      <span class="size__custom-note">Enter the weight yourself</span>
-                    </span>
-                  </button>
+                  @if (showCustomSize) {
+                    <button
+                      type="button"
+                      class="size size--custom"
+                      [class.is-selected]="customWeightEnabled()"
+                      [attr.aria-pressed]="customWeightEnabled()"
+                      [disabled]="!draft().parcel.sizeId"
+                      (click)="toggleCustomWeight()"
+                    >
+                      <span class="size__title">
+                        <ng-icon
+                          name="solarBoxBoldDuotone"
+                          [style.fontSize.px]="22"
+                          aria-hidden="true"
+                        />
+                        <span class="size__name">Custom size</span>
+                      </span>
+                      <span class="size__specs">
+                        <span class="size__custom-note">Enter the weight yourself</span>
+                      </span>
+                    </button>
+                  }
                 </div>
               }
               @if (showErrors(1) && !draft().parcel.sizeId) {
@@ -668,6 +673,26 @@
         @case (3) {
           <div class="pane">
             <div class="options">
+              <div class="segment" role="radiogroup" aria-label="How it is picked up">
+                <button
+                  type="button"
+                  role="radio"
+                  class="segment__option"
+                  [attr.aria-checked]="draft().pickupType === 'user'"
+                  (click)="selectPickupType('user')"
+                >
+                  Pick up from me
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  class="segment__option"
+                  [attr.aria-checked]="draft().pickupType === 'office'"
+                  (click)="selectPickupType('office')"
+                >
+                  I'll drop it off
+                </button>
+              </div>
               <div class="segment" role="radiogroup" aria-label="Where it ends up">
                 <button
                   type="button"
@@ -711,6 +736,11 @@
             </div>
             <p class="field__hint">
               {{
+                draft().pickupType === 'office'
+                  ? "You take it to the courier's office."
+                  : 'The courier collects it from your address.'
+              }}
+              {{
                 draft().deliveryType === 'office'
                   ? "The recipient collects it from the courier's office."
                   : "The courier brings it to the recipient's address."
@@ -733,7 +763,7 @@
             @if (loadingRates()) {
               <div class="couriers" aria-busy="true" aria-label="Loading couriers">
                 @for (n of [1, 2, 3]; track n) {
-                  <app-skeleton height="92px" radius="12px" />
+                  <app-skeleton height="80px" radius="8px" />
                 }
               </div>
             } @else if (ratesError()) {
@@ -761,7 +791,7 @@
                   >
                     <span class="courier__mark" aria-hidden="true">
                       @if (rate.logoUrl) {
-                        <img [src]="rate.logoUrl" alt="" width="56" height="56" />
+                        <img [src]="rate.logoUrl" alt="" width="64" height="64" />
                       } @else {
                         {{ initials(rate.courierName) }}
                       }
@@ -776,9 +806,17 @@
                           <span class="tag">Fastest</span>
                         }
                       </span>
-                      @if (rate.deliveryWindow) {
-                        <span class="courier__window">Delivers in {{ rate.deliveryWindow }}</span>
-                      }
+                      <span class="courier__summary">
+                        @if (rate.deliveryWindow) {
+                          <span class="courier__window">Delivers in {{ rate.deliveryWindow }}</span>
+                        }
+                        <span class="courier__price"
+                          >{{ rate.priceLabel }}
+                          @if (rate.quantityNote) {
+                            <small>{{ rate.quantityNote }}</small>
+                          }
+                        </span>
+                      </span>
                       @if (rate.rating || rate.deliveriesMade !== null) {
                         <span class="courier__meta">
                           @if (rate.rating) {
@@ -797,12 +835,6 @@
                             </span>
                           }
                         </span>
-                      }
-                    </span>
-                    <span class="courier__price"
-                      >{{ rate.priceLabel }}
-                      @if (rate.quantityNote) {
-                        <small>{{ rate.quantityNote }}</small>
                       }
                     </span>
                   </button>

@@ -371,7 +371,7 @@
 .is-missing .size,
 .is-missing .photos__add,
 .couriers.is-missing .courier {
-  border-color: var(--color-feedback-error);
+  box-shadow: inset 0 0 0 1px var(--color-feedback-error);
 }
 
 .row {
@@ -956,32 +956,48 @@
 
 .couriers {
   display: grid;
-  gap: 10px;
+  gap: 6px;
 }
 
+/* Figma courier row: light values are the spec; dark falls back to the dashboard tokens. */
 .courier {
+  --courier-name: var(--dashboard-text);
+  --courier-detail: var(--dashboard-text);
+  --courier-price: var(--rail-accent);
+  --courier-label: var(--dashboard-muted);
+  --courier-divider: var(--dashboard-border);
+  --courier-row-rule: var(--dashboard-border);
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) auto;
+  grid-template-columns: 64px minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
+  gap: 9px;
   width: 100%;
-  min-height: 92px;
-  padding: 16px;
-  border: 1px solid var(--dashboard-border);
-  border-radius: var(--radius-lg);
-  color: var(--dashboard-text);
+  min-height: 80px;
+  padding: 8px;
+  border: 0;
+  border-bottom: 1px solid var(--courier-row-rule);
+  border-radius: var(--radius-md);
+  color: var(--courier-name);
   background: var(--dashboard-card);
   font: inherit;
   text-align: left;
   cursor: pointer;
   transition:
-    border-color 160ms ease,
     background 160ms ease,
     transform 160ms var(--ease-out);
 }
 
+:host-context([data-theme='light']) .courier {
+  --courier-name: var(--color-styles-body);
+  --courier-detail: var(--color-styles-title);
+  --courier-price: var(--color-primary-700);
+  --courier-label: var(--color-styles-label);
+  --courier-divider: var(--color-styles-stroke);
+  --courier-row-rule: var(--color-styles-off-white);
+}
+
 .courier[aria-checked='true'] {
-  border-color: var(--rail-accent);
+  border-bottom-color: transparent;
   background: var(--rail-accent-wash);
   box-shadow: inset 0 0 0 1px var(--rail-accent);
 }
@@ -989,10 +1005,10 @@
 .courier__mark {
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   overflow: hidden;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   color: var(--rail-accent);
   background: var(--rail-accent-wash);
   font-size: 18px;
@@ -1008,7 +1024,7 @@
 
 .courier__body {
   display: grid;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -1017,21 +1033,38 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 8px;
-  font-size: 15px;
-  font-weight: 650;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.154px;
+}
+
+.courier__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-right: 12px;
 }
 
 .courier__window {
-  font-size: 14px;
+  color: var(--courier-detail);
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 18px;
+  letter-spacing: 0.25px;
 }
 
 .courier__meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px 12px;
-  color: var(--dashboard-muted);
-  font-size: 13px;
+  gap: 4px 8px;
+  color: var(--courier-label);
+  font-size: 10px;
+  font-weight: 300;
+  line-height: 13px;
+  letter-spacing: 0.4px;
 }
 
 .courier__rating,
@@ -1041,25 +1074,23 @@
   gap: 4px;
 }
 
+.courier__rating ng-icon,
+.courier__deliveries ng-icon {
+  font-size: 16px;
+}
+
 .courier__rating ng-icon {
   color: var(--color-accent-gold);
 }
 
 .courier__deliveries {
-  padding-left: 12px;
-  border-left: 1px solid var(--dashboard-border);
+  padding: 0 8px;
+  border-left: 1px solid var(--courier-divider);
 }
 
 .courier__deliveries:first-child {
-  padding-left: 0;
+  padding: 0;
   border-left: 0;
-}
-
-@media (max-width: 520px) {
-  .courier__deliveries {
-    padding-left: 0;
-    border-left: 0;
-  }
 }
 
 .couriers__more {
@@ -1076,8 +1107,12 @@
 .courier__price {
   display: grid;
   justify-items: end;
-  font-size: 16px;
-  font-weight: 700;
+  margin-left: auto;
+  color: var(--courier-price);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.154px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1168,9 +1203,11 @@
     background: var(--dashboard-control);
   }
   .size:not(.is-selected):hover:not(:disabled),
-  .courier:not([aria-checked='true']):hover,
   .photos__add:hover {
     border-color: var(--dashboard-muted);
+  }
+  .courier:not([aria-checked='true']):hover {
+    background: var(--dashboard-control);
   }
   .segment__option:not([aria-checked='true']):hover,
   .steps__item:not(:disabled):hover {

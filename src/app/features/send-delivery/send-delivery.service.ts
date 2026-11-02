@@ -21,6 +21,8 @@ import {
   OrderResult,
   ParcelImage,
   SendDraft,
+  handlingNote,
+  toBeParcelType,
   toInternationalPhone,
 } from './send-delivery.model';
 
@@ -137,8 +139,9 @@ export class SendDeliveryService {
             },
           },
           parcel: {
-            type: draft.parcel.type ?? undefined,
+            type: toBeParcelType(draft.parcel.types),
             short_description: draft.parcel.shortDescription.trim(),
+            long_description: handlingNote(draft.parcel.types) ?? undefined,
             weight: draft.parcel.customWeight ? (draft.parcel.weight ?? 1) : 1,
             quantity: draft.parcel.quantity,
             worth: draft.parcel.worth ?? undefined,
@@ -146,7 +149,7 @@ export class SendDeliveryService {
             images: draft.parcel.images.map(({ id }) => ({ id })),
           },
           shipment_size_id: draft.parcel.sizeId ?? undefined,
-          pickup_type: 'user',
+          pickup_type: draft.pickupType,
           delivery_type: draft.deliveryType,
           priority: draft.priority,
           // Confirmed enum is API | Manual | Mobile; BE only told us Mobile is for the mobile
@@ -234,7 +237,7 @@ export class SendDeliveryService {
       priceLabel: formatMoney(amount, currency) ?? 'Not available',
       quantityNote: count > 1 ? `${formatMoney(unitAmount, currency)} × ${count}` : null,
       // Pickup happens before the clock the customer sees really starts, so only delivery shows.
-      // Durations are days (BE confirmed 2026-10-06, after first calling them hours).
+      // BE durations are hours (48 = 2 days; re-confirmed 2026-10-27), shown as days.
       deliveryWindow: this.daysLabel(timing['delivery_duration'] ?? record['delivery_duration']),
       rating: this.num(record['rating'] ?? courier['rating']),
       reviewCount: this.num(record['reviews'] ?? courier['reviews'] ?? record['review_count']),
@@ -243,15 +246,16 @@ export class SendDeliveryService {
     };
   }
 
-  private daysLabel(value: unknown): string | null {
-    const days = this.num(value);
-    if (days === null) return null;
+  private daysLabel(hours: unknown): string | null {
+    const value = this.num(hours);
+    if (value === null) return null;
+    const days = Math.round((value / 24) * 10) / 10;
     return `${days} day${days === 1 ? '' : 's'}`;
   }
 
   /**
-   * What the order will be charged: door pickup (the only pickup the app books) plus the chosen
-   * delivery option, plus the priority extra. Null when this courier doesn't offer the choice.
+   * What the order will be charged: the chosen pickup plus the chosen delivery option, plus the
+   * priority extra. Null when this courier doesn't offer the choice.
    */
   private rateAmount(
     record: Record<string, unknown>,
@@ -262,7 +266,7 @@ export class SendDeliveryService {
     if (options.priority && priorityExtra === null && !size) return null;
 
     if (size) {
-      const pickup = this.optionCost(size['pickup_options'], 'user');
+      const pickup = this.optionCost(size['pickup_options'], options.pickupType);
       const delivery = this.optionCost(size['delivery_options'], options.deliveryType);
       if (pickup === null || delivery === null) return null;
       if (!options.priority) return pickup + delivery;

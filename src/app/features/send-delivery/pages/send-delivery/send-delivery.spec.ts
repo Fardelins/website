@@ -30,7 +30,7 @@ function completeDraft(): SendDraft {
     ...draft.parcel,
     shortDescription: 'Pixel 3',
     sizeId: 2,
-    type: 'non_perishable',
+    types: ['non_perishable'],
     weight: 2.5,
     images: [{ id: 'img-1', link: 'data:,' }],
   };

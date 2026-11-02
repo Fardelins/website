@@ -26,13 +26,27 @@ export interface ParcelImage {
   link: string;
 }
 
-export type ParcelType = 'perishable' | 'non_perishable';
+export type ParcelType = 'breakable' | 'flammable' | 'perishable' | 'non_perishable';
 export const MAX_PARCEL_IMAGES = 4;
+
+/** BE's parcel.type takes only perishable | non_perishable (confirmed 2026-10-27). */
+export function toBeParcelType(types: ParcelType[]): 'perishable' | 'non_perishable' {
+  return types.includes('perishable') ? 'perishable' : 'non_perishable';
+}
+
+/** Breakable and flammable have no BE field yet, so they travel in the parcel's long_description. */
+export function handlingNote(types: ParcelType[]): string | null {
+  const flags = [
+    types.includes('breakable') ? 'Breakable' : null,
+    types.includes('flammable') ? 'Flammable' : null,
+  ].filter((flag): flag is string => flag !== null);
+  return flags.length ? `Handling: ${flags.join(', ')}` : null;
+}
 
 export interface PackageStep {
   categoryId: number | null;
   sizeId: number | null;
-  type: ParcelType | null;
+  types: ParcelType[];
   shortDescription: string;
   weight: number | null;
   customWeight?: boolean;
@@ -64,7 +78,11 @@ export interface LocationIds {
 /** `user` is door delivery, `office` is collection from a courier office (BE's delivery_type values). */
 export type DeliveryType = 'user' | 'office';
 
+/** `user` is door pickup from the sender, `office` is the sender dropping it at a courier office (BE's pickup_type values). */
+export type PickupType = 'user' | 'office';
+
 export interface DeliveryOptions {
+  pickupType: PickupType;
   deliveryType: DeliveryType;
   priority: boolean;
 }
@@ -108,7 +126,7 @@ export function emptyDraft(): SendDraft {
     parcel: {
       categoryId: null,
       sizeId: null,
-      type: 'non_perishable',
+      types: ['non_perishable'],
       shortDescription: '',
       weight: null,
       customWeight: false,
@@ -119,6 +137,7 @@ export function emptyDraft(): SendDraft {
     pickup: party(),
     dropoff: { ...party(), instructions: '' },
     fromMe: true,
+    pickupType: 'user',
     deliveryType: 'user',
     priority: false,
     rateId: null,

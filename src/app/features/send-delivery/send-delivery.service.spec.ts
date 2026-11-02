@@ -182,7 +182,7 @@ describe('SendDeliveryService', () => {
       {
         id: 2,
         price: 800,
-        delivery_duration: 2,
+        delivery_duration: 48,
         hub: {
           courier_business: {
             company_name: 'Fardelins Technologies',
@@ -223,7 +223,7 @@ describe('SendDeliveryService', () => {
         {
           rate_id: 8,
           hub: { courier_business: { company_name: 'Fardelins', uploads: [] } },
-          durations: { standard: { pickup_duration: 1, delivery_duration: 2 } },
+          durations: { standard: { pickup_duration: 24, delivery_duration: 48 } },
           sizes: [size(1, 900), size(2, 2100)],
         },
         { rate_id: 9, hub: {}, sizes: [size(2, 2500, false)] },
@@ -248,8 +248,8 @@ describe('SendDeliveryService', () => {
       rate_id: id,
       hub: { courier_business: { company_name: `Courier ${id}`, uploads: [] } },
       durations: {
-        standard: { pickup_duration: 1, delivery_duration: 2 },
-        priority: { pickup_duration: 1, delivery_duration: 1 },
+        standard: { pickup_duration: 24, delivery_duration: 48 },
+        priority: { pickup_duration: 24, delivery_duration: 24 },
       },
       extras: { priority: { cost: 3000 } },
       sizes: [
@@ -266,7 +266,7 @@ describe('SendDeliveryService', () => {
       ...overrides,
     });
     const ask = async (
-      options: { deliveryType: 'user' | 'office'; priority: boolean },
+      options: { pickupType?: 'user' | 'office'; deliveryType: 'user' | 'office'; priority: boolean },
       rows: unknown[],
     ) => {
       const draft = { ...emptyDraft(), ...options };
@@ -285,6 +285,39 @@ describe('SendDeliveryService', () => {
 
       const priority = await ask({ deliveryType: 'user', priority: true }, [rate(1)]);
       expect(priority[0]).toMatchObject({ amount: 5600, deliveryWindow: '1 day' });
+    });
+
+    it('converts BE hours to days, keeping part days', async () => {
+      const hours = (delivery_duration: number) =>
+        rate(1, { durations: { standard: { delivery_duration } } });
+      const windows = [];
+      for (const h of [12, 24, 36, 72]) {
+        const [one] = await ask({ deliveryType: 'user', priority: false }, [hours(h)]);
+        windows.push(one.deliveryWindow);
+      }
+      expect(windows).toEqual(['0.5 days', '1 day', '1.5 days', '3 days']);
+    });
+
+    it('offers office-only pickup couriers when the sender drops it off', async () => {
+      const officePickup = rate(2, {
+        sizes: [
+          {
+            shipment_size_id: 2,
+            available: true,
+            pickup_options: [{ type: 'office', cost: 400 }],
+            delivery_options: [{ type: 'user', cost: 360 }],
+          },
+        ],
+      });
+
+      const door = await ask({ deliveryType: 'user', priority: false }, [rate(1), officePickup]);
+      expect(door.map((r) => r.courierName)).toEqual(['Courier 1']);
+
+      const dropOff = await ask(
+        { pickupType: 'office', deliveryType: 'user', priority: false },
+        [rate(1), officePickup],
+      );
+      expect(dropOff.map((r) => [r.courierName, r.amount])).toEqual([['Courier 2', 760]]);
     });
 
     it('charges the rate times the quantity, like BE, and shows the multiplication', async () => {
@@ -325,13 +358,45 @@ describe('SendDeliveryService', () => {
       expect(fast.map((r) => r.courierName)).toEqual(['Courier 1']);
     });
 
+    it('sends one BE parcel type and carries breakable and flammable in the description', async () => {
+      const send = (types: ('breakable' | 'flammable' | 'perishable' | 'non_perishable')[]) => {
+        const draft = emptyDraft();
+        draft.rateId = 'rate-1';
+        draft.parcel.types = types;
+        const noIds = { stateId: null, cityId: null };
+        void service.order(draft, { pickup: noIds, dropoff: noIds }).catch(() => undefined);
+        const request = http.expectOne('/v1/customer-shipment/order/rate-1');
+        const parcel = request.request.body['parcel'];
+        request.flush({ data: {} });
+        return parcel;
+      };
+
+      expect(send(['perishable', 'breakable'])).toMatchObject({
+        type: 'perishable',
+        long_description: 'Handling: Breakable',
+      });
+      const plain = send(['non_perishable']);
+      expect(plain.type).toBe('non_perishable');
+      expect(plain.long_description).toBeUndefined();
+      expect(send(['flammable', 'breakable'])).toMatchObject({
+        type: 'non_perishable',
+        long_description: 'Handling: Breakable, Flammable',
+      });
+    });
+
     it('sends the chosen delivery type and priority with the order', async () => {
-      const draft = { ...emptyDraft(), deliveryType: 'office' as const, priority: true };
+      const draft = {
+        ...emptyDraft(),
+        pickupType: 'office' as const,
+        deliveryType: 'office' as const,
+        priority: true,
+      };
       draft.rateId = 'rate-1';
       const noIds = { stateId: null, cityId: null };
       void service.order(draft, { pickup: noIds, dropoff: noIds }).catch(() => undefined);
       const request = http.expectOne('/v1/customer-shipment/order/rate-1');
 
+      expect(request.request.body['pickup_type']).toBe('office');
       expect(request.request.body['delivery_type']).toBe('office');
       expect(request.request.body['priority']).toBe(true);
       request.flush({ data: {} });
