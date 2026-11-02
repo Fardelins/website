@@ -10,6 +10,12 @@ import {
   phaseIndexForStatus,
   statusLabel,
 } from '@features/tracking/tracking.model';
+import {
+  CANCEL_POST_PATH,
+  CancelRequest,
+  cancelFailureMessage,
+  readCancellation,
+} from './cancellation';
 import { MOCK_DELIVERIES, filterMockDeliveries, mockDeliveryDetail } from './deliveries.mock';
 import {
   DeliveryDetail,
@@ -254,6 +260,7 @@ export class DeliveriesService {
       etaLabel: formatDate(etaAt) || null,
       amountLabel: formatMoney(rawAmount, currency ?? undefined),
       createdAt,
+      updatedAt: this.lastChange(record) ?? createdAt,
       etaAt,
       amount:
         typeof parsedAmount === 'number' && Number.isFinite(parsedAmount) ? parsedAmount : null,
@@ -289,17 +296,28 @@ export class DeliveriesService {
    * BE can apply the change and still answer 400, and answers 409 both for an already cancelled
    * shipment and for one past `pending`, so the list is checked before reporting failure.
    */
-  async cancel(shipmentId: string): Promise<void> {
+  async cancel(shipmentId: string, request?: CancelRequest): Promise<void> {
     if (this.auth.isMockSession()) return;
     try {
-      await firstValueFrom(
-        this.http.patch(this.apiUrl(`/user/shipment/${encodeURIComponent(shipmentId)}`), {
-          status: 'canceled',
-        }),
-      );
-    } catch {
+      if (CANCEL_POST_PATH && request) {
+        await firstValueFrom(
+          this.http.post(this.apiUrl(CANCEL_POST_PATH(encodeURIComponent(shipmentId))), {
+            reason_code: request.reasonCode,
+            note: request.note.trim() || undefined,
+          }),
+        );
+      } else {
+        await firstValueFrom(
+          this.http.patch(this.apiUrl(`/user/shipment/${encodeURIComponent(shipmentId)}`), {
+            status: 'canceled',
+          }),
+        );
+      }
+    } catch (error) {
       if (!(await this.isCanceled(shipmentId))) {
-        throw new Error("We couldn't cancel this shipment. Please try again.");
+        throw new Error(
+          cancelFailureMessage(error instanceof HttpErrorResponse ? error.status : null),
+        );
       }
     }
     await this.list(true).catch(() => undefined);
@@ -343,6 +361,7 @@ export class DeliveriesService {
       deliveryTypeLabel:
         delivery === 'user' ? 'Your doorstep' : delivery === 'office' ? 'Courier office' : null,
       updatedLabel: formatDate(readString(record, ['updated_at'])) || null,
+      cancellation: readCancellation(record),
       senderPhone: readString(record, ['sender_phone']),
       senderEmail: readString(record, ['sender_email']),
       receiverPhone: readString(record, ['receiver_phone']),
@@ -352,6 +371,19 @@ export class DeliveriesService {
           .filter(Boolean)
           .join(' · ') || null,
     };
+  }
+
+  /** The newest of the shipment's, order's and tracking events' timestamps. */
+  private lastChange(record: Record<string, unknown>): string | null {
+    const stamps = [
+      readString(record, ['updated_at']),
+      readString(record['order'], ['updated_at']),
+      ...readList(record['tracking']).map((event) =>
+        readString(event, ['updated_at', 'created_at']),
+      ),
+    ].filter((value): value is string => Boolean(value));
+    const times = stamps.map((value) => new Date(value).getTime()).filter(Number.isFinite);
+    return times.length ? new Date(Math.max(...times)).toISOString() : null;
   }
 
   /** A shipment is "pending" for both a parcel nobody has paid for yet and one waiting for pickup. */

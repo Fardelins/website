@@ -41,12 +41,14 @@ import { TrackingCopy } from '@shared/components/tracking-copy/tracking-copy';
 import { TrackingPhase, phaseLabel, statusLabel } from '@features/tracking/tracking.model';
 import { parcelStatusGroup } from '@shared/parcel-status';
 import { DeliveryRatingCard } from '../../components/delivery-rating/delivery-rating';
+import {
+  CANCEL_NOTE_MAX,
+  CUSTOMER_CANCEL_REASONS,
+  REFUND_COPY,
+  cancelPolicy,
+} from '../../cancellation';
 import { DeliveriesService } from '../../deliveries.service';
 import { DeliveryDetail as Detail } from '../../deliveries.model';
-
-// BE only cancels a `pending` shipment (409 once assigned). The dialog's refund promise relies on BE
-// refunding paid cancellations, which it does not do yet.
-const CANCELLABLE = ['pending', 'awaiting_payment'];
 
 @Component({
   selector: 'app-delivery-detail',
@@ -102,6 +104,11 @@ export class DeliveryDetail implements OnDestroy {
   protected readonly actionError = signal<string | null>(null);
   protected readonly cancelError = signal<string | null>(null);
   protected readonly agreed = signal(false);
+  protected readonly cancelReason = signal('');
+  protected readonly cancelNote = signal('');
+  protected readonly cancelReasons = CUSTOMER_CANCEL_REASONS;
+  protected readonly cancelNoteMax = CANCEL_NOTE_MAX;
+  protected readonly refundCopy = REFUND_COPY;
   private readonly cancelDialog = viewChild<ElementRef<HTMLDialogElement>>('cancelDialog');
 
   private readonly statusKey = computed(() =>
@@ -116,7 +123,13 @@ export class DeliveryDetail implements OnDestroy {
   protected readonly handedOver = computed(
     () => parcelStatusGroup(this.detail()?.status ?? '') === 'delivered',
   );
-  protected readonly canCancel = computed(() => CANCELLABLE.includes(this.statusKey()));
+  protected readonly cancelRule = computed(() => {
+    const item = this.detail();
+    return cancelPolicy(item?.status ?? '', Boolean(item?.paid));
+  });
+  protected readonly canCancel = computed(() => this.cancelRule().action === 'yes');
+  /** Past the stage the app cancels on its own, a super-admin has to approve it. */
+  protected readonly cancelNeedsSupport = computed(() => this.cancelRule().action === 'support');
   /** An unpaid or cancelled shipment has no tracking to refresh. */
   protected readonly showRefresh = computed(
     () => !this.detail() || !(this.awaitingPayment() || this.isCancelled()),
@@ -126,8 +139,17 @@ export class DeliveryDetail implements OnDestroy {
     () => !this.isCancelled() || (this.detail()?.events.length ?? 0) > 0,
   );
   protected readonly showTimeline = computed(() => (this.detail()?.events.length ?? 0) > 0);
-  /** Paid shipments must tick the refund box before cancelling; unpaid ones have nothing to refund. */
-  protected readonly canConfirmCancel = computed(() => !this.detail()?.paid || this.agreed());
+  /** A reason is required (with a note for "Something else"); paid shipments also tick the refund box. */
+  protected readonly canConfirmCancel = computed(() => {
+    const reason = this.cancelReason();
+    if (!reason || (reason === 'other' && !this.cancelNote().trim())) return false;
+    return !this.detail()?.paid || this.agreed();
+  });
+  /** A paid, cancelled shipment with no refund record yet still shows that the money is coming back. */
+  protected readonly refundFallback = computed(() => {
+    const item = this.detail();
+    return Boolean(item && this.isCancelled() && item.paid && !item.cancellation?.refund);
+  });
   protected readonly photos = computed(() => {
     const item = this.detail();
     if (!item) return [];
@@ -268,6 +290,8 @@ export class DeliveryDetail implements OnDestroy {
     this.haptics.light();
     this.cancelError.set(null);
     this.agreed.set(false);
+    this.cancelReason.set('');
+    this.cancelNote.set('');
     this.cancelDialog()?.nativeElement.showModal();
   }
 
@@ -286,7 +310,10 @@ export class DeliveryDetail implements OnDestroy {
     this.busy.set('cancel');
     this.cancelError.set(null);
     try {
-      await this.deliveries.cancel(shipmentId);
+      await this.deliveries.cancel(shipmentId, {
+        reasonCode: this.cancelReason(),
+        note: this.cancelNote(),
+      });
       this.haptics.success();
       this.closeCancel();
       this.toast.success('Shipment cancelled', { description: this.trackingId() });

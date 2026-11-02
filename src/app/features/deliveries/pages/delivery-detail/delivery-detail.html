@@ -9,6 +9,8 @@
         <button type="button" class="nav-btn" [disabled]="busy() !== null" (click)="askCancel()">
           Cancel shipment
         </button>
+      } @else if (cancelNeedsSupport()) {
+        <a class="nav-btn" routerLink="/contact">Request cancellation</a>
       }
       @if (awaitingPayment()) {
         <button
@@ -317,6 +319,51 @@
           </dl>
         </section>
 
+        @if (isCancelled() && (item.cancellation || refundFallback())) {
+          <section class="panel facts-panel">
+            <header class="panel__head">
+              <h2>Cancellation</h2>
+            </header>
+            @if (item.cancellation?.refund; as refund) {
+              <p class="refund" [attr.data-state]="refund.state">
+                <strong>{{ refundCopy[refund.state].title }}</strong>
+                {{ refundCopy[refund.state].body }}
+              </p>
+            } @else if (refundFallback()) {
+              <p class="refund" data-state="processing">
+                <strong>Refund on its way</strong>
+                We're arranging your refund. It can take up to 10 business days to reach your
+                account.
+              </p>
+            }
+            <dl class="facts">
+              @if (item.cancellation?.reasonLabel) {
+                <div>
+                  <dt>Reason</dt>
+                  <dd>{{ item.cancellation?.reasonLabel }}</dd>
+                </div>
+              }
+              @if (item.cancellation?.refund?.amountLabel) {
+                <div>
+                  <dt>Refund</dt>
+                  <dd>{{ item.cancellation?.refund?.amountLabel }}</dd>
+                </div>
+              }
+              @if (item.cancellation?.fineLabel) {
+                <div>
+                  <dt>Cancellation fee</dt>
+                  <dd>
+                    {{ item.cancellation?.fineLabel }}
+                    @if (item.cancellation?.fineWaived) {
+                      (waived)
+                    }
+                  </dd>
+                </div>
+              }
+            </dl>
+          </section>
+        }
+
         @if (payment(); as paid) {
           <section class="panel facts-panel">
             <header class="panel__head">
@@ -383,11 +430,37 @@
           You're about to cancel <strong>{{ item.title }}</strong> ({{ item.trackingId }}).
           @if (item.paid) {
             {{ item.amountLabel ? 'The ' + item.amountLabel : 'The amount' }} you paid will be
-            refunded to you within 1 to 2 business days.
+            refunded to you. It can take up to 10 business days to reach your account.
+            @if (cancelRule().fineMayApply) {
+              A cancellation fee may apply. If it does, it's shown on this page once you cancel.
+            }
           } @else {
             You haven't paid for it, so nothing will be charged. This can't be undone.
           }
         </p>
+        <label class="field">
+          <span>Why are you cancelling?</span>
+          <select (change)="cancelReason.set($any($event.target).value)">
+            <option value="" disabled [selected]="!cancelReason()">Choose a reason</option>
+            @for (reason of cancelReasons; track reason.code) {
+              <option [value]="reason.code" [selected]="cancelReason() === reason.code">
+                {{ reason.label }}
+              </option>
+            }
+          </select>
+        </label>
+        <label class="field">
+          <span>
+            Note
+            {{ cancelReason() === 'other' ? '(required)' : '(optional)' }}
+          </span>
+          <textarea
+            rows="2"
+            [attr.maxlength]="cancelNoteMax"
+            [value]="cancelNote()"
+            (input)="cancelNote.set($any($event.target).value)"
+          ></textarea>
+        </label>
         @if (item.paid) {
           <label class="modal__check">
             <input

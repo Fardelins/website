@@ -389,7 +389,7 @@ describe('DeliveriesService account cache', () => {
         .expectOne(isShipments)
         .flush({ data: [{ id: 'da2e356c', status: 'assigned' }], has_next_page: false });
 
-      await expect(pending).rejects.toThrow("We couldn't cancel this shipment");
+      await expect(pending).rejects.toThrow("can't be cancelled here any more");
     });
 
     it('fails when the request fails and the shipment is still not cancelled', async () => {

@@ -1,4 +1,5 @@
 import { TrackingEvent } from '@features/tracking/tracking.model';
+import type { CancellationInfo } from './cancellation';
 
 export interface DeliverySummary {
   trackingId: string;
@@ -17,6 +18,8 @@ export interface DeliverySummary {
   etaLabel: string | null;
   amountLabel: string | null;
   createdAt?: string | null;
+  /** Latest change to the shipment, its order (payment) or its tracking; the list sorts by it. */
+  updatedAt?: string | null;
   etaAt?: string | null;
   amount?: number | null;
   currency?: string | null;
@@ -95,6 +98,8 @@ export interface DeliveryDetail extends DeliverySummary {
   weightLabel?: string | null;
   boxTypeLabel?: string | null;
   paid: boolean;
+  /** Why and how a cancelled shipment was cancelled, once BE sends it. */
+  cancellation?: CancellationInfo | null;
   events: TrackingEvent[];
   currentPhaseIndex: number;
 }

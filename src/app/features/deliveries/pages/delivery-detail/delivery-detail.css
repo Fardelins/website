@@ -55,6 +55,7 @@
   color: var(--dashboard-text);
   background: var(--dashboard-card);
   font: 650 12px/1 var(--font-body);
+  text-decoration: none;
   cursor: pointer;
 }
 .nav-btn ng-icon {
@@ -208,6 +209,25 @@
   height: 18px;
   margin-top: 1px;
   accent-color: var(--color-primary-500);
+}
+.modal .field textarea {
+  min-height: 84px;
+}
+.refund {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  color: var(--dashboard-muted);
+  background: var(--rail-accent-wash);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.refund strong {
+  display: block;
+  color: var(--dashboard-text);
+}
+.refund[data-state='failed'] {
+  background: color-mix(in srgb, var(--parcel-status-cancelled) 12%, transparent);
 }
 .modal__buttons {
   display: flex;

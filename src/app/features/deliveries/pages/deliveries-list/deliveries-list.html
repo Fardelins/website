@@ -28,6 +28,17 @@
             </button>
           }
         </div>
+        <select
+          class="sort"
+          aria-label="Sort parcels"
+          (change)="selectSort($any($event.target).value)"
+        >
+          @for (option of sorts; track option.key) {
+            <option [value]="option.key" [selected]="sort() === option.key">
+              {{ option.label }}
+            </option>
+          }
+        </select>
         <button
           type="button"
           class="filter-trigger"

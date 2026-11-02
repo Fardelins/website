@@ -14,6 +14,7 @@ import { EmptyState } from '@shared/components/empty-state/empty-state';
 import { Skeleton } from '@shared/components/skeleton/skeleton';
 import { StatusPill } from '@shared/components/status-pill/status-pill';
 import { TrackingCopy } from '@shared/components/tracking-copy/tracking-copy';
+import { parcelStatusGroup } from '@shared/parcel-status';
 import { Option } from '@features/send-delivery/send-delivery.model';
 import { SendDeliveryService } from '@features/send-delivery/send-delivery.service';
 import { DeliveriesService } from '../../deliveries.service';
@@ -25,7 +26,8 @@ import {
   hasParcelFilters,
 } from '../../deliveries.model';
 
-type Filter = 'all' | 'ongoing' | 'delivered' | 'cancelled';
+type Filter = 'all' | 'shipped' | 'pending' | 'delivered' | 'awaiting_payment' | 'cancelled';
+type Sort = 'updated' | 'oldest' | 'amount_high' | 'amount_low';
 type FilterGroup = 'date' | 'amount' | 'destination';
 
 const DATE_PRESETS = [
@@ -49,18 +51,25 @@ function dayLabel(iso: string): string {
   });
 }
 
-const ONGOING = ['pending', 'assigned', 'picked_up', 'enroute', 'office', 'at_office', 'delivered'];
-const DONE = ['received', 'completed'];
 const PAGE_SIZE = 7;
-const ACTIVE_PRIORITY: Record<string, number> = {
-  delivered: 0,
-  enroute: 1,
-  picked_up: 2,
-  assigned: 3,
-  office: 4,
-  at_office: 4,
-  pending: 5,
-};
+const SORTS: { key: Sort; label: string }[] = [
+  { key: 'updated', label: 'Last updated' },
+  { key: 'oldest', label: 'Oldest first' },
+  { key: 'amount_high', label: 'Amount: high to low' },
+  { key: 'amount_low', label: 'Amount: low to high' },
+];
+
+/** The one tab a status belongs to. Assigned counts as pending: no courier has the parcel yet. */
+function tabOf(rawStatus: string): Exclude<Filter, 'all'> {
+  const key = rawStatus
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+  if (key === 'awaiting_payment') return 'awaiting_payment';
+  const group = parcelStatusGroup(rawStatus);
+  if (group === 'transit') return 'shipped';
+  return group === 'assigned' ? 'pending' : group;
+}
 
 @Component({
   selector: 'app-deliveries-list',
@@ -140,20 +149,29 @@ export class DeliveriesList {
 
   protected readonly filters: { key: Filter; label: string }[] = [
     { key: 'all', label: 'All' },
-    { key: 'ongoing', label: 'Shipping' },
+    { key: 'shipped', label: 'Shipped' },
+    { key: 'pending', label: 'Pending' },
     { key: 'delivered', label: 'Delivered' },
+    { key: 'awaiting_payment', label: 'Awaiting payment' },
     { key: 'cancelled', label: 'Cancelled' },
   ];
+  protected readonly sorts = SORTS;
+  protected readonly sort = signal<Sort>('updated');
 
   protected readonly counts = computed<Record<Filter, number>>(() => {
-    const deliveries = this.all();
-    return {
-      all: deliveries.length,
-      ongoing: deliveries.filter((item) => ONGOING.includes(this.normalized(item.status))).length,
-      delivered: deliveries.filter((item) => DONE.includes(this.normalized(item.status))).length,
-      cancelled: deliveries.filter((item) => this.normalized(item.status).startsWith('cancel'))
-        .length,
+    const counts: Record<Filter, number> = {
+      all: 0,
+      shipped: 0,
+      pending: 0,
+      delivered: 0,
+      awaiting_payment: 0,
+      cancelled: 0,
     };
+    for (const item of this.all()) {
+      counts.all++;
+      counts[tabOf(item.status)]++;
+    }
+    return counts;
   });
 
   protected readonly visible = computed(() => {
@@ -161,25 +179,15 @@ export class DeliveriesList {
     const filter = this.filter();
     return this.all()
       .filter((item) => {
-        const status = this.normalized(item.status);
         const matchesTerm =
           !term ||
           item.title.toLowerCase().includes(term) ||
           item.trackingId.toLowerCase().includes(term) ||
           item.receiverName?.toLowerCase().includes(term) ||
           item.dropOff?.toLowerCase().includes(term);
-        const matchesFilter =
-          filter === 'all' ||
-          (filter === 'ongoing' && ONGOING.includes(status)) ||
-          (filter === 'delivered' && DONE.includes(status)) ||
-          (filter === 'cancelled' && status.startsWith('cancel'));
-        return matchesTerm && matchesFilter;
+        return matchesTerm && (filter === 'all' || tabOf(item.status) === filter);
       })
-      .sort((a, b) => {
-        const aPriority = ACTIVE_PRIORITY[this.normalized(a.status)] ?? 20;
-        const bPriority = ACTIVE_PRIORITY[this.normalized(b.status)] ?? 20;
-        return aPriority - bPriority || this.time(b.createdAt) - this.time(a.createdAt);
-      });
+      .sort(this.comparator(this.sort()));
   });
 
   protected readonly page = signal(1);
@@ -205,6 +213,11 @@ export class DeliveriesList {
   protected readonly resultEnd = computed(() =>
     Math.min(this.page() * PAGE_SIZE, this.visible().length),
   );
+
+  protected selectSort(sort: Sort): void {
+    this.sort.set(sort);
+    this.page.set(1);
+  }
 
   protected selectFilter(filter: Filter): void {
     this.filter.set(filter);
@@ -337,11 +350,20 @@ export class DeliveriesList {
     this.page.set(Math.min(Math.max(page, 1), this.pageCount()));
   }
 
-  private normalized(status: string): string {
-    return status
-      .trim()
-      .toLowerCase()
-      .replace(/[\s-]+/g, '_');
+  private comparator(sort: Sort): (a: DeliverySummary, b: DeliverySummary) => number {
+    const updated = (item: DeliverySummary) => this.time(item.updatedAt ?? item.createdAt);
+    const created = (item: DeliverySummary) => this.time(item.createdAt);
+    const amount = (item: DeliverySummary) => item.amount ?? 0;
+    switch (sort) {
+      case 'oldest':
+        return (a, b) => created(a) - created(b);
+      case 'amount_high':
+        return (a, b) => amount(b) - amount(a) || updated(b) - updated(a);
+      case 'amount_low':
+        return (a, b) => amount(a) - amount(b) || updated(b) - updated(a);
+      default:
+        return (a, b) => updated(b) - updated(a);
+    }
   }
 
   private time(value: string | null | undefined): number {
