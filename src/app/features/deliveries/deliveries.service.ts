@@ -233,8 +233,8 @@ export class DeliveriesService {
     const rawAmount =
       record['amount'] ?? record['total'] ?? record['price'] ?? record['cost'] ?? order['amount'];
     const parsedAmount = typeof rawAmount === 'string' ? Number(rawAmount) : rawAmount;
-    const business = asBag(asBag(record['hub'])['courier_business']);
-    const currency = readString(record['currency'] ?? business['currency'] ?? record, [
+    // Not the courier business's currency: BlueArrow's is TND, yet customers pay in naira on Paystack.
+    const currency = readString(record['currency'] ?? record, [
       'code',
       'currency_code',
       'currency',
@@ -343,7 +343,7 @@ export class DeliveriesService {
     const worth = Number(parcel['worth'] ?? record['total_worth']);
     const type = readString(parcel, ['type']);
     const delivery = readString(record, ['delivery_type']);
-    const currency = readString(asBag(business['currency']), ['code']);
+    const currency = readString(asBag(record['currency']), ['code']);
     return {
       images: readList(parcel['media'])
         .map((item) => readString(item, ['link', 'url']))

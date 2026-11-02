@@ -69,7 +69,24 @@ describe('DeliveriesService account cache', () => {
     total_weight: 2.75,
   };
 
-  it('reads the title, amount and currency from the real list row shape', async () => {
+  it("ignores the courier business's currency, which is not what the customer paid in", async () => {
+    const service = TestBed.inject(DeliveriesService);
+    const http = TestBed.inject(HttpTestingController);
+    const tunisianCourier = {
+      ...realRow,
+      amount: 600,
+      hub: { courier_business: { company_name: 'BlueArrow', currency: { code: 'TND' } } },
+    };
+
+    const pending = service.list();
+    http.expectOne(isShipments).flush({ data: [tunisianCourier], has_next_page: false });
+
+    await expect(pending).resolves.toEqual([
+      expect.objectContaining({ amount: 600, amountLabel: '₦600', currency: null }),
+    ]);
+  });
+
+  it('reads the title and amount from the real list row shape', async () => {
     const service = TestBed.inject(DeliveriesService);
     const http = TestBed.inject(HttpTestingController);
 
@@ -82,7 +99,7 @@ describe('DeliveriesService account cache', () => {
         title: 'Pixel 3',
         dropOff: 'Wuse, Abuja, Nigeria',
         amount: 2600,
-        currency: 'NGN',
+        amountLabel: '₦2,600',
         receiverName: 'Williams Ojiofor',
       }),
     ]);
