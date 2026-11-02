@@ -131,28 +131,37 @@
         </div>
       }
 
-      <button
-        type="button"
-        class="account__card"
-        (click)="toggleMenu()"
-        [attr.aria-expanded]="menuOpen()"
-        aria-haspopup="menu"
-        [attr.title]="preferences.sidebarCollapsed() ? displayName() : null"
-        [attr.aria-label]="'Account menu for ' + displayName()"
-      >
-        <span class="account__avatar" aria-hidden="true">
-          @if (user()?.avatarUrl) {
-            <img [src]="user()!.avatarUrl" alt="" width="36" height="36" />
-          } @else {
-            {{ initials() }}
-          }
-        </span>
-        <span class="account__text">
-          <span class="account__name">{{ displayName() }}</span>
-          <span class="account__email">{{ user()?.email }}</span>
-        </span>
-        <ng-icon class="account__chevron" name="solarAltArrowRightBoldDuotone" aria-hidden="true" />
-      </button>
+      <div class="account__card">
+        <a
+          class="account__profile"
+          href="/app/profile"
+          [attr.title]="preferences.sidebarCollapsed() ? displayName() : 'My profile'"
+          [attr.aria-label]="'Open profile for ' + displayName()"
+          (click)="onAccountProfile($event)"
+        >
+          <span class="account__avatar" aria-hidden="true">
+            @if (user()?.avatarUrl) {
+              <img [src]="user()!.avatarUrl" alt="" width="36" height="36" />
+            } @else {
+              {{ initials() }}
+            }
+          </span>
+          <span class="account__text">
+            <span class="account__name">{{ displayName() }}</span>
+            <span class="account__email">{{ user()?.email }}</span>
+          </span>
+        </a>
+        <button
+          type="button"
+          class="account__toggle"
+          (click)="toggleMenu()"
+          [attr.aria-expanded]="menuOpen()"
+          aria-haspopup="menu"
+          aria-label="Account menu"
+        >
+          <ng-icon class="account__chevron" name="solarAltArrowRightBoldDuotone" aria-hidden="true" />
+        </button>
+      </div>
     </div>
   </aside>
 

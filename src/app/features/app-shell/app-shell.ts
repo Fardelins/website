@@ -414,6 +414,18 @@ export class AppShell {
     this.appPromo.open();
   }
 
+  /** Profile on a normal click; on the collapsed rail there is no arrow, so the photo opens the menu. */
+  protected onAccountProfile(event: MouseEvent): void {
+    if (event.metaKey || event.ctrlKey || event.shiftKey) return;
+    event.preventDefault();
+    if (this.preferences.sidebarCollapsed()) {
+      this.toggleMenu();
+      return;
+    }
+    this.menuOpen.set(false);
+    void this.router.navigateByUrl('/app/profile');
+  }
+
   protected toggleMenu(): void {
     this.haptics.selection();
     this.menuOpen.update((open) => !open);
