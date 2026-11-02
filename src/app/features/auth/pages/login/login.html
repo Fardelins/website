@@ -93,10 +93,11 @@
         <button
           type="button"
           class="btn btn--ghost btn--block"
-          [disabled]="submitting() || googleSubmitting()"
-          (click)="setMode('qr')"
+          disabled
+          aria-label="Log in with QR code, coming soon"
         >
           <ng-icon name="solarQRCodeBoldDuotone" aria-hidden="true" />Log in with QR code
+          <span class="login__soon">Coming soon</span>
         </button>
 
         <p class="form-note">I don't have an account yet? <a routerLink="/signup">Sign Up</a></p>
