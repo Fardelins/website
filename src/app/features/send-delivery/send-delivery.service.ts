@@ -23,6 +23,7 @@ import {
   SendDraft,
   handlingNote,
   toBeParcelType,
+  normalizePhone,
   toInternationalPhone,
 } from './send-delivery.model';
 
@@ -120,7 +121,8 @@ export class SendDeliveryService {
           // makes BE use the account's stored address instead. All six fields are required when sent.
           sender_details: {
             sender_fullname: draft.pickup.fullName.trim(),
-            sender_phone: toInternationalPhone(draft.pickup.phone),
+            sender_phone:
+              normalizePhone(draft.pickup.phone) ?? toInternationalPhone(draft.pickup.phone),
             sender_email: draft.pickup.email.trim() || undefined,
             sender_address: draft.pickup.address.trim(),
             sender_state_id: locations.pickup.stateId ?? undefined,
@@ -128,7 +130,8 @@ export class SendDeliveryService {
           },
           receiver_details: {
             receiver_fullname: draft.dropoff.fullName.trim(),
-            receiver_phone: toInternationalPhone(draft.dropoff.phone),
+            receiver_phone:
+              normalizePhone(draft.dropoff.phone) ?? toInternationalPhone(draft.dropoff.phone),
             receiver_email: draft.dropoff.email.trim() || undefined,
             receiver_location: {
               address: draft.dropoff.address.trim(),
@@ -296,17 +299,13 @@ export class SendDeliveryService {
         const id = Number(bag['id'] ?? bag['_id']);
         const label = readString(bag, ['name', 'title', 'label', 'size', 'description']);
         const details = includeSizeDetails ? sizeDetails(bag) : null;
-        return Number.isFinite(id) && label
-          ? { id, label, ...details }
-          : null;
+        return Number.isFinite(id) && label ? { id, label, ...details } : null;
       })
       .filter((option): option is Option => option !== null);
   }
 }
 
-function sizeDetails(
-  size: Record<string, unknown>,
-): Pick<Option, 'dimensions' | 'weightRange'> {
+function sizeDetails(size: Record<string, unknown>): Pick<Option, 'dimensions' | 'weightRange'> {
   const dimension = asBag(size['dimension'] ?? size['dimensions'] ?? size);
   const dimensionUnit =
     readString(dimension, ['unit', 'symbol', 'length_unit', 'lengthUnit']) ??
@@ -314,34 +313,65 @@ function sizeDetails(
     readString(asBag(size['length_unit'] ?? size['lengthUnit']), ['symbol', 'name']) ??
     'cm';
   const rangeMin = firstNumber(dimension, [
-    'min_length', 'length_min', 'minimum_length', 'length_from',
-    'minLength', 'lengthMin', 'minimumLength', 'lengthFrom',
-    'min_length_cm', 'length_min_cm', 'minLengthCm', 'lengthMinCm',
+    'min_length',
+    'length_min',
+    'minimum_length',
+    'length_from',
+    'minLength',
+    'lengthMin',
+    'minimumLength',
+    'lengthFrom',
+    'min_length_cm',
+    'length_min_cm',
+    'minLengthCm',
+    'lengthMinCm',
   ]);
   const rangeMax = firstNumber(dimension, [
-    'max_length', 'length_max', 'maximum_length', 'length_to',
-    'maxLength', 'lengthMax', 'maximumLength', 'lengthTo',
-    'max_length_cm', 'length_max_cm', 'maxLengthCm', 'lengthMaxCm',
+    'max_length',
+    'length_max',
+    'maximum_length',
+    'length_to',
+    'maxLength',
+    'lengthMax',
+    'maximumLength',
+    'lengthTo',
+    'max_length_cm',
+    'length_max_cm',
+    'maxLengthCm',
+    'lengthMaxCm',
   ]);
   const rangeUnit =
     readString(dimension, ['length_unit', 'lengthUnit', 'unit', 'symbol']) ?? dimensionUnit;
   const dimensions = ['length', 'width', 'height'].map((key) => Number(dimension[key]));
   const rangeText = readString(dimension, [
-    'length_range', 'lengthRange', 'size_range', 'sizeRange', 'dimension_description',
+    'length_range',
+    'lengthRange',
+    'size_range',
+    'sizeRange',
+    'dimension_description',
   ]);
   const dimensionsLabel =
     rangeMin !== null && rangeMax !== null && rangeUnit
       ? `${rangeMin} ${rangeUnit} - ${rangeMax} ${rangeUnit}`
       : dimensions.every((value) => Number.isFinite(value) && value > 0) && dimensionUnit
         ? `${dimensions.join(' x ')} ${dimensionUnit}`
-        : rangeText ?? readString(size, [
-            'dimensions', 'dimension_description', 'dimensionDescription',
-            'length_range', 'lengthRange', 'size_range', 'sizeRange',
-          ]);
+        : (rangeText ??
+          readString(size, [
+            'dimensions',
+            'dimension_description',
+            'dimensionDescription',
+            'length_range',
+            'lengthRange',
+            'size_range',
+            'sizeRange',
+          ]));
   const minimumWeight = firstNumber(size, ['min_weight', 'minimum_weight', 'minWeight']);
   const maximumWeight = firstNumber(size, ['max_weight', 'maximum_weight', 'maxWeight']);
   const weight =
-    size['average_weight'] ?? size['averageWeight'] ?? size['avg_weight'] ?? size['avgWeight'] ??
+    size['average_weight'] ??
+    size['averageWeight'] ??
+    size['avg_weight'] ??
+    size['avgWeight'] ??
     size['weight'];
   const weightBag = asBag(weight);
   const weightValue = weightBag['value'] ?? weightBag['amount'] ?? weight;
@@ -373,4 +403,3 @@ function firstNumber(record: Record<string, unknown>, keys: string[]): number | 
   }
   return null;
 }
-

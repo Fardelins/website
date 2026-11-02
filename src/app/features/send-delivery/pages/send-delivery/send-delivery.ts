@@ -19,6 +19,7 @@ import {
   solarDeliveryBoldDuotone,
   solarLockKeyholeBoldDuotone,
   solarStarBoldDuotone,
+  solarTuning2BoldDuotone,
 } from '@ng-icons/solar-icons/bold-duotone';
 import { AuthService } from '@core/auth/auth.service';
 import { PlaceDetails } from '@core/services/google-places.service';
@@ -44,6 +45,7 @@ import {
   ParcelType,
   SendDraft,
   emptyDraft,
+  isValidPhone,
 } from '../../send-delivery.model';
 
 const DRAFT_KEY = 'fardelins.send-draft';
@@ -69,6 +71,8 @@ const STEPS = [
 ] as const;
 const COURIER_STEP = 3;
 const COURIERS_PER_PAGE = 6;
+const TOP_RATED = 4;
+type CourierSort = 'recommended' | 'cheapest' | 'priciest';
 
 type Party = 'pickup' | 'dropoff';
 type AddressSelection = { kind: 'saved'; id: string } | { kind: 'property'; id: string };
@@ -85,6 +89,7 @@ type AddressSelection = { kind: 'saved'; id: string } | { kind: 'property'; id: 
       solarDeliveryBoldDuotone,
       solarLockKeyholeBoldDuotone,
       solarStarBoldDuotone,
+      solarTuning2BoldDuotone,
     }),
   ],
   templateUrl: './send-delivery.html',
@@ -133,6 +138,9 @@ export class SendDelivery {
   protected readonly uploadError = signal<string | null>(null);
   protected readonly submitting = signal(false);
   protected readonly courierQuery = signal('');
+  protected readonly courierSort = signal<CourierSort>('recommended');
+  protected readonly topRatedOnly = signal(false);
+  protected readonly advancedOpen = signal(false);
   private readonly courierLimit = signal(COURIERS_PER_PAGE);
   protected readonly maxImages = MAX_PARCEL_IMAGES;
   protected readonly properties = signal<Storefront[]>([]);
@@ -142,7 +150,9 @@ export class SendDelivery {
   protected readonly loadingProperties = signal(false);
   protected readonly weightUnit = signal<'kg' | 'lb' | 'g' | 'oz'>('kg');
   protected readonly weightInputValue = signal<string | null>(null);
-  protected readonly customWeightEnabled = computed(() => Boolean(this.draft().parcel.customWeight));
+  protected readonly customWeightEnabled = computed(() =>
+    Boolean(this.draft().parcel.customWeight),
+  );
   protected readonly parcelTypes: { value: ParcelType; label: string }[] = [
     { value: 'breakable', label: 'Breakable' },
     { value: 'flammable', label: 'Flammable' },
@@ -174,10 +184,10 @@ export class SendDelivery {
     // BE is making at least one photo compulsory.
     return Boolean(
       sizeId &&
-        types.length &&
-        shortDescription.trim() &&
-        images.length > 0 &&
-        (!customWeight || weight),
+      types.length &&
+      shortDescription.trim() &&
+      images.length > 0 &&
+      (!customWeight || weight),
     );
   });
   protected readonly pickupDone = computed(() => {
@@ -187,7 +197,7 @@ export class SendDelivery {
     const cityPicked = !this.pickupCities().length || Boolean(city.trim());
     const located = Boolean(address.trim() && state.trim() && cityPicked);
     if (draft.fromMe) return located;
-    return located && Boolean(this.hasFullName(fullName) && phone.trim() && email.trim());
+    return located && Boolean(this.hasFullName(fullName) && isValidPhone(phone) && email.trim());
   });
   protected readonly dropoffDone = computed(() => {
     const { fullName, phone, email, address, state, city } = this.draft().dropoff;
@@ -195,7 +205,7 @@ export class SendDelivery {
     const cityPicked = !this.dropoffCities().length || Boolean(city.trim());
     return Boolean(
       this.hasFullName(fullName) &&
-      phone.trim() &&
+      isValidPhone(phone) &&
       email.trim() &&
       address.trim() &&
       state.trim() &&
@@ -204,6 +214,8 @@ export class SendDelivery {
   });
   protected readonly routeDone = computed(() => this.pickupDone() && this.dropoffDone());
   protected readonly canPay = computed(() => Boolean(this.selectedRate()));
+
+  protected readonly isValidPhone = isValidPhone;
 
   protected hasFullName(value: string): boolean {
     return value.trim().split(/\s+/).filter(Boolean).length >= 2;
@@ -224,10 +236,30 @@ export class SendDelivery {
   );
   protected readonly matchingRates = computed(() => {
     const term = this.courierQuery().trim().toLowerCase();
-    return term
-      ? this.rates().filter((rate) => rate.courierName.toLowerCase().includes(term))
-      : this.rates();
+    let list = this.rates();
+    if (term) list = list.filter((rate) => rate.courierName.toLowerCase().includes(term));
+    if (this.topRatedOnly()) list = list.filter((rate) => (rate.rating ?? 0) >= TOP_RATED);
+    const sort = this.courierSort();
+    if (sort === 'recommended') return list;
+    return [...list].sort((a, b) =>
+      sort === 'cheapest' ? a.amount - b.amount : b.amount - a.amount,
+    );
   });
+  /** BE sends no rating on rates yet, so the filter only appears once some courier has one. */
+  protected readonly hasRatings = computed(() => this.rates().some((rate) => rate.rating !== null));
+  protected readonly optionsSummary = computed(() => {
+    const { pickupType, deliveryType, priority } = this.draft();
+    return [
+      pickupType === 'office' ? 'You drop it at the courier office' : 'Courier collects from you',
+      deliveryType === 'office'
+        ? 'Recipient collects from the office'
+        : 'Delivered to the doorstep',
+      priority ? 'Priority speed' : 'Standard speed',
+    ].join(' · ');
+  });
+  protected readonly filtersActive = computed(
+    () => Boolean(this.courierQuery().trim()) || this.topRatedOnly(),
+  );
   protected readonly visibleRates = computed(() =>
     this.matchingRates().slice(0, this.courierLimit()),
   );
@@ -364,11 +396,29 @@ export class SendDelivery {
     }
     this.attempted.update((set) => new Set(set).add(id));
     this.haptics.error();
-    queueMicrotask(() =>
-      document
-        .querySelector('.send .is-missing')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+    if (id === 2) this.revealMissingLocation();
+    // Wait a beat so a block opened above has rendered before scrolling to it.
+    setTimeout(
+      () =>
+        document
+          .querySelector('.send .is-missing')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+      60,
     );
+  }
+
+  /** State and city live in the manual block; open it when the search left them empty. */
+  private revealMissingLocation(): void {
+    const draft = this.draft();
+    const lacksLocation = (which: Party, cities: Option[]) => {
+      const { address, state, city } = draft[which];
+      return Boolean(address.trim()) && (!state.trim() || (cities.length > 0 && !city.trim()));
+    };
+    this.manualAddressOpen.update((open) => ({
+      ...open,
+      pickup: open.pickup || lacksLocation('pickup', this.pickupCities()),
+      dropoff: open.dropoff || lacksLocation('dropoff', this.dropoffCities()),
+    }));
   }
 
   protected showErrors(id: number): boolean {
@@ -431,7 +481,8 @@ export class SendDelivery {
     const [integer = '', ...fractionParts] = raw.split('.');
     const maxFractionDigits = this.weightUnit() === 'g' ? 0 : 2;
     const fraction = fractionParts.join('').slice(0, maxFractionDigits);
-    const normalized = fractionParts.length && maxFractionDigits > 0 ? `${integer}.${fraction}` : integer;
+    const normalized =
+      fractionParts.length && maxFractionDigits > 0 ? `${integer}.${fraction}` : integer;
     const formatted = groupThousands(normalized);
     const parsed = Number(normalized);
     const factors = { kg: 1, lb: 2.2046226218, g: 1000, oz: 35.27396195 };
@@ -621,8 +672,10 @@ export class SendDelivery {
     const baseAddress = this.normalizeAddress(location?.address ?? '');
     const currentAddress = this.normalizeAddress(party.address);
     return Boolean(
-      location && baseAddress && location.stateId === stateId &&
-        (currentAddress === baseAddress || currentAddress.startsWith(`${baseAddress},`)),
+      location &&
+      baseAddress &&
+      location.stateId === stateId &&
+      (currentAddress === baseAddress || currentAddress.startsWith(`${baseAddress},`)),
     );
   }
 
@@ -635,11 +688,13 @@ export class SendDelivery {
     if (selection) return selection.kind === 'saved' && selection.id === addressId;
     const address = this.savedAddresses().find((item) => item.id === addressId);
     const party = this.draft()[which];
-    const savedState = matchState(this.states(), address?.state ?? '')?.label ?? address?.state ?? '';
+    const savedState =
+      matchState(this.states(), address?.state ?? '')?.label ?? address?.state ?? '';
     return Boolean(
       address &&
-        this.savedAddressText(address).toLocaleLowerCase() === party.address.trim().toLocaleLowerCase() &&
-        savedState.toLocaleLowerCase() === party.state.toLocaleLowerCase(),
+      this.savedAddressText(address).toLocaleLowerCase() ===
+        party.address.trim().toLocaleLowerCase() &&
+      savedState.toLocaleLowerCase() === party.state.toLocaleLowerCase(),
     );
   }
 
@@ -663,6 +718,27 @@ export class SendDelivery {
 
   protected searchCouriers(query: string): void {
     this.courierQuery.set(query);
+    this.courierLimit.set(COURIERS_PER_PAGE);
+  }
+
+  protected selectCourierSort(sort: CourierSort): void {
+    this.courierSort.set(sort);
+    this.courierLimit.set(COURIERS_PER_PAGE);
+  }
+
+  protected toggleTopRated(): void {
+    this.haptics.selection();
+    this.topRatedOnly.update((on) => !on);
+    this.courierLimit.set(COURIERS_PER_PAGE);
+  }
+
+  protected toggleAdvanced(): void {
+    this.advancedOpen.update((open) => !open);
+  }
+
+  protected clearCourierFilters(): void {
+    this.courierQuery.set('');
+    this.topRatedOnly.set(false);
     this.courierLimit.set(COURIERS_PER_PAGE);
   }
 
@@ -746,6 +822,7 @@ export class SendDelivery {
       this.courierLimit.set(COURIERS_PER_PAGE);
       if (!rates.length) {
         const { pickupType, deliveryType, priority } = this.draft();
+        this.advancedOpen.set(true);
         this.ratesError.set(
           pickupType !== 'user' || deliveryType !== 'user' || priority
             ? 'No courier offers these options on this route. Try a different pickup, delivery or speed.'
@@ -932,7 +1009,11 @@ export class SendDelivery {
     }
   }
 
-  private async applyPropertyCity(which: Party, cityId: number | null, stateLabel: string): Promise<void> {
+  private async applyPropertyCity(
+    which: Party,
+    cityId: number | null,
+    stateLabel: string,
+  ): Promise<void> {
     await this.loadCities(which, stateLabel);
     const city = this.citiesFor(which).find((option) => option.id === cityId);
     if (city) this.patchParty(which, { city: city.label });
@@ -958,8 +1039,7 @@ export class SendDelivery {
           // Older drafts stored a single `type`.
           types: saved.parcel?.types ?? this.legacyTypes(saved.parcel) ?? empty.parcel.types,
           customWeight:
-            this.showCustomSize &&
-            (saved.parcel?.customWeight ?? Boolean(saved.parcel?.weight)),
+            this.showCustomSize && (saved.parcel?.customWeight ?? Boolean(saved.parcel?.weight)),
           images,
         },
       });

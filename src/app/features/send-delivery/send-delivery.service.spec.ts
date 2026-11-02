@@ -5,7 +5,12 @@ import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { AuthService } from '@core/auth/auth.service';
 import { MOCK_COURIERS } from '../../dev/mock-couriers';
-import { emptyDraft, toInternationalPhone } from './send-delivery.model';
+import {
+  emptyDraft,
+  isValidPhone,
+  normalizePhone,
+  toInternationalPhone,
+} from './send-delivery.model';
 import { SendDeliveryService } from './send-delivery.service';
 
 describe('SendDeliveryService', () => {
@@ -266,7 +271,11 @@ describe('SendDeliveryService', () => {
       ...overrides,
     });
     const ask = async (
-      options: { pickupType?: 'user' | 'office'; deliveryType: 'user' | 'office'; priority: boolean },
+      options: {
+        pickupType?: 'user' | 'office';
+        deliveryType: 'user' | 'office';
+        priority: boolean;
+      },
       rows: unknown[],
     ) => {
       const draft = { ...emptyDraft(), ...options };
@@ -313,10 +322,10 @@ describe('SendDeliveryService', () => {
       const door = await ask({ deliveryType: 'user', priority: false }, [rate(1), officePickup]);
       expect(door.map((r) => r.courierName)).toEqual(['Courier 1']);
 
-      const dropOff = await ask(
-        { pickupType: 'office', deliveryType: 'user', priority: false },
-        [rate(1), officePickup],
-      );
+      const dropOff = await ask({ pickupType: 'office', deliveryType: 'user', priority: false }, [
+        rate(1),
+        officePickup,
+      ]);
       expect(dropOff.map((r) => [r.courierName, r.amount])).toEqual([['Courier 2', 760]]);
     });
 
@@ -432,5 +441,20 @@ describe('SendDeliveryService', () => {
     const result = await service.order(emptyDraft(), { pickup: noIds, dropoff: noIds });
     expect(result.reference).toMatch(/^FD-DEMO-\d{8}$/);
     expect(result.authorizationUrl).toBeNull();
+  });
+});
+
+describe('normalizePhone', () => {
+  it('adds +234 to local numbers and keeps real international ones', () => {
+    expect(normalizePhone('0801 234 5678')).toBe('+2348012345678');
+    expect(normalizePhone('+2348159876543')).toBe('+2348159876543');
+    expect(normalizePhone('+44 7911 123456')).toBe('+447911123456');
+  });
+
+  it('rejects numbers with a wrong length, which BE would refuse at checkout', () => {
+    expect(normalizePhone('090534689876')).toBeNull();
+    expect(normalizePhone('0905346898')).toBeNull();
+    expect(normalizePhone('12345')).toBeNull();
+    expect(isValidPhone('')).toBe(false);
   });
 });

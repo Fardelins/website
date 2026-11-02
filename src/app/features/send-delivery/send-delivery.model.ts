@@ -1,3 +1,5 @@
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
+
 export interface Option {
   id: number;
   label: string;
@@ -110,6 +112,16 @@ export function toInternationalPhone(value: string): string {
   if (/^0\d{10}$/.test(compact)) return `+234${compact.slice(1)}`;
   if (/^[789]\d{9}$/.test(compact)) return `+234${compact}`;
   return compact;
+}
+
+/** The number as BE wants it (+234…), or null when it is not a real number (wrong length, unknown prefix). */
+export function normalizePhone(value: string): string | null {
+  const parsed = parsePhoneNumberFromString(toInternationalPhone(value), 'NG');
+  return parsed?.isValid() ? parsed.number : null;
+}
+
+export function isValidPhone(value: string): boolean {
+  return normalizePhone(value) !== null;
 }
 
 export function emptyDraft(): SendDraft {

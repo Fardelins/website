@@ -319,7 +319,7 @@
                 <div class="row">
                   <label
                     class="field"
-                    [class.is-missing]="showErrors(2) && !draft().pickup.phone.trim()"
+                    [class.is-missing]="showErrors(2) && !isValidPhone(draft().pickup.phone)"
                   >
                     <span class="field__label">Phone</span>
                     <input
@@ -328,6 +328,11 @@
                       [value]="draft().pickup.phone"
                       (input)="patchParty('pickup', { phone: $any($event.target).value })"
                     />
+                    @if (showErrors(2) && !isValidPhone(draft().pickup.phone)) {
+                      <span class="field__error"
+                        >Enter a valid phone number, like 0801 234 5678.</span
+                      >
+                    }
                   </label>
                   <label
                     class="field"
@@ -340,6 +345,9 @@
                       [value]="draft().pickup.email"
                       (input)="patchParty('pickup', { email: $any($event.target).value })"
                     />
+                    @if (showErrors(2) && !draft().pickup.email.trim()) {
+                      <span class="field__error">Enter an email address.</span>
+                    }
                   </label>
                 </div>
               }
@@ -356,7 +364,11 @@
                         aria-controls="pickup-saved-addresses"
                         (click)="toggleSavedAddress('pickup')"
                       >
-                        {{ savedAddressOpen() === 'pickup' ? 'Hide saved addresses' : 'Use saved address' }}
+                        {{
+                          savedAddressOpen() === 'pickup'
+                            ? 'Hide saved addresses'
+                            : 'Use saved address'
+                        }}
                       </button>
                     }
                     <button
@@ -379,12 +391,19 @@
                   (valueChange)="onAddressTyped('pickup', $event)"
                   (placeSelected)="onPlace('pickup', $event)"
                 />
+                @if (showErrors(2) && !draft().pickup.address.trim()) {
+                  <span class="field__error">Enter the pickup address.</span>
+                }
                 @if (savedAddressOpen() === 'pickup') {
                   <div class="address-source" id="pickup-saved-addresses">
                     @if (propertiesWithAddresses().length) {
                       <div class="address-source__group">
                         <span class="address-source__label">Properties</span>
-                        <div class="chips chips--saved" role="group" aria-label="Property addresses">
+                        <div
+                          class="chips chips--saved"
+                          role="group"
+                          aria-label="Property addresses"
+                        >
                           @for (property of propertiesWithAddresses(); track property.id) {
                             <button
                               type="button"
@@ -402,7 +421,11 @@
                     @if (savedAddresses().length) {
                       <div class="address-source__group">
                         <span class="address-source__label">Saved addresses</span>
-                        <div class="chips chips--saved" role="group" aria-label="Saved pickup addresses">
+                        <div
+                          class="chips chips--saved"
+                          role="group"
+                          aria-label="Saved pickup addresses"
+                        >
                           @for (address of savedAddresses(); track address.id) {
                             <button
                               type="button"
@@ -419,7 +442,8 @@
                     }
                     @if (!propertiesWithAddresses().length && !savedAddresses().length) {
                       <p class="address-source__empty">
-                        No saved addresses or property locations yet. Add one in your profile to use it here.
+                        No saved addresses or property locations yet. Add one in your profile to use
+                        it here.
                       </p>
                     }
                   </div>
@@ -436,20 +460,40 @@
                   </button>
                 } @else {
                   <div class="row address-location" id="pickup-address-location">
-                    <label class="field" [class.is-missing]="showErrors(2) && !draft().pickup.state">
+                    <label
+                      class="field"
+                      [class.is-missing]="showErrors(2) && !draft().pickup.state"
+                    >
                       <span class="field__label">State</span>
                       <select (change)="onStateChange('pickup', $any($event.target).value)">
                         <option value="" disabled [selected]="!draft().pickup.state">
-                          {{ loadingStates() ? 'Loading...' : statesError() ? 'Could not load' : 'Select state' }}
+                          {{
+                            loadingStates()
+                              ? 'Loading...'
+                              : statesError()
+                                ? 'Could not load'
+                                : 'Select state'
+                          }}
                         </option>
                         @for (state of states(); track state.id) {
-                          <option [value]="state.label" [selected]="state.label === draft().pickup.state">
+                          <option
+                            [value]="state.label"
+                            [selected]="state.label === draft().pickup.state"
+                          >
                             {{ state.label | titlecase }}
                           </option>
                         }
                       </select>
+                      @if (showErrors(2) && !draft().pickup.state) {
+                        <span class="field__error">Select a state.</span>
+                      }
                     </label>
-                    <label class="field" [class.is-missing]="showErrors(2) && !draft().pickup.city && citiesFor('pickup').length > 0">
+                    <label
+                      class="field"
+                      [class.is-missing]="
+                        showErrors(2) && !draft().pickup.city && citiesFor('pickup').length > 0
+                      "
+                    >
                       <span class="field__label">City</span>
                       <select
                         [disabled]="!draft().pickup.state || citiesLoading('pickup')"
@@ -459,11 +503,19 @@
                           {{ citiesLoading('pickup') ? 'Loading...' : 'Select city' }}
                         </option>
                         @for (city of citiesFor('pickup'); track city.id) {
-                          <option [value]="city.label" [selected]="city.label === draft().pickup.city">
+                          <option
+                            [value]="city.label"
+                            [selected]="city.label === draft().pickup.city"
+                          >
                             {{ city.label | titlecase }}
                           </option>
                         }
                       </select>
+                      @if (
+                        showErrors(2) && !draft().pickup.city && citiesFor('pickup').length > 0
+                      ) {
+                        <span class="field__error">Select a city.</span>
+                      }
                     </label>
                   </div>
                   <button
@@ -503,7 +555,7 @@
               <div class="row">
                 <label
                   class="field"
-                  [class.is-missing]="showErrors(2) && !draft().dropoff.phone.trim()"
+                  [class.is-missing]="showErrors(2) && !isValidPhone(draft().dropoff.phone)"
                 >
                   <span class="field__label">Phone</span>
                   <input
@@ -513,6 +565,11 @@
                     [value]="draft().dropoff.phone"
                     (input)="patchParty('dropoff', { phone: $any($event.target).value })"
                   />
+                  @if (showErrors(2) && !isValidPhone(draft().dropoff.phone)) {
+                    <span class="field__error"
+                      >Enter a valid phone number, like 0801 234 5678.</span
+                    >
+                  }
                 </label>
                 <label
                   class="field"
@@ -526,6 +583,9 @@
                     [value]="draft().dropoff.email"
                     (input)="patchParty('dropoff', { email: $any($event.target).value })"
                   />
+                  @if (showErrors(2) && !draft().dropoff.email.trim()) {
+                    <span class="field__error">Enter an email address.</span>
+                  }
                 </label>
               </div>
 
@@ -541,7 +601,11 @@
                         aria-controls="dropoff-saved-addresses"
                         (click)="toggleSavedAddress('dropoff')"
                       >
-                        {{ savedAddressOpen() === 'dropoff' ? 'Hide saved addresses' : 'Use saved address' }}
+                        {{
+                          savedAddressOpen() === 'dropoff'
+                            ? 'Hide saved addresses'
+                            : 'Use saved address'
+                        }}
                       </button>
                     }
                     <button
@@ -564,12 +628,19 @@
                   (valueChange)="onAddressTyped('dropoff', $event)"
                   (placeSelected)="onPlace('dropoff', $event)"
                 />
+                @if (showErrors(2) && !draft().dropoff.address.trim()) {
+                  <span class="field__error">Enter the delivery address.</span>
+                }
                 @if (savedAddressOpen() === 'dropoff') {
                   <div class="address-source" id="dropoff-saved-addresses">
                     @if (propertiesWithAddresses().length) {
                       <div class="address-source__group">
                         <span class="address-source__label">Properties</span>
-                        <div class="chips chips--saved" role="group" aria-label="Property addresses">
+                        <div
+                          class="chips chips--saved"
+                          role="group"
+                          aria-label="Property addresses"
+                        >
                           @for (property of propertiesWithAddresses(); track property.id) {
                             <button
                               type="button"
@@ -587,7 +658,11 @@
                     @if (savedAddresses().length) {
                       <div class="address-source__group">
                         <span class="address-source__label">Saved addresses</span>
-                        <div class="chips chips--saved" role="group" aria-label="Saved delivery addresses">
+                        <div
+                          class="chips chips--saved"
+                          role="group"
+                          aria-label="Saved delivery addresses"
+                        >
                           @for (address of savedAddresses(); track address.id) {
                             <button
                               type="button"
@@ -604,7 +679,8 @@
                     }
                     @if (!propertiesWithAddresses().length && !savedAddresses().length) {
                       <p class="address-source__empty">
-                        No saved addresses or property locations yet. Add one in your profile to use it here.
+                        No saved addresses or property locations yet. Add one in your profile to use
+                        it here.
                       </p>
                     }
                   </div>
@@ -621,20 +697,40 @@
                   </button>
                 } @else {
                   <div class="row address-location" id="dropoff-address-location">
-                    <label class="field" [class.is-missing]="showErrors(2) && !draft().dropoff.state">
+                    <label
+                      class="field"
+                      [class.is-missing]="showErrors(2) && !draft().dropoff.state"
+                    >
                       <span class="field__label">State</span>
                       <select (change)="onStateChange('dropoff', $any($event.target).value)">
                         <option value="" disabled [selected]="!draft().dropoff.state">
-                          {{ loadingStates() ? 'Loading...' : statesError() ? 'Could not load' : 'Select state' }}
+                          {{
+                            loadingStates()
+                              ? 'Loading...'
+                              : statesError()
+                                ? 'Could not load'
+                                : 'Select state'
+                          }}
                         </option>
                         @for (state of states(); track state.id) {
-                          <option [value]="state.label" [selected]="state.label === draft().dropoff.state">
+                          <option
+                            [value]="state.label"
+                            [selected]="state.label === draft().dropoff.state"
+                          >
                             {{ state.label | titlecase }}
                           </option>
                         }
                       </select>
+                      @if (showErrors(2) && !draft().dropoff.state) {
+                        <span class="field__error">Select a state.</span>
+                      }
                     </label>
-                    <label class="field" [class.is-missing]="showErrors(2) && !draft().dropoff.city && citiesFor('dropoff').length > 0">
+                    <label
+                      class="field"
+                      [class.is-missing]="
+                        showErrors(2) && !draft().dropoff.city && citiesFor('dropoff').length > 0
+                      "
+                    >
                       <span class="field__label">City</span>
                       <select
                         [disabled]="!draft().dropoff.state || citiesLoading('dropoff')"
@@ -644,11 +740,19 @@
                           {{ citiesLoading('dropoff') ? 'Loading...' : 'Select city' }}
                         </option>
                         @for (city of citiesFor('dropoff'); track city.id) {
-                          <option [value]="city.label" [selected]="city.label === draft().dropoff.city">
+                          <option
+                            [value]="city.label"
+                            [selected]="city.label === draft().dropoff.city"
+                          >
                             {{ city.label | titlecase }}
                           </option>
                         }
                       </select>
+                      @if (
+                        showErrors(2) && !draft().dropoff.city && citiesFor('dropoff').length > 0
+                      ) {
+                        <span class="field__error">Select a city.</span>
+                      }
                     </label>
                   </div>
                   <button
@@ -661,103 +765,136 @@
                   </button>
                 }
               </div>
-
             </section>
-
-            @if (showErrors(2) && !routeDone()) {
-              <p class="field__error">Fill in the highlighted details to continue.</p>
-            }
           </div>
         }
 
         @case (3) {
           <div class="pane">
-            <div class="options">
-              <div class="segment" role="radiogroup" aria-label="How it is picked up">
-                <button
-                  type="button"
-                  role="radio"
-                  class="segment__option"
-                  [attr.aria-checked]="draft().pickupType === 'user'"
-                  (click)="selectPickupType('user')"
-                >
-                  Pick up from me
-                </button>
-                <button
-                  type="button"
-                  role="radio"
-                  class="segment__option"
-                  [attr.aria-checked]="draft().pickupType === 'office'"
-                  (click)="selectPickupType('office')"
-                >
-                  I'll drop it off
-                </button>
-              </div>
-              <div class="segment" role="radiogroup" aria-label="Where it ends up">
-                <button
-                  type="button"
-                  role="radio"
-                  class="segment__option"
-                  [attr.aria-checked]="draft().deliveryType === 'user'"
-                  (click)="selectDeliveryType('user')"
-                >
-                  Doorstep
-                </button>
-                <button
-                  type="button"
-                  role="radio"
-                  class="segment__option"
-                  [attr.aria-checked]="draft().deliveryType === 'office'"
-                  (click)="selectDeliveryType('office')"
-                >
-                  Courier office
-                </button>
-              </div>
-              <div class="segment" role="radiogroup" aria-label="Speed">
-                <button
-                  type="button"
-                  role="radio"
-                  class="segment__option"
-                  [attr.aria-checked]="!draft().priority"
-                  (click)="selectSpeed(false)"
-                >
-                  Standard
-                </button>
-                <button
-                  type="button"
-                  role="radio"
-                  class="segment__option"
-                  [attr.aria-checked]="draft().priority"
-                  (click)="selectSpeed(true)"
-                >
-                  Priority
-                </button>
-              </div>
-            </div>
-            <p class="field__hint">
-              {{
-                draft().pickupType === 'office'
-                  ? "You take it to the courier's office."
-                  : 'The courier collects it from your address.'
-              }}
-              {{
-                draft().deliveryType === 'office'
-                  ? "The recipient collects it from the courier's office."
-                  : "The courier brings it to the recipient's address."
-              }}
-              {{ draft().priority ? 'Priority is faster, for an extra fee.' : '' }}
-            </p>
-
             @if (showCourierSearch()) {
-              <label class="field">
-                <span class="sr-only">Search couriers</span>
-                <input
-                  type="search"
-                  placeholder="Search couriers"
-                  [value]="courierQuery()"
-                  (input)="searchCouriers($any($event.target).value)"
-                />
-              </label>
+              <div class="courier-bar">
+                <label class="field courier-bar__search">
+                  <span class="sr-only">Search couriers</span>
+                  <input
+                    type="search"
+                    placeholder="Search couriers"
+                    [value]="courierQuery()"
+                    (input)="searchCouriers($any($event.target).value)"
+                  />
+                </label>
+                <label class="courier-bar__sort">
+                  <span class="sr-only">Sort couriers</span>
+                  <select
+                    [value]="courierSort()"
+                    (change)="selectCourierSort($any($event.target).value)"
+                  >
+                    <option value="recommended">Recommended</option>
+                    <option value="cheapest">Cheapest first</option>
+                    <option value="priciest">Priciest first</option>
+                  </select>
+                </label>
+              </div>
+            }
+
+            <button
+              type="button"
+              class="options-summary"
+              aria-controls="courier-advanced"
+              [attr.aria-expanded]="advancedOpen()"
+              (click)="toggleAdvanced()"
+            >
+              <ng-icon name="solarTuning2BoldDuotone" aria-hidden="true" />
+              <span class="options-summary__text">{{ optionsSummary() }}</span>
+              <span class="options-summary__action">
+                {{ advancedOpen() ? 'Done' : 'Manage' }}
+              </span>
+            </button>
+
+            @if (advancedOpen()) {
+              <div class="advanced" id="courier-advanced">
+                <div class="advanced__row">
+                  <span class="advanced__label">Speed</span>
+                  <div class="segment" role="radiogroup" aria-label="Speed">
+                    <button
+                      type="button"
+                      role="radio"
+                      class="segment__option"
+                      [attr.aria-checked]="!draft().priority"
+                      (click)="selectSpeed(false)"
+                    >
+                      Standard
+                    </button>
+                    <button
+                      type="button"
+                      role="radio"
+                      class="segment__option"
+                      [attr.aria-checked]="draft().priority"
+                      (click)="selectSpeed(true)"
+                    >
+                      Priority
+                    </button>
+                  </div>
+                </div>
+                <div class="advanced__row">
+                  <span class="advanced__label">Pickup</span>
+                  <div class="segment" role="radiogroup" aria-label="How it is picked up">
+                    <button
+                      type="button"
+                      role="radio"
+                      class="segment__option"
+                      [attr.aria-checked]="draft().pickupType === 'user'"
+                      (click)="selectPickupType('user')"
+                    >
+                      Pick up from me
+                    </button>
+                    <button
+                      type="button"
+                      role="radio"
+                      class="segment__option"
+                      [attr.aria-checked]="draft().pickupType === 'office'"
+                      (click)="selectPickupType('office')"
+                    >
+                      I'll drop it off
+                    </button>
+                  </div>
+                </div>
+                <div class="advanced__row">
+                  <span class="advanced__label">Delivery</span>
+                  <div class="segment" role="radiogroup" aria-label="Where it ends up">
+                    <button
+                      type="button"
+                      role="radio"
+                      class="segment__option"
+                      [attr.aria-checked]="draft().deliveryType === 'user'"
+                      (click)="selectDeliveryType('user')"
+                    >
+                      Doorstep
+                    </button>
+                    <button
+                      type="button"
+                      role="radio"
+                      class="segment__option"
+                      [attr.aria-checked]="draft().deliveryType === 'office'"
+                      (click)="selectDeliveryType('office')"
+                    >
+                      Courier office
+                    </button>
+                  </div>
+                </div>
+                @if (hasRatings()) {
+                  <div class="advanced__row">
+                    <span class="advanced__label">Rating</span>
+                    <button
+                      type="button"
+                      class="filter-chip"
+                      [attr.aria-pressed]="topRatedOnly()"
+                      (click)="toggleTopRated()"
+                    >
+                      4+ stars
+                    </button>
+                  </div>
+                }
+              </div>
             }
 
             @if (loadingRates()) {
@@ -839,12 +976,19 @@
                     </span>
                   </button>
                 } @empty {
-                  <p class="field__hint">No courier matches "{{ courierQuery() }}".</p>
+                  <p class="field__hint">
+                    No courier matches your search or filters.
+                    @if (filtersActive()) {
+                      <button type="button" class="link-btn" (click)="clearCourierFilters()">
+                        Clear
+                      </button>
+                    }
+                  </p>
                 }
               </div>
               @if (
                 matchingRates().length > visibleRates().length ||
-                (courierQuery().trim() && matchingRates().length)
+                (filtersActive() && matchingRates().length)
               ) {
                 <div class="couriers__more">
                   <span aria-live="polite">
@@ -867,39 +1011,39 @@
 
       <div class="actionbar" [class.actionbar--solo]="currentStep() === 1">
         <div class="actionbar__row">
-        @if (currentStep() > 1) {
-          <button
-            type="button"
-            class="btn btn--ghost actionbar__back"
-            (click)="goToStep(currentStep() - 1)"
-          >
-            Back
-          </button>
-        }
-        @if (currentStep() === 3) {
-          <div class="actionbar__total">
-            <span>Total</span>
-            <strong>{{ selectedRate()?.priceLabel ?? 'Pick a courier' }}</strong>
-          </div>
-          <button
-            type="button"
-            class="btn btn--primary actionbar__cta"
-            [disabled]="submitting()"
-            (click)="submit()"
-          >
-            {{
-              submitting()
-                ? 'Redirecting…'
-                : selectedRate()
-                  ? 'Pay ' + selectedRate()!.priceLabel
-                  : 'Pay'
-            }}
-          </button>
-        } @else {
-          <button type="button" class="btn btn--primary actionbar__cta" (click)="continue()">
-            Continue
-          </button>
-        }
+          @if (currentStep() > 1) {
+            <button
+              type="button"
+              class="btn btn--ghost actionbar__back"
+              (click)="goToStep(currentStep() - 1)"
+            >
+              Back
+            </button>
+          }
+          @if (currentStep() === 3) {
+            <div class="actionbar__total">
+              <span>Total</span>
+              <strong>{{ selectedRate()?.priceLabel ?? 'Pick a courier' }}</strong>
+            </div>
+            <button
+              type="button"
+              class="btn btn--primary actionbar__cta"
+              [disabled]="submitting()"
+              (click)="submit()"
+            >
+              {{
+                submitting()
+                  ? 'Redirecting…'
+                  : selectedRate()
+                    ? 'Pay ' + selectedRate()!.priceLabel
+                    : 'Pay'
+              }}
+            </button>
+          } @else {
+            <button type="button" class="btn btn--primary actionbar__cta" (click)="continue()">
+              Continue
+            </button>
+          }
         </div>
         <button
           type="button"
@@ -1109,4 +1253,3 @@
     }
   </ol>
 </dialog>
-

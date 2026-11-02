@@ -290,7 +290,102 @@ describe('SendDelivery', () => {
     search.dispatchEvent(new Event('input'));
     fixture.detectChanges();
     expect(root.querySelectorAll('.courier')).toHaveLength(0);
-    expect(root.textContent).toContain('No courier matches "nothing".');
+    expect(root.textContent).toContain('No courier matches your search or filters.');
+  });
+
+  it('sorts couriers cheapest or priciest first and keeps the order until changed', async () => {
+    api.rates.mockResolvedValue([
+      rate('b', 3500, '2 days'),
+      rate('a', 2100, '3 days'),
+      rate('c', 5000, '1 day'),
+    ]);
+    await render(completeDraft());
+    await press('Continue');
+    await press('Continue');
+    const names = () =>
+      Array.from(root.querySelectorAll('.courier__name')).map(
+        (el) => el.textContent?.trim().split(/\s+/)[1],
+      );
+    const choose = (value: string) => {
+      const select = root.querySelector<HTMLSelectElement>('.courier-bar__sort select')!;
+      select.value = value;
+      select.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+    };
+
+    expect(names()).toEqual(['b', 'a', 'c']);
+    choose('cheapest');
+    expect(names()).toEqual(['a', 'b', 'c']);
+    choose('priciest');
+    expect(names()).toEqual(['c', 'b', 'a']);
+  });
+
+  it('opens the options with speed, pickup and delivery, and the summary follows the choices', async () => {
+    api.rates.mockResolvedValue([rate('a', 2100, '2 days'), rate('b', 3500, '1 day')]);
+    await render(completeDraft());
+    await press('Continue');
+    await press('Continue');
+
+    expect(root.querySelector('#courier-advanced')).toBeNull();
+    await press('Courier collects');
+    const panel = root.querySelector('#courier-advanced')!;
+    expect(panel.textContent).toContain('Speed');
+    expect(panel.textContent).toContain('Pickup');
+    expect(panel.textContent).toContain('Delivery');
+    expect(panel.textContent).not.toContain('4+ stars');
+    await press('Courier office');
+    expect(root.querySelector('.options-summary')?.textContent).toContain('Recipient collects');
+  });
+
+  it('offers 4+ stars once couriers have ratings, and hides the lower rated ones', async () => {
+    api.rates.mockResolvedValue([
+      { ...rate('a', 3400, '2 days'), rating: 4.6 },
+      { ...rate('b', 3500, '2 days'), rating: 3.2 },
+      rate('c', 3600, '2 days'),
+    ]);
+    await render(completeDraft());
+    await press('Continue');
+    await press('Continue');
+    await press('Courier collects');
+
+    await press('4+ stars');
+    const names = Array.from(root.querySelectorAll('.courier__name')).map((el) => el.textContent);
+    expect(names).toHaveLength(1);
+    expect(names[0]).toContain('Courier a');
+    expect(root.querySelector('.couriers__more')?.textContent).toContain('Showing 1 of 1');
+  });
+
+  it('shows what is chosen as a Change link, and opens the options when no courier matches', async () => {
+    api.rates.mockResolvedValue([rate('a', 2100, '2 days'), rate('b', 3500, '1 day')]);
+    await render(completeDraft());
+    await press('Continue');
+    await press('Continue');
+
+    const summary = root.querySelector('.options-summary')!;
+    expect(summary.textContent).toContain('Courier collects from you');
+    expect(summary.textContent).toContain('Standard speed');
+    await press('Courier collects');
+    expect(root.querySelector('#courier-advanced')).not.toBeNull();
+    expect(root.querySelector('.options-summary')?.textContent).toContain('Done');
+
+    api.rates.mockResolvedValue([]);
+    await press('Priority');
+    expect(root.querySelector('#courier-advanced')).not.toBeNull();
+    expect(root.textContent).toContain('No courier offers these options');
+  });
+
+  it('opens the manual address block when a picked address left state or city empty', async () => {
+    const draft = completeDraft();
+    draft.dropoff = { ...draft.dropoff, state: '', city: '' };
+    await render(draft);
+    await press('Continue');
+    const page = fixture.componentInstance;
+    expect(page['manualAddressOpen']().dropoff).toBe(false);
+
+    await press('Continue');
+    expect(page['manualAddressOpen']().dropoff).toBe(true);
+    expect(root.textContent).toContain('Select a state.');
+    expect(root.textContent).not.toContain('Fill in the highlighted details');
   });
 
   it('keeps the newest prices when an older request finishes last', async () => {
@@ -302,6 +397,7 @@ describe('SendDelivery', () => {
     api.rates
       .mockReturnValueOnce(new Promise((resolve) => (finishOld = resolve)))
       .mockResolvedValueOnce([rate('a', 5100, '1 day')]);
+    await press('Courier collects');
     await press('Courier office');
     await press('Priority');
     finishOld([rate('a', 2100, '2 days')]);
