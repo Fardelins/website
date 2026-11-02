@@ -30,9 +30,9 @@ export class RoutingService {
     if (existing) return existing;
 
     const pending = this.fetchRoute(from, to)
-      .then((result) => {
-        this.writeCache(key, result);
-        return result;
+      .then(({ route, failed }) => {
+        if (!failed) this.writeCache(key, route);
+        return route;
       })
       .finally(() => this.inflight.delete(key));
 
@@ -70,23 +70,29 @@ export class RoutingService {
     return points[points.length - 1];
   }
 
-  private async fetchRoute(from: GeoPoint, to: GeoPoint): Promise<RoadRoute | null> {
+  private async fetchRoute(
+    from: GeoPoint,
+    to: GeoPoint,
+  ): Promise<{ route: RoadRoute | null; failed: boolean }> {
     const path = `${from.lon},${from.lat};${to.lon},${to.lat}`;
     const url = `${OSRM}/${path}?overview=full&geometries=geojson`;
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
-      if (!response.ok) return null;
+      if (!response.ok) return { route: null, failed: true };
       const body = (await response.json()) as OsrmResponse;
       const route = body.routes?.[0];
       const coordinates = route?.geometry?.coordinates;
-      if (body.code !== 'Ok' || !coordinates?.length) return null;
+      if (body.code !== 'Ok' || !coordinates?.length) return { route: null, failed: false };
       return {
-        coordinates,
-        distanceKm: (route?.distance ?? 0) / 1000,
-        durationMin: (route?.duration ?? 0) / 60,
+        route: {
+          coordinates,
+          distanceKm: (route?.distance ?? 0) / 1000,
+          durationMin: (route?.duration ?? 0) / 60,
+        },
+        failed: false,
       };
     } catch {
-      return null;
+      return { route: null, failed: true };
     }
   }
 

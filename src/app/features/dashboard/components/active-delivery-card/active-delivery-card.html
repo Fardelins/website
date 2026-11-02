@@ -2,9 +2,11 @@
   <h2 class="track__title">Live delivery</h2>
   <app-route-map
     class="track__map"
-    [points]="routeState().points"
-    [route]="routeState().line"
-    [marker]="routeState().marker"
+    [class.track__map--loading]="loading()"
+    [attr.aria-busy]="loading()"
+    [points]="mapState().points"
+    [route]="mapState().line"
+    [marker]="mapState().marker"
     [overview]="overview()"
     [bottomInset]="selected() ? 275 : 48"
     [topFade]="true"

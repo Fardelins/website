@@ -7,7 +7,6 @@ import {
   inject,
   input,
   signal,
-  untracked,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -43,6 +42,7 @@ function normalizedStatus(status: string): string {
     .toLowerCase()
     .replace(/[\s-]+/g, '_');
 }
+const WARM_OFFSETS = [1, -1, 2];
 const EMPTY_ROUTE: RouteState = {
   points: [],
   line: [],
@@ -70,18 +70,32 @@ export class ActiveDeliveryCard implements OnDestroy {
   protected readonly navigationIndex = computed(() =>
     Math.min(this.requestedIndex(), Math.max(0, this.deliveries().length - 1)),
   );
-  private readonly selection = signal<Selection | null>(null);
+  private readonly resolved = signal<Selection | null>(null);
   private readonly cache = new Map<string, Promise<Selection>>();
   private generation = 0;
   private destroyed = false;
   protected readonly overview = signal<[number, number]>([8.6753, 9.082]);
-  protected readonly selected = computed(() => this.selection()?.parcel ?? null);
-  protected readonly routeState = computed(() => this.selection()?.route ?? EMPTY_ROUTE);
-  protected readonly selectedIndex = computed(() =>
-    Math.max(
-      0,
-      this.deliveries().findIndex((p) => p.trackingId === this.selected()?.trackingId),
-    ),
+  protected readonly selected = computed(() => this.deliveries()[this.navigationIndex()] ?? null);
+  protected readonly selectedIndex = this.navigationIndex;
+  protected readonly loading = computed(() => {
+    const parcel = this.selected();
+    return !!parcel && this.resolved()?.parcel.trackingId !== parcel.trackingId;
+  });
+  protected readonly routeState = computed<RouteState>(() => {
+    const parcel = this.selected();
+    if (!parcel) return EMPTY_ROUTE;
+    const resolved = this.resolved();
+    if (resolved?.parcel.trackingId === parcel.trackingId) return resolved.route;
+    return {
+      ...EMPTY_ROUTE,
+      origin: 'Finding address…',
+      destination: parcel.destination,
+      orderDate: parcel.orderDate || EMPTY_ROUTE.orderDate,
+    };
+  });
+  // The map keeps the last resolved route (dimmed) while the next one loads.
+  protected readonly mapState = computed(() =>
+    this.selected() ? (this.resolved()?.route ?? EMPTY_ROUTE) : EMPTY_ROUTE,
   );
 
   constructor() {
@@ -91,29 +105,13 @@ export class ActiveDeliveryCard implements OnDestroy {
       const parcel = parcels[index];
       const generation = ++this.generation;
       if (!parcel) {
-        this.selection.set(null);
+        this.resolved.set(null);
         return;
-      }
-      // First render can show known summary fields over the country overview.
-      if (
-        !untracked(this.selection) ||
-        !parcels.some((p) => p.trackingId === untracked(this.selected)?.trackingId)
-      ) {
-        this.selection.set({
-          parcel,
-          route: {
-            ...EMPTY_ROUTE,
-            destination: parcel.destination,
-            orderDate: parcel.orderDate || EMPTY_ROUTE.orderDate,
-          },
-        });
       }
       void this.resolve(parcel).then((selection) => {
         if (this.destroyed || generation !== this.generation) return;
-        this.selection.set(selection);
-        // Warm only the adjacent orders; navigation keeps the current coherent view meanwhile.
-        for (const adjacent of [parcels[index - 1], parcels[index + 1]])
-          if (adjacent) void this.resolve(adjacent);
+        this.resolved.set(selection);
+        this.warm(parcels, index);
       });
     });
     effect(() => {
@@ -134,6 +132,14 @@ export class ActiveDeliveryCard implements OnDestroy {
     this.requestedIndex.set(
       Math.max(0, Math.min(this.navigationIndex() + 1, this.deliveries().length - 1)),
     );
+  }
+
+  // Neighbours load together: the public geocoder handles a small burst as fast as a single call.
+  private warm(parcels: ActiveDeliveryCardData[], index: number): void {
+    for (const offset of WARM_OFFSETS) {
+      const parcel = parcels[index + offset];
+      if (parcel) void this.resolve(parcel);
+    }
   }
 
   private resolve(parcel: ActiveDeliveryCardData): Promise<Selection> {

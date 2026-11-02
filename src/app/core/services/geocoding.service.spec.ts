@@ -71,3 +71,46 @@ describe('GeocodingService.reverse', () => {
     expect(await TestBed.inject(GeocodingService).reverse(1, 1)).toBeNull();
   });
 });
+
+describe('GeocodingService.locate cache', () => {
+  const hit = {
+    ok: true,
+    json: async () => ({
+      features: [{ properties: { housenumber: '1' }, geometry: { coordinates: [3.36, 6.6] } }],
+    }),
+  };
+  const empty = { ok: true, json: async () => ({ features: [] }) };
+  beforeEach(() => localStorage.clear());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('does not remember a lookup that failed, so the next try asks again', async () => {
+    const fetchMock = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(hit);
+    vi.stubGlobal('fetch', fetchMock);
+    const service = TestBed.inject(GeocodingService);
+
+    expect(await service.locate('Wuse 2')).toBeNull();
+    expect(await service.locate('Wuse 2')).toMatchObject({ lat: 6.6, lon: 3.36 });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps a found address across service instances', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(hit);
+    vi.stubGlobal('fetch', fetchMock);
+    await TestBed.inject(GeocodingService).locate('Wuse 2');
+
+    TestBed.resetTestingModule();
+    expect(await TestBed.inject(GeocodingService).locate('Wuse 2')).toMatchObject({ lat: 6.6 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('remembers a genuine not-found answer', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(empty);
+    vi.stubGlobal('fetch', fetchMock);
+    const service = TestBed.inject(GeocodingService);
+
+    expect(await service.locate('Nowhere')).toBeNull();
+    const calls = fetchMock.mock.calls.length;
+    expect(await service.locate('Nowhere')).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(calls);
+  });
+});

@@ -97,8 +97,11 @@ describe('ActiveDeliveryCard route selection', () => {
     expect(component['routeState']().origin).toBe('From A');
     component['next']();
     fixture.detectChanges();
-    expect(component['selected']()?.trackingId).toBe('A');
-    expect(component['routeState']().origin).toBe('From A');
+    expect(component['selected']()?.trackingId).toBe('B');
+    expect(component['selectedIndex']()).toBe(1);
+    expect(component['loading']()).toBe(true);
+    expect(component['routeState']().destination).toBe('To B');
+    expect(component['mapState']().points.length).toBe(2);
     component['next']();
     fixture.detectChanges();
     requests.get('C')!.resolve(detail('C'));

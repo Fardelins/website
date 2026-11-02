@@ -8,6 +8,15 @@ const PHOTON_REVERSE = 'https://photon.komoot.io/reverse';
 const NIGERIA_BBOX = '2.67,4.27,14.68,13.89';
 const CACHE_PREFIX = 'fardelins.geo.';
 const REQUEST_TIMEOUT_MS = 8000;
+const FOUND_TTL_MS = 30 * 86_400_000;
+const NOT_FOUND_TTL_MS = 86_400_000;
+const FAILED = { point: null, failed: true } as const;
+
+interface Lookup {
+  point: GeoPoint | null;
+  /** The request itself failed (network, timeout, server), so "no point" must not be remembered. */
+  failed: boolean;
+}
 
 export interface GeoPoint {
   lat: number;
@@ -96,8 +105,8 @@ export class GeocodingService {
     if (existing) return existing;
 
     const pending = this.resolve(address.trim())
-      .then((point) => {
-        this.writeCache(key, point);
+      .then(({ point, failed }) => {
+        if (!failed) this.writeCache(key, point);
         return point;
       })
       .finally(() => this.inflight.delete(key));
@@ -106,48 +115,63 @@ export class GeocodingService {
     return pending;
   }
 
-  private async resolve(address: string): Promise<GeoPoint | null> {
+  private async resolve(address: string): Promise<Lookup> {
     const parts = address
       .split(',')
       .map((part) => part.trim())
       .filter(Boolean);
 
+    let failed = false;
     for (let i = 0; i < parts.length; i++) {
       const query = parts.slice(i).join(', ');
-      const point = await this.lookup(query);
-      if (point) return { ...point, approximate: i > 0 || point.approximate };
+      const result = await this.lookup(query);
+      if (result.point) {
+        return {
+          point: { ...result.point, approximate: i > 0 || result.point.approximate },
+          failed: false,
+        };
+      }
+      failed ||= result.failed;
     }
-    return null;
+    return { point: null, failed };
   }
 
-  private async lookup(query: string): Promise<GeoPoint | null> {
+  private async lookup(query: string): Promise<Lookup> {
     const url = `${PHOTON}?q=${encodeURIComponent(query)}&limit=1&bbox=${NIGERIA_BBOX}`;
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
-      if (!response.ok) return null;
+      if (!response.ok) return FAILED;
       const body = (await response.json()) as PhotonResponse;
       const feature = body.features?.[0];
       const [lon, lat] = feature?.geometry?.coordinates ?? [];
-      if (typeof lat !== 'number' || typeof lon !== 'number') return null;
+      if (typeof lat !== 'number' || typeof lon !== 'number') return { point: null, failed: false };
 
       const props = feature?.properties ?? {};
       return {
-        lat,
-        lon,
-        matched: [props.name, props.city, props.state].filter(Boolean).join(', ') || query,
-        // Street-level matches on informal addresses are fuzzy even on a direct hit.
-        approximate: !props.housenumber,
+        point: {
+          lat,
+          lon,
+          matched: [props.name, props.city, props.state].filter(Boolean).join(', ') || query,
+          // Street-level matches on informal addresses are fuzzy even on a direct hit.
+          approximate: !props.housenumber,
+        },
+        failed: false,
       };
     } catch {
-      return null;
+      return FAILED;
     }
   }
 
   private readCache(key: string): GeoPoint | null | undefined {
     try {
-      const raw = sessionStorage.getItem(CACHE_PREFIX + key);
+      const raw = localStorage.getItem(CACHE_PREFIX + key);
       if (raw === null) return undefined;
-      return JSON.parse(raw) as GeoPoint | null;
+      const entry = JSON.parse(raw) as { v: GeoPoint | null; exp: number };
+      if (!(entry.exp > Date.now())) {
+        localStorage.removeItem(CACHE_PREFIX + key);
+        return undefined;
+      }
+      return entry.v;
     } catch {
       return undefined;
     }
@@ -155,7 +179,8 @@ export class GeocodingService {
 
   private writeCache(key: string, point: GeoPoint | null): void {
     try {
-      sessionStorage.setItem(CACHE_PREFIX + key, JSON.stringify(point));
+      const exp = Date.now() + (point ? FOUND_TTL_MS : NOT_FOUND_TTL_MS);
+      localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ v: point, exp }));
     } catch {
       // Private mode or quota: the lookup just repeats next time.
     }

@@ -19,6 +19,12 @@
   overflow: hidden;
   border-radius: inherit;
 }
+.track__map {
+  transition: opacity 0.2s ease;
+}
+.track__map--loading {
+  opacity: 0.55;
+}
 .track__title {
   position: absolute;
   top: 20px;
