@@ -336,6 +336,11 @@
   font-weight: 600;
 }
 
+/* A legend is not a grid item, so the field's gap never reached it and the label sat on the chips. */
+fieldset.field > legend.field__label {
+  margin-bottom: 8px;
+}
+
 .field__label em,
 .field__hint {
   color: var(--dashboard-muted);
