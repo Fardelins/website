@@ -1,4 +1,13 @@
-import { Component, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   solarCheckCircleBoldDuotone,
@@ -7,9 +16,12 @@ import {
   solarDownloadMinimalisticBoldDuotone,
 } from '@ng-icons/solar-icons/bold-duotone';
 import { toPng } from 'html-to-image';
+import { AuthUser } from '@core/auth/auth.models';
 import { HapticsService } from '@core/services/haptics.service';
 import { ToastService } from '@core/services/toast.service';
+import { DeliveryDetail, formatMoney } from '@features/deliveries/deliveries.model';
 import { Transaction } from '@features/profile/profile.service';
+import { RECEIPT_ISSUER } from '../../receipt-issuer';
 import { Logo } from '../logo/logo';
 import { StatusPill } from '../status-pill/status-pill';
 import { TrackingCopy } from '../tracking-copy/tracking-copy';
@@ -35,11 +47,31 @@ export class ReceiptDialog {
   private readonly receiptCard = viewChild<ElementRef<HTMLElement>>('receiptCard');
 
   readonly transaction = input.required<Transaction>();
+  readonly detail = input<DeliveryDetail | null>(null);
+  readonly customer = input<AuthUser | null>(null);
   readonly closed = output<void>();
 
+  protected readonly issuer = RECEIPT_ISSUER;
+  protected readonly buyer = computed(() => {
+    const user = this.customer();
+    if (!user) return null;
+    const name = `${user.firstName} ${user.lastName}`.trim();
+    return name || user.email ? { name, email: user.email, phone: user.phone ?? null } : null;
+  });
+  protected readonly quantity = computed(() => this.detail()?.quantity ?? 1);
+  /** Tax already inside the total, only when the company has set a rate. */
+  protected readonly taxIncluded = computed(() => {
+    const rate = this.issuer.vatRatePercent;
+    const total = this.transaction().amount;
+    if (!rate || !(total > 0)) return null;
+    const net = total / (1 + rate / 100);
+    return { rate, net: formatMoney(net), vat: formatMoney(total - net) };
+  });
+
   protected readonly downloadingReceipt = signal(false);
-  /** One diagonal line through the card's center, the label repeated a few times across it. */
-  protected readonly watermarkRepeats = Array.from({ length: 3 });
+  /** Staggered rows of small repeated text, rotated across the card; rows overshoot so any card height is covered. */
+  protected readonly watermarkRows = Array.from({ length: 44 });
+  protected readonly watermarkText = 'FARDELINS  ·  www.fardelins.com  ·  '.repeat(9);
 
   protected close(): void {
     this.closed.emit();
@@ -73,8 +105,10 @@ export class ReceiptDialog {
     return { type, detail: detail ?? null };
   }
 
-  protected receiptItemLabel(item: Transaction): string {
-    return /delivery/i.test(item.description) ? 'Item' : 'Source';
+  /** Every payment goes through Paystack; the channel (card, bank transfer) is added when BE says. */
+  protected methodLabel(item: Transaction): string {
+    const channel = item.channel?.replace(/[_-]+/g, ' ').toLowerCase();
+    return channel ? `Paystack · ${channel.replace(/^\w/, (c) => c.toUpperCase())}` : 'Paystack';
   }
 
   protected async downloadReceipt(): Promise<void> {
@@ -142,8 +176,8 @@ export class ReceiptDialog {
         : computed.backgroundImage;
     }
 
-    const logo = root.querySelector<HTMLElement>('.receipt__footer-logo');
-    const wordmark = root.querySelector<HTMLElement>('.receipt__footer-wordmark');
+    const logo = root.querySelector<HTMLElement>('.receipt__logo');
+    const wordmark = root.querySelector<HTMLElement>('.receipt__wordmark');
     const watermark = root.querySelector<HTMLElement>('.receipt__watermark');
     const logoDataUrl = logo ? this.buildLogoDataUrl(logo) : null;
     let logoImg: HTMLImageElement | null = null;
@@ -151,7 +185,7 @@ export class ReceiptDialog {
       logoImg = document.createElement('img');
       logoImg.src = logoDataUrl;
       logoImg.alt = 'Fardelins';
-      logoImg.style.height = '22px';
+      logoImg.style.height = '36px';
       logoImg.style.width = 'auto';
       logoImg.style.opacity = getComputedStyle(logo).opacity;
       logo.insertAdjacentElement('afterend', logoImg);

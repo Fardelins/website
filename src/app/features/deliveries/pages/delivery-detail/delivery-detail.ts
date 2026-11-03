@@ -98,6 +98,7 @@ export class DeliveryDetail implements OnDestroy {
   /** The completed payment for this parcel; the Payment section only exists once it is found. */
   protected readonly payment = signal<Transaction | null>(null);
   protected readonly receiptOpen = signal(false);
+  protected readonly customer = computed(() => this.auth.user());
   protected readonly invoiceBusy = signal(false);
 
   protected readonly busy = signal<'pay' | 'cancel' | null>(null);

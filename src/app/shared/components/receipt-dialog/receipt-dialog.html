@@ -17,11 +17,21 @@
       <div class="receipt__body">
         <div class="receipt__watermark" aria-hidden="true" hidden>
           <div class="receipt__watermark-grid">
-            @for (i of watermarkRepeats; track $index) {
-              <span>www.fardelins.com</span>
+            @for (row of watermarkRows; track $index) {
+              <span>{{ watermarkText }}</span>
             }
           </div>
         </div>
+
+        <header class="receipt__brand">
+          <app-logo
+            variant="lockup"
+            class="receipt__logo"
+            [style.height.px]="36"
+            label="Fardelins"
+          />
+          <strong class="receipt__wordmark" hidden>FARDELINS</strong>
+        </header>
 
         <div
           class="receipt__hero"
@@ -43,9 +53,87 @@
         <div class="receipt__divider" aria-hidden="true"></div>
 
         @let parts = receiptParts(item);
+        <div class="receipt__parties">
+          <section class="receipt__party">
+            <h3>Issued by</h3>
+            <p class="receipt__party-name">{{ issuer.name }}</p>
+            @for (line of issuer.address; track $index) {
+              <p>{{ line }}</p>
+            }
+            @if (issuer.taxId) {
+              <p>{{ issuer.taxIdLabel }} {{ issuer.taxId }}</p>
+            }
+            <p>{{ issuer.email }}</p>
+          </section>
+          @if (buyer(); as billTo) {
+            <section class="receipt__party">
+              <h3>Billed to</h3>
+              @if (billTo.name) {
+                <p class="receipt__party-name">{{ billTo.name }}</p>
+              }
+              @if (billTo.email) {
+                <p>{{ billTo.email }}</p>
+              }
+              @if (billTo.phone) {
+                <p>{{ billTo.phone }}</p>
+              }
+            </section>
+          }
+        </div>
+
+        <div class="receipt__divider" aria-hidden="true"></div>
+
+        <div class="receipt__items" role="table" aria-label="What was paid for">
+          <div class="receipt__items-head" role="row">
+            <span role="columnheader">Description</span>
+            <span role="columnheader">Qty</span>
+            <span role="columnheader">Amount</span>
+          </div>
+          <div class="receipt__items-row" role="row">
+            <div role="cell">
+              <strong>{{ parts.type }}</strong>
+              @if (parts.detail ?? detail()?.title; as what) {
+                <span>{{ what }}</span>
+              }
+              @if (detail(); as parcel) {
+                @if (parcel.pickupAddress || parcel.dropOffAddress) {
+                  <span
+                    >{{ parcel.pickupAddress || 'Pickup' }} to
+                    {{ parcel.dropOffAddress || 'drop-off' }}</span
+                  >
+                }
+                @if (parcel.courierName) {
+                  <span>Carried by {{ parcel.courierName }}</span>
+                }
+              }
+            </div>
+            <span role="cell">{{ quantity() }}</span>
+            <span role="cell">{{ item.amountLabel }}</span>
+          </div>
+        </div>
+
+        <dl class="receipt__rows receipt__rows--totals">
+          @if (taxIncluded(); as tax) {
+            <div class="receipt__row">
+              <dt>Total excluding tax</dt>
+              <dd>{{ tax.net }}</dd>
+            </div>
+            <div class="receipt__row">
+              <dt>VAT ({{ tax.rate }}% included)</dt>
+              <dd>{{ tax.vat }}</dd>
+            </div>
+          }
+          <div class="receipt__row receipt__row--total">
+            <dt>Total</dt>
+            <dd>{{ item.amountLabel }}</dd>
+          </div>
+        </dl>
+
+        <div class="receipt__divider" aria-hidden="true"></div>
+
         <dl class="receipt__rows">
           <div class="receipt__row">
-            <dt>Date</dt>
+            <dt>Date paid</dt>
             <dd>{{ item.dateLabel }}</dd>
           </div>
           @if (item.timeLabel) {
@@ -54,23 +142,14 @@
               <dd>{{ item.timeLabel }}</dd>
             </div>
           }
-
-          <div class="receipt__divider receipt__divider--inset" aria-hidden="true"></div>
-
           <div class="receipt__row">
-            <dt>Transaction ID</dt>
+            <dt>Receipt number</dt>
             <dd>{{ item.reference }}</dd>
           </div>
           <div class="receipt__row">
-            <dt>Payment Type</dt>
-            <dd>{{ parts.type }}</dd>
+            <dt>Payment method</dt>
+            <dd>{{ methodLabel(item) }}</dd>
           </div>
-          @if (parts.detail) {
-            <div class="receipt__row receipt__row--wrap">
-              <dt>{{ receiptItemLabel(item) }}</dt>
-              <dd>{{ parts.detail }}</dd>
-            </div>
-          }
           @if (item.trackingId) {
             <div class="receipt__row">
               <dt>Tracking Number</dt>
@@ -84,14 +163,7 @@
         <div class="receipt__divider" aria-hidden="true"></div>
 
         <footer class="receipt__footer">
-          <app-logo
-            variant="lockup"
-            class="receipt__footer-logo"
-            [style.height.px]="22"
-            label="Fardelins"
-          />
-          <strong class="receipt__footer-wordmark" hidden>FARDELINS</strong>
-          <p>Keep this receipt for your records.</p>
+          <p>Keep this receipt for your records. A full invoice is on the parcel page.</p>
         </footer>
       </div>
       <span class="receipt__edge receipt__edge--bottom" aria-hidden="true"></span>

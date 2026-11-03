@@ -412,7 +412,12 @@
     </div>
 
     @if (receiptOpen() && payment(); as paid) {
-      <app-receipt-dialog [transaction]="paid" (closed)="receiptOpen.set(false)" />
+      <app-receipt-dialog
+        [transaction]="paid"
+        [detail]="detail()"
+        [customer]="customer()"
+        (closed)="receiptOpen.set(false)"
+      />
     }
 
     <dialog

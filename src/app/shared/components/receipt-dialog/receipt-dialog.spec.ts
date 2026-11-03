@@ -55,6 +55,42 @@ describe('ReceiptDialog', () => {
     expect(root.textContent).toContain('Download Receipt');
   });
 
+  it('names who issued it and who it is billed to, and what was bought', async () => {
+    fixture = TestBed.createComponent(ReceiptDialog);
+    fixture.componentRef.setInput('transaction', payment());
+    fixture.componentRef.setInput('customer', {
+      id: 'u1',
+      firstName: 'Ada',
+      lastName: 'Obi',
+      email: 'ada@example.com',
+      phone: '+2348012345678',
+      emailVerified: true,
+    });
+    fixture.componentRef.setInput('detail', {
+      title: 'Phone case',
+      quantity: 2,
+      pickupAddress: 'Wuse, Abuja',
+      dropOffAddress: 'Ikeja, Lagos',
+      courierName: 'BlueArrow Logistics',
+    });
+    root = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const text = root.textContent ?? '';
+    expect(text).toContain('Issued by');
+    expect(text).toContain('hello@fardelins.com');
+    expect(text).toContain('Billed to');
+    expect(text).toContain('Ada Obi');
+    expect(text).toContain('ada@example.com');
+    expect(text).toContain('Wuse, Abuja to Ikeja, Lagos');
+    expect(text).toContain('Carried by BlueArrow Logistics');
+    expect(root.querySelector('.receipt__items-row')?.textContent).toContain('2');
+    expect(text).toContain('Payment method');
+    expect(text).toContain('Paystack');
+    expect(text).not.toContain('VAT');
+  });
+
   it('does not say Paid for a payment that has not cleared', async () => {
     await render(payment({ status: 'pending' }));
     expect(root.textContent).toContain('Amount Due');

@@ -77,25 +77,29 @@
   overflow: hidden;
   pointer-events: none;
 }
-/* One line through the card's vertical center, oversized well past the card's own width and
-   rotated, so the repeated labels read edge to edge rather than a single centered stamp; the
-   outer .receipt__watermark clips it back down to the card. */
+/* Fine staggered rows of small text, rotated and oversized so they run edge to edge; the outer
+   .receipt__watermark clips them to the card. Plain text rows because textures break the export. */
 .receipt__watermark-grid {
   position: absolute;
   top: 50%;
   left: 50%;
-  display: flex;
-  align-items: center;
-  gap: 64px;
-  transform: translate(-50%, -50%) rotate(-28deg);
+  display: grid;
+  gap: 22px;
+  width: 190%;
+  transform: translate(-50%, -50%) rotate(-30deg);
 }
 .receipt__watermark-grid span {
   color: var(--dashboard-text);
-  font-family: var(--font-heading);
-  font-size: 18px;
-  font-weight: 700;
+  font-family: var(--font-body);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  line-height: 1;
   white-space: nowrap;
-  opacity: 0.08;
+  opacity: 0.032;
+}
+.receipt__watermark-grid span:nth-child(even) {
+  padding-left: 110px;
 }
 .receipt__hero {
   position: relative;
@@ -203,18 +207,22 @@
   gap: 7px;
   text-align: center;
 }
-.receipt__footer-logo {
-  --logo-ink: var(--dashboard-muted);
-  --logo-accent: var(--dashboard-muted);
-  --logo-word: var(--dashboard-muted);
-  opacity: 0.85;
+.receipt__brand {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 18px;
+}
+.receipt__logo {
+  --logo-ink: var(--dashboard-text);
+  --logo-accent: var(--rail-accent);
+  --logo-word: var(--dashboard-text);
 }
 /* Swapped in only for the PNG export, the logo's nested <svg> can't survive that capture
    technique (see prepareReceiptCapture in the component). No `display` rule here on purpose:
    the [hidden] attribute must stay in control, or it'd render on screen too. */
-.receipt__footer-wordmark {
-  color: var(--dashboard-muted);
-  font-size: 11px;
+.receipt__wordmark {
+  color: var(--dashboard-text);
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.22em;
   opacity: 0.85;
@@ -257,7 +265,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: min(100%, 380px);
+  width: min(100%, 560px);
   gap: 40px;
 }
 .receipt-download {
@@ -326,4 +334,79 @@
 :host-context(.dashboard-motion-off) .receipt,
 :host-context(.dashboard-motion-off) .receipt__hero-icon {
   animation: none;
+}
+
+.receipt__parties {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+  margin: 16px 0;
+}
+@media (max-width: 420px) {
+  .receipt__parties {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.receipt__party h3 {
+  margin: 0 0 4px;
+  color: var(--dashboard-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.receipt__party p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.receipt__party .receipt__party-name {
+  font-weight: 650;
+}
+.receipt__items {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 4px;
+  font-size: 12px;
+}
+.receipt__items-head,
+.receipt__items-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px auto;
+  gap: 12px;
+}
+.receipt__items-head {
+  color: var(--dashboard-muted);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.receipt__items-head span:last-child,
+.receipt__items-row > span:last-child {
+  text-align: right;
+}
+.receipt__items-row > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.receipt__items-row strong {
+  font-weight: 650;
+}
+.receipt__items-row > div span {
+  color: var(--dashboard-muted);
+  overflow-wrap: anywhere;
+}
+.receipt__items-row > span {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.receipt__rows--totals {
+  margin-top: 8px;
+}
+.receipt__row--total dt,
+.receipt__row--total dd {
+  font-size: 13px;
+  font-weight: 700;
 }
