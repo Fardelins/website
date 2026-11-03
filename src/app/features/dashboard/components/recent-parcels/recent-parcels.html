@@ -35,8 +35,8 @@
           @for (parcel of parcels(); track parcel.trackingId; let i = $index) {
             <tr class="row-in" [style.--row-index]="i">
               <td>
-                <strong>{{ parcel.title }}</strong
-                ><span>{{ parcel.trackingId }}</span>
+                <strong>{{ parcel.title }}</strong>
+                <app-tracking-copy class="recent-card__tracking" [trackingId]="parcel.trackingId" />
               </td>
               <td>{{ parcel.dropOff ?? 'Destination pending' }}</td>
               <td><app-status-pill [status]="parcel.status" /></td>

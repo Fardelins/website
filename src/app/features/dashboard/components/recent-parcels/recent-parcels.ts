@@ -8,10 +8,11 @@ import {
 } from '@ng-icons/solar-icons/bold-duotone';
 import { DeliverySummary } from '@features/deliveries/deliveries.model';
 import { StatusPill } from '@shared/components/status-pill/status-pill';
+import { TrackingCopy } from '@shared/components/tracking-copy/tracking-copy';
 
 @Component({
   selector: 'app-recent-parcels',
-  imports: [EmptyState, RouterLink, NgIcon, StatusPill],
+  imports: [EmptyState, RouterLink, NgIcon, StatusPill, TrackingCopy],
   viewProviders: [provideIcons({ solarArrowRightBoldDuotone, solarBoxBoldDuotone })],
   templateUrl: './recent-parcels.html',
   styleUrl: './recent-parcels.css',

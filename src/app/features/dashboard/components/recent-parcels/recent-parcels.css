@@ -119,6 +119,13 @@ td strong {
 td span {
   font-size: 10px;
 }
+.recent-card__tracking {
+  --tracking-copy-color: var(--dashboard-muted);
+  --tracking-copy-icon-size: 11px;
+  --tracking-copy-min-height: 18px;
+  display: flex;
+  font-size: 10px;
+}
 td:last-child,
 th:last-child {
   width: 58px;

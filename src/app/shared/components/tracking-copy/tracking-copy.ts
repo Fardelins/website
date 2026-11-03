@@ -46,13 +46,36 @@ export class TrackingCopy {
 
   protected async copy(): Promise<void> {
     this.haptics.selection();
+    const text = this.trackingId();
+    const done = (await this.writeClipboard(text)) || this.copyWithSelection(text);
+    this.copied.set(done);
+    clearTimeout(this.resetTimer);
+    if (done) this.resetTimer = setTimeout(() => this.copied.set(false), COPIED_RESET_MS);
+  }
+
+  private async writeClipboard(text: string): Promise<boolean> {
     try {
-      await navigator.clipboard.writeText(this.trackingId());
-      this.copied.set(true);
-      clearTimeout(this.resetTimer);
-      this.resetTimer = setTimeout(() => this.copied.set(false), COPIED_RESET_MS);
+      await navigator.clipboard.writeText(text);
+      return true;
     } catch {
-      this.copied.set(false);
+      return false;
+    }
+  }
+
+  /** Pages without the async clipboard (a non-secure address, older Safari) still copy this way. */
+  private copyWithSelection(text: string): boolean {
+    const field = document.createElement('textarea');
+    field.value = text;
+    field.setAttribute('readonly', '');
+    field.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.append(field);
+    field.select();
+    try {
+      return document.execCommand('copy');
+    } catch {
+      return false;
+    } finally {
+      field.remove();
     }
   }
 }

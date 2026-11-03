@@ -352,11 +352,29 @@
   padding: 12px 20px 20px;
 }
 .parcel {
+  position: relative;
   min-height: 82px;
   padding: 13px 22px;
   color: inherit;
   text-decoration: none;
   transition: background 160ms ease;
+}
+.parcel__cover {
+  position: absolute;
+  inset: 0;
+}
+.parcel__cover:focus-visible {
+  outline: 3px solid var(--dashboard-focus);
+  outline-offset: -3px;
+}
+.parcel__tracking {
+  --tracking-copy-color: var(--dashboard-muted);
+  --tracking-copy-icon-size: 12px;
+  --tracking-copy-min-height: 20px;
+  position: relative;
+  justify-self: start;
+  max-width: 100%;
+  font-size: 11px;
 }
 .parcel:hover {
   background: color-mix(in srgb, var(--color-primary-500) 4%, var(--dashboard-card));

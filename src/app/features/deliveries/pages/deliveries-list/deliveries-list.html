@@ -123,7 +123,12 @@
         <ul class="parcel-list">
           @for (item of paged(); track item.trackingId) {
             <li>
-              <a class="parcel parcel--desktop" [routerLink]="['/app/deliveries', item.trackingId]">
+              <div class="parcel parcel--desktop">
+                <a
+                  class="parcel__cover"
+                  [routerLink]="['/app/deliveries', item.trackingId]"
+                  [attr.aria-label]="'Open ' + item.title"
+                ></a>
                 <span class="parcel__identity">
                   <span class="parcel__thumb" aria-hidden="true">
                     @if (item.imageUrl) {
@@ -137,10 +142,10 @@
                       />
                     }
                   </span>
-                  <span class="parcel__name"
-                    ><strong>{{ item.title }}</strong
-                    ><span>{{ item.trackingId }}</span></span
-                  >
+                  <span class="parcel__name">
+                    <strong>{{ item.title }}</strong>
+                    <app-tracking-copy class="parcel__tracking" [trackingId]="item.trackingId" />
+                  </span>
                 </span>
                 <span class="parcel__destination"
                   ><small>Destination</small><strong>{{ item.receiverName || 'Recipient' }}</strong
@@ -160,7 +165,7 @@
                   name="solarAltArrowRightBoldDuotone"
                   aria-hidden="true"
                 />
-              </a>
+              </div>
               <article class="mobile-parcel">
                 <a
                   class="mobile-parcel__thumb"

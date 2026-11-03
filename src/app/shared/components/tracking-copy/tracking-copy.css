@@ -37,6 +37,8 @@
 }
 
 .tracking-copy__text {
+  -webkit-user-select: text;
+  user-select: text;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
